@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mangrove Guardian - EVI Cipasilin Multi Tahun</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+  <!-- Leaflet JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+
+  <style>
+    /* [KEEP ALL EXISTING CSS] */
+    :root{
+      --mg-green:#0a5c36;
+      --mg-green-light:#1a7d4e;
+      --mg-green-dark:#064527;
+      --panel:rgba(255,255,255,0.95);
+      --muted:#51606a;
+      --navbar-height: 60px; 
+    }
+    
+    *{box-sizing:border-box; margin:0; padding:0;}
+    
+    html,body{height:100%; margin:0; font-family:'Segoe UI', system-ui, sans-serif; color:#15302a;}
+    body{background:#f8f9fa;}
+    #map{flex:1; z-index:1;}
+
+    .topbar{
+      height: var(--navbar-height);
+      padding:0 20px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      background:var(--mg-green);
+      color:#fff;
+      position:sticky;
+      top:0;
+      z-index:1500;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      border-bottom: 1px solid var(--mg-green-dark);
+    }
+    
+    .brand{
+      font-weight:600;
+      font-size:20px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .app{
+      height:calc(100vh - var(--navbar-height));
+      position:relative;
+      display:flex;
+    }
+
+    .search-row-container{
+      position:absolute;
+      top:20px;
+      left:50%;
+      transform:translateX(-50%);
+      z-index:1300;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:8px;
+      width:90%;
+      max-width:700px;
+    }
+    
+    .search-row{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      width:100%;
+    }
+    
+    .search-box{
+      display:flex;
+      align-items:center;
+      background:var(--panel);
+      padding:8px 16px;
+      border-radius:8px;
+      box-shadow:0 2px 8px rgba(0,0,0,0.1);
+      width:100%;
+      border:1px solid #e1e5e9;
+      flex:1;
+    }
+    
+    .search-box input{
+      border:0;
+      outline:none;
+      padding:8px;
+      font-size:14px;
+      background:transparent;
+      flex:1;
+    }
+    
+    .search-box button{
+      background:var(--mg-green);
+      border:0;
+      color:#fff;
+      padding:8px 16px;
+      border-radius:6px;
+      cursor:pointer;
+      font-weight:600;
+      font-size:14px;
+    }
+    
+    .action-btn{
+      background:var(--mg-green);
+      color:#fff;
+      border-radius:8px;
+      padding:10px 16px;
+      border:none;
+      cursor:pointer;
+      font-weight:600;
+      font-size:14px;
+      white-space:nowrap;
+    }
+
+    .stats-toggle-btn {
+      background:var(--mg-green);
+      border:none;
+      padding:10px 14px;
+      border-radius:6px;
+      color:white;
+      cursor:pointer;
+      font-size:16px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      box-shadow:0 2px 6px rgba(0,0,0,0.1);
+      transition:all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .comparison-btn {
+      background: #8B4513;
+      border:none;
+      padding:10px 14px;
+      border-radius:6px;
+      color:white;
+      cursor:pointer;
+      font-size:16px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      box-shadow:0 2px 6px rgba(0,0,0,0.1);
+      transition:all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .stats-panel {
+      position: absolute;
+      left: 80px;
+      top: 120px;
+      z-index: 1300;
+      background: var(--panel);
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      border: 1px solid #e1e5e9;
+      width: 300px;
+      max-height: 75vh;
+      overflow-y: auto;
+    }
+
+    /* Modal Perbandingan */
+    .comparison-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 800px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .year-checkboxes {
+      display: flex;
+      gap: 15px;
+      margin: 15px 0;
+      flex-wrap: wrap;
+    }
+
+    .year-checkboxes label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+    }
+
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .comparison-map {
+      height: 300px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    .close-modal {
+      float: right;
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    /* Tampilan Dual Map */
+    .dual-map-container {
+      display: none;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      height: 100vh;
+      position: relative;
+    }
+
+    .dual-map {
+      height: 100%;
+      border: 2px solid var(--mg-green);
+    }
+
+    .dual-map-label {
+      position: absolute;
+      top: 10px;
+      background: var(--mg-green);
+      color: white;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 14px;
+      z-index: 1000;
+    }
+
+    .dual-map-label.left {
+      left: 10px;
+    }
+
+    .dual-map-label.right {
+      right: 10px;
+    }
+
+    .back-to-single {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--mg-green);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="brand">
+      <span>🌿 MangroveGuardian - EVI Cipasilin Multi Tahun</span>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div class="app">
+    <!-- Tampilan Peta Tunggal (Default) -->
+    <div id="map" class="single-map"></div>
+
+    <!-- Tampilan Dual Map (Hidden Default) -->
+    <div class="dual-map-container" id="dualMapContainer">
+      <div class="dual-map" id="mapLeft"></div>
+      <div class="dual-map" id="mapRight"></div>
+      <div class="dual-map-label left" id="labelLeft">Tahun 2021</div>
+      <div class="dual-map-label right" id="labelRight">Tahun 2022</div>
+      <button class="back-to-single" id="backToSingle">Kembali ke Peta Tunggal</button>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-row-container">
+      <div class="search-row">
+        <button class="stats-toggle-btn" id="statsToggle">
+          📊 Statistik
+        </button>
+
+        <div class="search-box">
+          <input id="searchInput" placeholder="Cari lokasi..." />
+          <button id="doSearch">Cari</button>
+        </div>
+
+        <button class="comparison-btn" id="comparisonToggle">
+          🔄 Bandingkan
+        </button>
+
+        <button class="action-btn" id="dualViewBtn">
+          🗺️ Dual View
+        </button>
+      </div>
+    </div>
+
+    <!-- Statistics Panel -->
+    <div class="stats-panel" id="statsPanel">
+      <div class="stats-header">
+        <span id="statsTitle">📊 Statistik EVI</span>
+        <button class="stats-close" id="statsClose">✕</button>
+      </div>
+      
+      <div class="year-comparison">
+        <div class="year-comparison-title">Pilih Tahun:</div>
+        <div class="year-buttons">
+          <button class="year-btn active" data-year="2020">2020</button>
+          <button class="year-btn" data-year="2021">2021</button>
+          <button class="year-btn" data-year="2022">2022</button>
+          <button class="year-btn" data-year="2023">2023</button>
+        </div>
+      </div>
+
+      <div class="stat-item">
+        <span>Total Luasan:</span>
+        <span class="stat-value" id="totalLuas">-</span>
+      </div>
+      <div class="stat-item">
+        <span>Jumlah Poligon:</span>
+        <span class="stat-value" id="jumlahPoligon">-</span>
+      </div>
+    </div>
+
+    <!-- Modal Perbandingan -->
+    <div class="comparison-modal" id="comparisonModal">
+      <div class="modal-content">
+        <button class="close-modal" id="closeModal">✕</button>
+        <h3>🔄 Perbandingan Multi Tahun</h3>
+        
+        <div class="year-checkboxes">
+          <label><input type="checkbox" data-year="2020"> 2020</label>
+          <label><input type="checkbox" data-year="2021" checked> 2021</label>
+          <label><input type="checkbox" data-year="2022" checked> 2022</label>
+          <label><input type="checkbox" data-year="2023"> 2023</label>
+        </div>
+
+        <button class="action-btn" id="generateComparison">
+          📈 Generate Perbandingan
+        </button>
+
+        <div class="comparison-grid" id="comparisonResults">
+          <!-- Hasil perbandingan akan muncul di sini -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==================== KONFIGURASI DATA ====================
+    const dataSources = {
+      '2020': 'https://raw.githubusercontent.com/your-username/mangrove-data/main/evi_2020.geojson',
+      '2021': 'https://raw.githubusercontent.com/your-username/mangrove-data/main/evi_2021.geojson',
+      '2022': 'https://raw.githubusercontent.com/your-username/mangrove-data/main/evi_2022.geojson',
+      '2023': 'https://raw.githubusercontent.com/your-username/mangrove-data/main/evi_2023.geojson'
+    };
+
+    // Fallback data jika external file tidak ada
+    const fallbackData = {
+      '2020': { "type": "FeatureCollection", "features": [] },
+      '2021': { "type": "FeatureCollection", "features": [] },
+      '2022': { "type": "FeatureCollection", "features": [] },
+      '2023': { "type": "FeatureCollection", "features": [] }
+    };
+
+    // ==================== VARIABEL GLOBAL ====================
+    let currentMap = L.map('map').setView([-6.037, 106.444], 14);
+    let currentGeoJSONLayer = null;
+    let currentYear = '2021';
+    let mapLeft, mapRight;
+
+    // Inisialisasi base map
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(currentMap);
+
+    // ==================== FUNGSI UTAMA ====================
+    async function loadDataByYear(tahun) {
+      try {
+        console.log(`Memuat data untuk tahun ${tahun}...`);
+        
+        // Coba load dari external file
+        const response = await fetch(dataSources[tahun]);
+        if (!response.ok) throw new Error('File tidak ditemukan');
+        
+        const data = await response.json();
+        displayDataOnMap(data, tahun);
+        
+      } catch (error) {
+        console.warn(`Gagal load data external untuk ${tahun}, menggunakan fallback data`);
+        
+        // Gunakan fallback data atau data default
+        const fallback = await loadFallbackData(tahun);
+        displayDataOnMap(fallback, tahun);
+      }
+    }
+
+    function displayDataOnMap(data, tahun) {
+      // Hapus layer sebelumnya
+      if (currentGeoJSONLayer) {
+        currentMap.removeLayer(currentGeoJSONLayer);
+      }
+
+      // Style function
+      function getStyle(feature) {
+        const gridcode = feature.properties.gridcode || 1;
+        const colors = {
+          1: '#ffffcc', 2: '#c2e699', 3: '#78c679', 
+          4: '#31a354', 5: '#006837', 6: '#004529'
+        };
+        
+        return {
+          fillColor: colors[gridcode] || '#808080',
+          color: colors[gridcode] || '#808080',
+          weight: 2,
+          opacity: 0.8,
+          fillOpacity: 0.7
+        };
+      }
+
+      // Tambahkan layer baru
+      currentGeoJSONLayer = L.geoJSON(data, {
+        style: getStyle,
+        onEachFeature: function(feature, layer) {
+          const props = feature.properties;
+          const popupContent = `
+            <div>
+              <h4>EVI Cipasilin ${tahun}</h4>
+              <p><strong>Kerapatan:</strong> ${getDensityLabel(props.gridcode)}</p>
+              <p><strong>Luasan:</strong> ${props.luasan || 'N/A'} ha</p>
+              <p><strong>EVI Value:</strong> ${props.evi_value || 'N/A'}</p>
+            </div>
+          `;
+          layer.bindPopup(popupContent);
+        }
+      }).addTo(currentMap);
+
+      // Update statistik
+      updateStatistics(data, tahun);
+      currentYear = tahun;
+    }
+
+    function getDensityLabel(gridcode) {
+      const labels = {
+        1: 'Sangat Rendah', 2: 'Rendah', 3: 'Sedang-Rendah',
+        4: 'Sedang', 5: 'Tinggi', 6: 'Sangat Tinggi'
+      };
+      return labels[gridcode] || 'Tidak Diketahui';
+    }
+
+    function updateStatistics(data, tahun) {
+      const totalLuas = data.features.reduce((sum, feature) => {
+        return sum + (feature.properties.luasan || 0);
+      }, 0);
+
+      document.getElementById('totalLuas').textContent = totalLuas.toFixed(2) + ' ha';
+      document.getElementById('jumlahPoligon').textContent = data.features.length;
+      document.getElementById('statsTitle').textContent = `📊 Statistik EVI ${tahun}`;
+    }
+
+    // ==================== FITUR PERBANDINGAN ====================
+    document.getElementById('comparisonToggle').addEventListener('click', function() {
+      document.getElementById('comparisonModal').style.display = 'flex';
+    });
+
+    document.getElementById('closeModal').addEventListener('click', function() {
+      document.getElementById('comparisonModal').style.display = 'none';
+    });
+
+    document.getElementById('generateComparison').addEventListener('click', async function() {
+      const selectedYears = Array.from(document.querySelectorAll('.year-checkboxes input:checked'))
+        .map(checkbox => checkbox.getAttribute('data-year'));
+      
+      if (selectedYears.length === 0) {
+        alert('Pilih minimal satu tahun!');
+        return;
+      }
+
+      await generateComparison(selectedYears);
+    });
+
+    async function generateComparison(years) {
+      const resultsContainer = document.getElementById('comparisonResults');
+      resultsContainer.innerHTML = '<p>Memuat data perbandingan...</p>';
+
+      let comparisonHTML = '';
+      
+      for (const year of years) {
+        try {
+          const data = await loadYearData(year);
+          const stats = calculateYearStats(data, year);
+          
+          comparisonHTML += `
+            <div class="comparison-year">
+              <h4>📊 ${year}</h4>
+              <p>Total Luasan: ${stats.totalLuas} ha</p>
+              <p>Jumlah Poligon: ${stats.polygonCount}</p>
+              <p>EVI Rata-rata: ${stats.avgEVI}</p>
+              <div class="comparison-map" id="map${year}"></div>
+            </div>
+          `;
+        } catch (error) {
+          comparisonHTML += `<div class="comparison-year">
+            <h4>❌ ${year}</h4>
+            <p>Gagal memuat data</p>
+          </div>`;
+        }
+      }
+
+      resultsContainer.innerHTML = comparisonHTML;
+    }
+
+    // ==================== DUAL VIEW ====================
+    document.getElementById('dualViewBtn').addEventListener('click', function() {
+      showDualView('2021', '2022');
+    });
+
+    document.getElementById('backToSingle').addEventListener('click', function() {
+      document.getElementById('dualMapContainer').style.display = 'none';
+      document.getElementById('map').style.display = 'block';
+    });
+
+    function showDualView(year1, year2) {
+      // Sembunyikan peta tunggal
+      document.getElementById('map').style.display = 'none';
+      
+      // Tampilkan dual map
+      const dualContainer = document.getElementById('dualMapContainer');
+      dualContainer.style.display = 'grid';
+      
+      // Inisialisasi peta kiri
+      mapLeft = L.map('mapLeft').setView([-6.037, 106.444], 14);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapLeft);
+      
+      // Inisialisasi peta kanan  
+      mapRight = L.map('mapRight').setView([-6.037, 106.444], 14);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapRight);
+      
+      // Update labels
+      document.getElementById('labelLeft').textContent = `Tahun ${year1}`;
+      document.getElementById('labelRight').textContent = `Tahun ${year2}`;
+      
+      // Load data untuk masing-masing peta
+      loadDataToDualMap(mapLeft, year1, '#ff6b6b');
+      loadDataToDualMap(mapRight, year2, '#4ecdc4');
+    }
+
+    async function loadDataToDualMap(map, tahun, color) {
+      try {
+        const data = await loadYearData(tahun);
+        
+        L.geoJSON(data, {
+          style: {
+            fillColor: color,
+            color: color,
+            weight: 2,
+            opacity: 0.8,
+            fillOpacity: 0.5
+          }
+        }).addTo(map);
+        
+      } catch (error) {
+        console.error(`Gagal load data untuk peta ${tahun}:`, error);
+      }
+    }
+
+    // ==================== HELPER FUNCTIONS ====================
+    async function loadYearData(tahun) {
+      try {
+        const response = await fetch(dataSources[tahun]);
+        if (!response.ok) throw new Error('File tidak ditemukan');
+        return await response.json();
+      } catch (error) {
+        return fallbackData[tahun];
+      }
+    }
+
+    function loadFallbackData(tahun) {
+      // Return sample data untuk demo
+      return Promise.resolve({
+        "type": "FeatureCollection",
+        "features": [
+          {
+            "type": "Feature",
+            "properties": {
+              "gridcode": Math.floor(Math.random() * 6) + 1,
+              "luasan": (Math.random() * 5 + 1).toFixed(2),
+              "evi_value": (Math.random() * 0.7 + 0.1).toFixed(3)
+            },
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [[
+                [106.444 + Math.random() * 0.01, -6.037 + Math.random() * 0.01],
+                [106.444 + Math.random() * 0.01, -6.037 + Math.random() * 0.01],
+                [106.444 + Math.random() * 0.01, -6.037 + Math.random() * 0.01],
+                [106.444 + Math.random() * 0.01, -6.037 + Math.random() * 0.01]
+              ]]
+            }
+          }
+        ]
+      });
+    }
+
+    function calculateYearStats(data, tahun) {
+      const totalLuas = data.features.reduce((sum, feature) => 
+        sum + parseFloat(feature.properties.luasan || 0), 0
+      );
+      
+      const avgEVI = data.features.reduce((sum, feature) => 
+        sum + parseFloat(feature.properties.evi_value || 0), 0
+      ) / data.features.length;
+      
+      return {
+        totalLuas: totalLuas.toFixed(2),
+        polygonCount: data.features.length,
+        avgEVI: avgEVI.toFixed(3)
+      };
+    }
+
+    // ==================== EVENT LISTENERS ====================
+    document.querySelectorAll('.year-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const tahun = this.getAttribute('data-year');
+        document.querySelectorAll('.year-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        loadDataByYear(tahun);
+      });
+    });
+
+    // ==================== INISIALISASI ====================
+    document.addEventListener('DOMContentLoaded', function() {
+      // Load data tahun default
+      loadDataByYear('2021');
+    });
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pengaturan - Mangrove Guardian</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Oxanium:wght@200;300;400;500;600;700;800&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        /* ========================================================= */
+        /* --- 1. VARIABEL WARNA (GAMING THEME) --- */
+        /* ========================================================= */
+        :root {
+            --primary: #00ff88;
+            --primary-dark: #00cc6a;
+            --primary-light: #66ffaa;
+            --secondary: #0066ff;
+            --accent: #ff00ff;
+            --accent-dark: #cc00cc;
+            --dark: #0a0a1a;
+            --darker: #050510;
+            --light: #e6f7ff;
+            --text: #ffffff;
+            --text-muted: #a0a0c0;
+            --neon-glow: 0 0 10px var(--primary), 0 0 20px var(--primary), 0 0 30px var(--primary);
+            --neon-glow-accent: 0 0 10px var(--accent), 0 0 20px var(--accent), 0 0 30px var(--accent);
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --navbar-height: 70px;
+        }
+        
+        /* Tema Gelap (Mode Gaming) */
+        .dark-mode {
+            --dark: #121212;
+            --darker: #050510;
+            --text: #ffffff;
+            --text-muted: #a0a0c0;
+        }
+
+        /* ========================================================= */
+        /* --- 2. BASE STYLES --- */
+        /* ========================================================= */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Oxanium', sans-serif;
+            background-color: var(--darker);
+            color: var(--text);
+            transition: background-color 0.5s, color 0.5s;
+            margin: 0;
+            padding-top: var(--navbar-height);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(0, 102, 255, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(255, 0, 255, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 50% 50%, rgba(0, 255, 136, 0.05) 0%, transparent 50%);
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* ========================================================= */
+        /* --- 3. NAVBAR (GAMING STYLE) --- */
+        /* ========================================================= */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            height: var(--navbar-height);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            background-color: rgba(10, 10, 26, 0.9);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            transition: var(--transition);
+            border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+        }
+
+        .navbar .logo {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            letter-spacing: 0.5px;
+            text-shadow: var(--neon-glow);
+        }
+
+        .navbar .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .navbar .nav-links a {
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 500;
+            position: relative;
+            padding: 0.5rem 0;
+            transition: var(--transition);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.1rem;
+        }
+
+        .navbar .nav-links a:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary);
+            box-shadow: var(--neon-glow);
+            transition: var(--transition);
+        }
+
+        .navbar .nav-links a:hover {
+            color: var(--primary);
+            text-shadow: var(--neon-glow);
+        }
+
+        .navbar .nav-links a:hover:after {
+            width: 100%;
+        }
+
+        .nav-cta {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: var(--dark);
+            padding: 0.7rem 1.5rem;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 700;
+            transition: var(--transition);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .nav-cta:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.8);
+        }
+        
+        /* ========================================================= */
+        /* --- 4. SETTINGS CONTENT (GAMING STYLE) --- */
+        /* ========================================================= */
+        .content-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 40px 20px;
+            min-height: calc(100vh - var(--navbar-height));
+        }
+        
+        .settings-container {
+            width: 100%;
+            max-width: 800px;
+            background-color: rgba(10, 10, 26, 0.8);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            transition: var(--transition);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .settings-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+        }
+
+        h2 {
+            color: var(--primary);
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+            font-weight: 700;
+            font-size: 2em;
+            text-shadow: var(--neon-glow);
+            border-bottom: 2px solid rgba(0, 255, 136, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .setting-card {
+            background: rgba(20, 20, 40, 0.7);
+            border-radius: 10px;
+            padding: 25px;
+            border: 1px solid rgba(0, 255, 136, 0.1);
+            transition: var(--transition);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .setting-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 0 15px rgba(0, 255, 136, 0.2);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+
+        .setting-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .setting-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(0, 255, 136, 0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--primary);
+            border: 2px solid rgba(0, 255, 136, 0.3);
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+        }
+
+        .setting-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: var(--text);
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .setting-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Toggle Switch Gaming Style */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .toggle-label {
+            font-size: 1.1em;
+            color: var(--text-muted);
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        .gaming-toggle {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+
+        .gaming-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .gaming-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #333;
+            transition: .4s;
+            border-radius: 34px;
+            border: 2px solid rgba(0, 255, 136, 0.3);
+        }
+
+        .gaming-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 2px;
+            bottom: 2px;
+            background-color: var(--text-muted);
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .gaming-slider {
+            background-color: var(--primary);
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+
+        input:checked + .gaming-slider:before {
+            transform: translateX(30px);
+            background-color: var(--dark);
+        }
+
+        /* Select Gaming Style */
+        .gaming-select {
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: 2px solid rgba(0, 102, 255, 0.3);
+            background-color: rgba(10, 10, 26, 0.8);
+            color: var(--text);
+            font-size: 1em;
+            cursor: pointer;
+            transition: var(--transition);
+            min-width: 200px;
+            font-family: 'Rajdhani', sans-serif;
+            box-shadow: 0 0 10px rgba(0, 102, 255, 0.2);
+        }
+
+        .gaming-select:focus {
+            outline: none;
+            border: 2px solid var(--secondary);
+            box-shadow: 0 0 15px rgba(0, 102, 255, 0.5);
+        }
+
+        /* Button Gaming Style */
+        .gaming-button {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: var(--dark);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .gaming-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.7);
+        }
+
+        .gaming-button.secondary {
+            background: linear-gradient(135deg, var(--secondary), #0055cc);
+        }
+
+        .gaming-button.secondary:hover {
+            box-shadow: 0 0 20px rgba(0, 102, 255, 0.7);
+        }
+
+        .gaming-button.danger {
+            background: linear-gradient(135deg, #ff3366, #cc0044);
+        }
+
+        .gaming-button.danger:hover {
+            box-shadow: 0 0 20px rgba(255, 51, 102, 0.7);
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+            gap: 20px;
+        }
+
+        /* Volume Slider */
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .volume-slider {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 8px;
+            border-radius: 4px;
+            background: #333;
+            outline: none;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+
+        .volume-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+
+        /* Floating Particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: rgba(0, 255, 136, 0.5);
+            border-radius: 50%;
+            animation: float-particle 15s infinite linear;
+        }
+
+        @keyframes float-particle {
+            0% {
+                transform: translateY(100vh) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) translateX(20px);
+                opacity: 0;
+            }
+        }
+
+        /* ========================================================= */
+        /* --- 5. RESPONSIVE STYLES --- */
+        /* ========================================================= */
+        @media (max-width: 768px) {
+            .navbar .nav-links {
+                display: none;
+            }
+            
+            .settings-container {
+                padding: 25px;
+            }
+            
+            .setting-controls {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .gaming-select {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="backgroundMusic" loop>
+        <source src="https://assets.mixkit.co/music/preview/mixkit-game-show-suspense-waiting-667.mp3" type="audio/mpeg">
+    </audio>
+
+    <nav class="navbar">
+        <a href="#" class="logo">
+            <i class="fas fa-tree"></i> MangroveGuardian
+        </a>
+        
+        <ul class="nav-links">
+            <li><a href="indeks.html">Beranda</a></li>
+            <li><a href="game.html">Game</a></li>
+            <li><a href="leaderboard.html">Peringkat</a></li>
+            <li><a href="profil.html">Profil</a></li>
+        </ul>
+        
+        <a href="game.html" class="nav-cta">Main Sekarang</a>
+    </nav>
+
+    <div class="content-wrapper">
+        <div class="settings-container">
+            <h2><i class="fa-solid fa-gear"></i> PENGATURAN GAME</h2>
+            
+            <div class="settings-grid">
+                <!-- Tampilan -->
+                <div class="setting-card">
+                    <div class="setting-header">
+                        <div class="setting-icon">
+                            <i class="fa-solid fa-palette"></i>
+                        </div>
+                        <div class="setting-title">TAMPILAN</div>
+                    </div>
+                    <div class="setting-controls">
+                        <div class="toggle-container">
+                            <span class="toggle-label">Mode Gelap</span>
+                            <label class="gaming-toggle">
+                                <input type="checkbox" id="darkModeToggle">
+                                <span class="gaming-slider"></span>
+                            </label>
+                        </div>
+                        <select class="gaming-select" id="themeSelect">
+                            <option value="default">Tema Default</option>
+                            <option value="forest">Hutan Mangrove</option>
+                            <option value="ocean">Lautan Biru</option>
+                            <option value="cyber">Cyber Neon</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Audio -->
+                <div class="setting-card">
+                    <div class="setting-header">
+                        <div class="setting-icon">
+                            <i class="fa-solid fa-volume-high"></i>
+                        </div>
+                        <div class="setting-title">AUDIO</div>
+                    </div>
+                    <div class="setting-controls">
+                        <div class="toggle-container">
+                            <span class="toggle-label">Musik Latar</span>
+                            <label class="gaming-toggle">
+                                <input type="checkbox" id="musicToggle" checked>
+                                <span class="gaming-slider"></span>
+                            </label>
+                        </div>
+                        <div class="volume-control">
+                            <i class="fa-solid fa-volume-low"></i>
+                            <input type="range" min="0" max="100" value="70" class="volume-slider" id="volumeSlider">
+                            <i class="fa-solid fa-volume-high"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Bahasa -->
+                <div class="setting-card">
+                    <div class="setting-header">
+                        <div class="setting-icon">
+                            <i class="fa-solid fa-language"></i>
+                        </div>
+                        <div class="setting-title">BAHASA</div>
+                    </div>
+                    <div class="setting-controls">
+                        <span class="toggle-label">Pilih Bahasa</span>
+                        <select class="gaming-select" id="languageSelect">
+                            <option value="id">Bahasa Indonesia</option>
+                            <option value="en">English</option>
+                            <option value="jp">日本語</option>
+                            <option value="kr">한국어</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Notifikasi -->
+                <div class="setting-card">
+                    <div class="setting-header">
+                        <div class="setting-icon">
+                            <i class="fa-solid fa-bell"></i>
+                        </div>
+                        <div class="setting-title">NOTIFIKASI</div>
+                    </div>
+                    <div class="setting-controls">
+                        <div class="toggle-container">
+                            <span class="toggle-label">Notifikasi Game</span>
+                            <label class="gaming-toggle">
+                                <input type="checkbox" id="notifToggle" checked>
+                                <span class="gaming-slider"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-container">
+                            <span class="toggle-label">Notifikasi Event</span>
+                            <label class="gaming-toggle">
+                                <input type="checkbox" id="eventNotifToggle" checked>
+                                <span class="gaming-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Kontrol Game -->
+                <div class="setting-card">
+                    <div class="setting-header">
+                        <div class="setting-icon">
+                            <i class="fa-solid fa-gamepad"></i>
+                        </div>
+                        <div class="setting-title">KONTROL GAME</div>
+                    </div>
+                    <div class="setting-controls">
+                        <select class="gaming-select" id="controlScheme">
+                            <option value="keyboard">Keyboard</option>
+                            <option value="mouse">Mouse</option>
+                            <option value="touch">Touch Screen</option>
+                            <option value="gamepad">Gamepad</option>
+                        </select>
+                        <div class="toggle-container">
+                            <span class="toggle-label">Getar</span>
+                            <label class="gaming-toggle">
+                                <input type="checkbox" id="vibrationToggle">
+                                <span class="gaming-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="gaming-button secondary" id="resetButton">
+                    <i class="fa-solid fa-rotate-left"></i> Reset Pengaturan
+                </button>
+                <button class="gaming-button" id="saveButton">
+                    <i class="fa-solid fa-floppy-disk"></i> Simpan Perubahan
+                </button>
+                <a href="indeks.html" class="gaming-button danger">
+                    <i class="fa-solid fa-circle-xmark"></i> Tutup
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Particles -->
+    <div class="particles" id="particles"></div>
+
+    <script>
+        // =========================================================
+        // --- ELEMENTS & VARIABLES ---
+        // =========================================================
+        const body = document.body;
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const musicToggle = document.getElementById('musicToggle');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const languageSelect = document.getElementById('languageSelect');
+        const themeSelect = document.getElementById('themeSelect');
+        const controlScheme = document.getElementById('controlScheme');
+        const notifToggle = document.getElementById('notifToggle');
+        const eventNotifToggle = document.getElementById('eventNotifToggle');
+        const vibrationToggle = document.getElementById('vibrationToggle');
+        const saveButton = document.getElementById('saveButton');
+        const resetButton = document.getElementById('resetButton');
+        const music = document.getElementById('backgroundMusic');
+
+        // =========================================================
+        // --- FUNGSI UTILITAS ---
+        // =========================================================
+        
+        // Buat partikel floating
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 20;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                const left = Math.random() * 100;
+                const size = Math.random() * 6 + 4;
+                const duration = Math.random() * 20 + 10;
+                const delay = Math.random() * 5;
+                
+                particle.style.left = `${left}%`;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.animationDuration = `${duration}s`;
+                particle.style.animationDelay = `${delay}s`;
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Simpan pengaturan ke localStorage
+        function saveSettings() {
+            const settings = {
+                darkMode: darkModeToggle.checked,
+                musicEnabled: musicToggle.checked,
+                volume: volumeSlider.value,
+                language: languageSelect.value,
+                theme: themeSelect.value,
+                controlScheme: controlScheme.value,
+                notifications: notifToggle.checked,
+                eventNotifications: eventNotifToggle.checked,
+                vibration: vibrationToggle.checked
+            };
+            
+            localStorage.setItem('gameSettings', JSON.stringify(settings));
+            
+            // Tampilkan konfirmasi
+            alert('Pengaturan berhasil disimpan!');
+        }
+
+        // Muat pengaturan dari localStorage
+        function loadSettings() {
+            const savedSettings = localStorage.getItem('gameSettings');
+            
+            if (savedSettings) {
+                const settings = JSON.parse(savedSettings);
+                
+                darkModeToggle.checked = settings.darkMode || false;
+                musicToggle.checked = settings.musicEnabled !== false;
+                volumeSlider.value = settings.volume || 70;
+                languageSelect.value = settings.language || 'id';
+                themeSelect.value = settings.theme || 'default';
+                controlScheme.value = settings.controlScheme || 'keyboard';
+                notifToggle.checked = settings.notifications !== false;
+                eventNotifToggle.checked = settings.eventNotifications !== false;
+                vibrationToggle.checked = settings.vibration || false;
+                
+                // Terapkan pengaturan yang dimuat
+                applyDarkMode();
+                applyMusicSettings();
+            }
+        }
+
+        // Reset pengaturan ke default
+        function resetSettings() {
+            if (confirm('Apakah Anda yakin ingin mengembalikan pengaturan ke default?')) {
+                darkModeToggle.checked = false;
+                musicToggle.checked = true;
+                volumeSlider.value = 70;
+                languageSelect.value = 'id';
+                themeSelect.value = 'default';
+                controlScheme.value = 'keyboard';
+                notifToggle.checked = true;
+                eventNotifToggle.checked = true;
+                vibrationToggle.checked = false;
+                
+                // Terapkan reset
+                applyDarkMode();
+                applyMusicSettings();
+                
+                alert('Pengaturan telah direset ke default!');
+            }
+        }
+
+        // =========================================================
+        // --- FUNGSI APLIKASI PENGATURAN ---
+        // =========================================================
+        
+        // Terapkan mode gelap/terang
+        function applyDarkMode() {
+            if (darkModeToggle.checked) {
+                body.classList.add('dark-mode');
+            } else {
+                body.classList.remove('dark-mode');
+            }
+        }
+
+        // Terapkan pengaturan musik
+        function applyMusicSettings() {
+            music.volume = volumeSlider.value / 100;
+            
+            if (musicToggle.checked) {
+                music.play().catch(e => {
+                    console.log("Autoplay diblokir oleh browser");
+                });
+            } else {
+                music.pause();
+            }
+        }
+
+        // =========================================================
+        // --- EVENT LISTENERS ---
+        // =========================================================
+        
+        // Mode gelap
+        darkModeToggle.addEventListener('change', applyDarkMode);
+        
+        // Pengaturan audio
+        musicToggle.addEventListener('change', applyMusicSettings);
+        volumeSlider.addEventListener('input', applyMusicSettings);
+        
+        // Tombol aksi
+        saveButton.addEventListener('click', saveSettings);
+        resetButton.addEventListener('click', resetSettings);
+
+        // =========================================================
+        // --- INISIALISASI ---
+        // =========================================================
+        document.addEventListener('DOMContentLoaded', () => {
+            createParticles();
+            loadSettings();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Misi Lapangan - Mangrove Guardian</title>
+    <style>
+        /* VARIABLES - MODERN GAME THEME */
+        :root {
+            --neon-green: #00ff88;
+            --neon-blue: #00ccff;
+            --neon-purple: #aa00ff;
+            --neon-orange: #ffaa00;
+            --neon-pink: #ff00aa;
+            --dark-bg: #0a0a1a;
+            --darker-bg: #050510;
+            --panel-bg: rgba(16, 16, 32, 0.95);
+            --text-glow: 0 0 10px currentColor;
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(0, 255, 136, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(0, 204, 255, 0.1) 0%, transparent 50%),
+                linear-gradient(135deg, var(--darker-bg) 0%, var(--dark-bg) 50%, #0a1520 100%);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* MODERN NAVBAR */
+        .navbar {
+            background: var(--panel-bg);
+            backdrop-filter: blur(20px);
+            border-bottom: 2px solid var(--neon-green);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.4em;
+            font-weight: 800;
+            background: linear-gradient(45deg, var(--neon-green), var(--neon-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 25px;
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--neon-green);
+            background: var(--glass-bg);
+        }
+
+        .nav-link.active {
+            color: var(--neon-green);
+            background: var(--glass-bg);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+        }
+
+        /* ANIMATED HERO SECTION */
+        .hero {
+            position: relative;
+            height: 70vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(10, 10, 26, 0.9) 0%, rgba(5, 5, 16, 0.95) 100%);
+        }
+
+        .hero-content {
+            text-align: center;
+            z-index: 2;
+            position: relative;
+            padding: 0 20px;
+        }
+
+        .hero-title {
+            font-size: 4em;
+            font-weight: 800;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, var(--neon-green), var(--neon-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: var(--text-glow);
+            animation: titleGlow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes titleGlow {
+            0% { text-shadow: 0 0 20px rgba(0, 255, 136, 0.5); }
+            100% { text-shadow: 0 0 30px rgba(0, 204, 255, 0.8), 0 0 40px rgba(0, 204, 255, 0.4); }
+        }
+
+        .hero-subtitle {
+            font-size: 1.5em;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 30px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .mission-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--glass-bg);
+            border: 1px solid var(--neon-green);
+            border-radius: 25px;
+            padding: 12px 25px;
+            font-weight: 600;
+            color: var(--neon-green);
+            backdrop-filter: blur(10px);
+            animation: pulse 2s infinite;
+        }
+
+        /* MANGROVE ANIMATION */
+        .mangrove-scene {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40%;
+            z-index: 1;
+        }
+
+        .water {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 60%;
+            background: linear-gradient(to top, rgba(0, 100, 200, 0.3), rgba(0, 150, 255, 0.1));
+            animation: waterFlow 6s ease-in-out infinite alternate;
+        }
+
+        @keyframes waterFlow {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(-10px); }
+        }
+
+        .mangrove-plant {
+            position: absolute;
+            bottom: 60%;
+            animation: growTree 4s ease-out forwards;
+            opacity: 0;
+        }
+
+        .mangrove-plant-1 { left: 20%; animation-delay: 0.5s; }
+        .mangrove-plant-2 { left: 40%; animation-delay: 1s; }
+        .mangrove-plant-3 { left: 60%; animation-delay: 1.5s; }
+        .mangrove-plant-4 { left: 80%; animation-delay: 2s; }
+
+        @keyframes growTree {
+            0% { 
+                transform: scaleY(0); 
+                opacity: 0;
+                bottom: 60%;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% { 
+                transform: scaleY(1); 
+                opacity: 1;
+                bottom: 60%;
+            }
+        }
+
+        .tree-trunk {
+            position: relative;
+            width: 8px;
+            height: 120px;
+            background: linear-gradient(to right, #8B4513, #A0522D);
+            margin: 0 auto;
+            border-radius: 4px 4px 0 0;
+        }
+
+        .tree-roots {
+            position: absolute;
+            bottom: -15px;
+            width: 40px;
+            height: 20px;
+            background: #5D4037;
+            border-radius: 50%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .tree-canopy {
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 80px;
+            background: radial-gradient(ellipse at center, #00ff88 0%, #006400 70%);
+            border-radius: 50% 50% 40% 40%;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+        }
+
+        .floating-leaf {
+            position: absolute;
+            width: 12px;
+            height: 8px;
+            background: var(--neon-green);
+            border-radius: 50% 50% 50% 0;
+            opacity: 0;
+            animation: floatLeaf 5s linear infinite;
+        }
+
+        .leaf-1 { top: 10%; left: 10%; animation-delay: 0s; }
+        .leaf-2 { top: 20%; left: 80%; animation-delay: 1s; }
+        .leaf-3 { top: 40%; left: 30%; animation-delay: 2s; }
+        .leaf-4 { top: 60%; left: 70%; animation-delay: 3s; }
+        .leaf-5 { top: 30%; left: 50%; animation-delay: 4s; }
+
+        @keyframes floatLeaf {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* BUBBLES ANIMATION */
+        .bubble {
+            position: absolute;
+            bottom: 60%;
+            width: 8px;
+            height: 8px;
+            background: rgba(0, 204, 255, 0.6);
+            border-radius: 50%;
+            opacity: 0;
+            animation: bubbleFloat 4s ease-in infinite;
+        }
+
+        .bubble-1 { left: 15%; animation-delay: 0.5s; }
+        .bubble-2 { left: 35%; animation-delay: 1.2s; }
+        .bubble-3 { left: 55%; animation-delay: 2s; }
+        .bubble-4 { left: 75%; animation-delay: 2.8s; }
+        .bubble-5 { left: 95%; animation-delay: 3.5s; }
+
+        @keyframes bubbleFloat {
+            0% {
+                transform: translateY(0) scale(0.5);
+                opacity: 0;
+            }
+            20% {
+                opacity: 1;
+            }
+            80% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-80px) scale(1.2);
+                opacity: 0;
+            }
+        }
+
+        /* VOLUNTEER CHARACTERS */
+        .volunteer {
+            position: absolute;
+            bottom: 60%;
+            opacity: 0;
+            animation: volunteerAppear 1s ease-out forwards;
+        }
+
+        .volunteer-1 { left: 25%; animation-delay: 2.5s; }
+        .volunteer-2 { left: 50%; animation-delay: 3s; }
+        .volunteer-3 { left: 75%; animation-delay: 3.5s; }
+
+        @keyframes volunteerAppear {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .volunteer-body {
+            width: 20px;
+            height: 30px;
+            background: #4A90E2;
+            border-radius: 10px 10px 0 0;
+            position: relative;
+        }
+
+        .volunteer-head {
+            width: 16px;
+            height: 16px;
+            background: #FFD700;
+            border-radius: 50%;
+            position: absolute;
+            top: -8px;
+            left: 2px;
+        }
+
+        .volunteer-arm {
+            position: absolute;
+            width: 12px;
+            height: 4px;
+            background: #4A90E2;
+            top: 8px;
+            animation: volunteerAction 2s ease-in-out infinite;
+        }
+
+        .arm-left {
+            left: -10px;
+            transform-origin: right center;
+        }
+
+        .arm-right {
+            right: -10px;
+            transform-origin: left center;
+        }
+
+        @keyframes volunteerAction {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(-15deg); }
+        }
+
+        /* MAIN CONTAINER */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* LOCATION SELECTION - MODERN GRID */
+        .section-title {
+            text-align: center;
+            font-size: 2.5em;
+            font-weight: 800;
+            margin-bottom: 50px;
+            color: var(--neon-purple);
+            text-shadow: var(--text-glow);
+        }
+
+        .locations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .location-card {
+            background: var(--panel-bg);
+            border: 2px solid;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.4s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .location-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.6s;
+        }
+
+        .location-card:hover::before {
+            left: 100%;
+        }
+
+        .location-card.panjang {
+            border-color: var(--neon-green);
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.2);
+        }
+
+        .location-card.karangantu {
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 30px rgba(0, 204, 255, 0.2);
+        }
+
+        .location-card.potong {
+            border-color: var(--neon-orange);
+            box-shadow: 0 0 30px rgba(255, 170, 0, 0.2);
+        }
+
+        .location-card:hover {
+            transform: translateY(-10px) scale(1.02);
+        }
+
+        .location-card.panjang:hover {
+            box-shadow: 0 15px 40px rgba(0, 255, 136, 0.4);
+        }
+
+        .location-card.karangantu:hover {
+            box-shadow: 0 15px 40px rgba(0, 204, 255, 0.4);
+        }
+
+        .location-card.potong:hover {
+            box-shadow: 0 15px 40px rgba(255, 170, 0, 0.4);
+        }
+
+        .location-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 20px currentColor);
+        }
+
+        .location-card.panjang .location-icon { color: var(--neon-green); }
+        .location-card.karangantu .location-icon { color: var(--neon-blue); }
+        .location-card.potong .location-icon { color: var(--neon-orange); }
+
+        .location-name {
+            font-size: 1.8em;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .location-status {
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+
+        .status-open { background: var(--neon-green); color: black; }
+        .status-limited { background: var(--neon-orange); color: black; }
+
+        .location-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        .stat-item {
+            background: var(--glass-bg);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.4em;
+            font-weight: 800;
+            color: var(--neon-green);
+            text-shadow: var(--text-glow);
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 5px;
+        }
+
+        .select-btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .location-card.panjang .select-btn {
+            background: linear-gradient(45deg, var(--neon-green), var(--neon-blue));
+            color: black;
+        }
+
+        .location-card.karangantu .select-btn {
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
+            color: white;
+        }
+
+        .location-card.potong .select-btn {
+            background: linear-gradient(45deg, var(--neon-orange), #ff6b00);
+            color: black;
+        }
+
+        .select-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px currentColor;
+        }
+
+        /* SCHEDULE SECTION */
+        .schedule-section {
+            background: var(--panel-bg);
+            border: 2px solid var(--neon-purple);
+            border-radius: 20px;
+            padding: 40px;
+            margin: 50px 0;
+            box-shadow: 0 0 40px rgba(170, 0, 255, 0.2);
+        }
+
+        .schedule-title {
+            font-size: 2em;
+            color: var(--neon-purple);
+            margin-bottom: 30px;
+            text-align: center;
+            text-shadow: var(--text-glow);
+        }
+
+        .schedule-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .schedule-item {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            padding: 25px;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .schedule-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(10px);
+        }
+
+        .schedule-info {
+            flex: 1;
+        }
+
+        .schedule-date {
+            font-size: 1.2em;
+            font-weight: 700;
+            color: var(--neon-green);
+            margin-bottom: 8px;
+            text-shadow: var(--text-glow);
+        }
+
+        .schedule-activity {
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            color: white;
+        }
+
+        .schedule-meta {
+            display: flex;
+            gap: 20px;
+            font-size: 0.9em;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .join-btn {
+            background: linear-gradient(45deg, var(--neon-green), var(--neon-blue));
+            color: black;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 25px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .join-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.4);
+        }
+
+        /* REGISTRATION FORM */
+        .registration-section {
+            background: var(--panel-bg);
+            border: 2px solid var(--neon-green);
+            border-radius: 20px;
+            padding: 40px;
+            margin: 50px 0;
+            box-shadow: 0 0 40px rgba(0, 255, 136, 0.2);
+        }
+
+        .form-title {
+            font-size: 2em;
+            color: var(--neon-green);
+            margin-bottom: 30px;
+            text-align: center;
+            text-shadow: var(--text-glow);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            color: var(--neon-blue);
+            font-weight: 600;
+            font-size: 0.9em;
+            letter-spacing: 0.5px;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            background: var(--glass-bg);
+            border: 2px solid var(--glass-border);
+            border-radius: 10px;
+            padding: 15px;
+            color: white;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--neon-green);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .submit-btn {
+            grid-column: 1 / -1;
+            background: linear-gradient(45deg, var(--neon-green), var(--neon-blue));
+            color: black;
+            border: none;
+            border-radius: 12px;
+            padding: 18px;
+            font-size: 1.2em;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 255, 136, 0.4);
+        }
+
+        /* EQUIPMENT SECTION */
+        .equipment-section {
+            background: var(--panel-bg);
+            border: 2px solid var(--neon-orange);
+            border-radius: 20px;
+            padding: 40px;
+            margin: 50px 0;
+            box-shadow: 0 0 40px rgba(255, 170, 0, 0.2);
+        }
+
+        .equipment-title {
+            font-size: 2em;
+            color: var(--neon-orange);
+            margin-bottom: 30px;
+            text-align: center;
+            text-shadow: var(--text-glow);
+        }
+
+        .equipment-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .equipment-category {
+            background: var(--glass-bg);
+            border-radius: 15px;
+            padding: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .equipment-category:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(255, 170, 0, 0.3);
+        }
+
+        .category-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: var(--neon-orange);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .equipment-list {
+            list-style: none;
+        }
+
+        .equipment-item {
+            padding: 10px 0;
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .equipment-item:last-child {
+            border-bottom: none;
+        }
+
+        .equipment-item::before {
+            content: '✓';
+            color: var(--neon-green);
+            font-weight: bold;
+        }
+
+        /* VIDEO SECTION */
+        .video-section {
+            background: var(--panel-bg);
+            border: 2px solid var(--neon-pink);
+            border-radius: 20px;
+            padding: 40px;
+            margin: 50px 0;
+            box-shadow: 0 0 40px rgba(255, 0, 170, 0.2);
+        }
+
+        .video-title {
+            font-size: 2em;
+            color: var(--neon-pink);
+            margin-bottom: 30px;
+            text-align: center;
+            text-shadow: var(--text-glow);
+        }
+
+        .video-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .video-player {
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .video-player:hover {
+            transform: scale(1.02);
+            box-shadow: 0 15px 40px rgba(255, 0, 170, 0.4);
+        }
+
+        .video-frame {
+            width: 100%;
+            height: 280px;
+            border: none;
+            border-radius: 15px;
+            background: var(--darker-bg);
+        }
+
+        .video-info {
+            padding: 20px;
+            background: var(--glass-bg);
+            border-radius: 0 0 15px 15px;
+        }
+
+        .video-name {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: white;
+        }
+
+        .video-description {
+            font-size: 0.9em;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.5;
+        }
+
+        .video-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .video-btn {
+            background: var(--glass-bg);
+            border: 2px solid var(--neon-pink);
+            color: var(--neon-pink);
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .video-btn:hover {
+            background: var(--neon-pink);
+            color: black;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(255, 0, 170, 0.4);
+        }
+
+        /* FOOTER */
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: rgba(255, 255, 255, 0.5);
+            border-top: 1px solid var(--glass-border);
+            margin-top: 50px;
+        }
+
+        /* ANIMATIONS */
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 15px;
+                padding: 15px 20px;
+            }
+
+            .nav-menu {
+                gap: 15px;
+            }
+
+            .hero-title {
+                font-size: 2.5em;
+            }
+
+            .hero-subtitle {
+                font-size: 1.2em;
+            }
+
+            .locations-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .schedule-item {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .schedule-meta {
+                justify-content: center;
+            }
+
+            .equipment-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .video-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Modern Navbar -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <span>🌿</span>
+            <span>Mangrove Guardian</span>
+        </div>
+        <div class="nav-menu">
+            <a href="peta1.html" class="nav-link">Peta Utama</a>
+            <a href="indeks.html" class="nav-link">Volunteer Online</a>
+            <a href="openvolunter.html" class="nav-link activz">Volunteer Offline</a>
+            <a href="indeks.html" class="nav-link">Dashboard</a>
+            <a href="login.html" class="nav-link">Login</a>
+        </div>
+    </nav>
+
+    <!-- Animated Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1 class="hero-title">Misi Lapangan Banten</h1>
+            <p class="hero-subtitle">Bergabunglah dalam aksi nyata konservasi mangrove langsung di lokasi penanaman</p>
+            <div class="mission-badge">
+                <span>⭐</span>
+                <span>Dapatkan XP & Achievement</span>
+            </div>
+        </div>
+        
+        <!-- Mangrove Animation Scene -->
+        <div class="mangrove-scene">
+            <div class="water"></div>
+            
+            <!-- Mangrove Plants -->
+            <div class="mangrove-plant mangrove-plant-1">
+                <div class="tree-canopy"></div>
+                <div class="tree-trunk">
+                    <div class="tree-roots"></div>
+                </div>
+            </div>
+            <div class="mangrove-plant mangrove-plant-2">
+                <div class="tree-canopy"></div>
+                <div class="tree-trunk">
+                    <div class="tree-roots"></div>
+                </div>
+            </div>
+            <div class="mangrove-plant mangrove-plant-3">
+                <div class="tree-canopy"></div>
+                <div class="tree-trunk">
+                    <div class="tree-roots"></div>
+                </div>
+            </div>
+            <div class="mangrove-plant mangrove-plant-4">
+                <div class="tree-canopy"></div>
+                <div class="tree-trunk">
+                    <div class="tree-roots"></div>
+                </div>
+            </div>
+            
+            <!-- Floating Leaves -->
+            <div class="floating-leaf leaf-1"></div>
+            <div class="floating-leaf leaf-2"></div>
+            <div class="floating-leaf leaf-3"></div>
+            <div class="floating-leaf leaf-4"></div>
+            <div class="floating-leaf leaf-5"></div>
+            
+            <!-- Bubbles -->
+            <div class="bubble bubble-1"></div>
+            <div class="bubble bubble-2"></div>
+            <div class="bubble bubble-3"></div>
+            <div class="bubble bubble-4"></div>
+            <div class="bubble bubble-5"></div>
+            
+            <!-- Volunteer Characters -->
+            <div class="volunteer volunteer-1">
+                <div class="volunteer-head"></div>
+                <div class="volunteer-body">
+                    <div class="volunteer-arm arm-left"></div>
+                    <div class="volunteer-arm arm-right"></div>
+                </div>
+            </div>
+            <div class="volunteer volunteer-2">
+                <div class="volunteer-head"></div>
+                <div class="volunteer-body">
+                    <div class="volunteer-arm arm-left"></div>
+                    <div class="volunteer-arm arm-right"></div>
+                </div>
+            </div>
+            <div class="volunteer volunteer-3">
+                <div class="volunteer-head"></div>
+                <div class="volunteer-body">
+                    <div class="volunteer-arm arm-left"></div>
+                    <div class="volunteer-arm arm-right"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="container">
+        <!-- Location Selection -->
+        <section class="location-selection">
+            <h2 class="section-title">PILIH LOKASI PENANAMAN</h2>
+            <div class="locations-grid">
+                <!-- Pulau Panjang -->
+                <div class="location-card panjang">
+                    <div class="location-icon">🏝️</div>
+                    <h3 class="location-name">Pulau Panjang</h3>
+                    <div class="location-status status-open">Buka Pendaftaran</div>
+                    <div class="location-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">500+</div>
+                            <div class="stat-label">Bibit Tertanam</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">85%</div>
+                            <div class="stat-label">Tingkat Hidup</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">150+</div>
+                            <div class="stat-label">Relawan</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">2 Ha</div>
+                            <div class="stat-label">Area</div>
+                        </div>
+                    </div>
+                    <button class="select-btn" onclick="selectLocation('panjang')">
+                        Pilih Lokasi Ini
+                    </button>
+                </div>
+
+                <!-- Karangantu -->
+                <div class="location-card karangantu">
+                    <div class="location-icon">🌊</div>
+                    <h3 class="location-name">Karangantu</h3>
+                    <div class="location-status status-limited">Kuota Terbatas</div>
+                    <div class="location-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">750+</div>
+                            <div class="stat-label">Bibit Tertanam</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">78%</div>
+                            <div class="stat-label">Tingkat Hidup</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">200+</div>
+                            <div class="stat-label">Relawan</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">3 Ha</div>
+                            <div class="stat-label">Area</div>
+                        </div>
+                    </div>
+                    <button class="select-btn" onclick="selectLocation('karangantu')">
+                        Pilih Lokasi Ini
+                    </button>
+                </div>
+
+                <!-- Potong -->
+                <div class="location-card potong">
+                    <div class="location-icon">🌴</div>
+                    <h3 class="location-name">Potong</h3>
+                    <div class="location-status status-open">Buka Pendaftaran</div>
+                    <div class="location-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">250+</div>
+                            <div class="stat-label">Bibit Tertanam</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">92%</div>
+                            <div class="stat-label">Tingkat Hidup</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">80+</div>
+                            <div class="stat-label">Relawan</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">1.5 Ha</div>
+                            <div class="stat-label">Area</div>
+                        </div>
+                    </div>
+                    <button class="select-btn" onclick="selectLocation('potong')">
+                        Pilih Lokasi Ini
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Schedule Section -->
+        <section class="schedule-section">
+            <h2 class="schedule-title">📅 JADWAL KEGIATAN</h2>
+            <div class="schedule-grid">
+                <div class="schedule-item">
+                    <div class="schedule-info">
+                        <div class="schedule-date">Sabtu, 20 Januari 2024</div>
+                        <div class="schedule-activity">Penanaman Massal 500 Bibit Mangrove - Pulau Panjang</div>
+                        <div class="schedule-meta">
+                            <span>⏰ 07:00 - 12:00 WIB</span>
+                            <span>👥 Kuota: 15/50</span>
+                            <span>⭐ Reward: 300 XP</span>
+                        </div>
+                    </div>
+                    <button class="join-btn" onclick="joinSchedule('panjang')">
+                        Gabung
+                    </button>
+                </div>
+
+                <div class="schedule-item">
+                    <div class="schedule-info">
+                        <div class="schedule-date">Minggu, 28 Januari 2024</div>
+                        <div class="schedule-activity">Pemeliharaan & Monitoring - Karangantu</div>
+                        <div class="schedule-meta">
+                            <span>⏰ 08:00 - 14:00 WIB</span>
+                            <span>👥 Kuota: 8/30</span>
+                            <span>⭐ Reward: 250 XP</span>
+                        </div>
+                    </div>
+                    <button class="join-btn" onclick="joinSchedule('karangantu')">
+                        Gabung
+                    </button>
+                </div>
+
+                <div class="schedule-item">
+                    <div class="schedule-info">
+                        <div class="schedule-date">Sabtu, 3 Februari 2024</div>
+                        <div class="schedule-activity">Pembibitan & Edukasi - Potong</div>
+                        <div class="schedule-meta">
+                            <span>⏰ 07:30 - 13:00 WIB</span>
+                            <span>👥 Kuota: 12/40</span>
+                            <span>⭐ Reward: 200 XP</span>
+                        </div>
+                    </div>
+                    <button class="join-btn" onclick="joinSchedule('potong')">
+                        Gabung
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Registration Form -->
+        <section class="registration-section">
+            <h2 class="form-title">📝 FORM PENDAFTARAN</h2>
+            <form class="form-grid" id="registrationForm">
+                <div class="form-group">
+                    <label class="form-label">Nama Lengkap</label>
+                    <input type="text" class="form-input" required placeholder="Masukkan nama lengkap">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-input" required placeholder="email@contoh.com">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Nomor WhatsApp</label>
+                    <input type="tel" class="form-input" required placeholder="08xxxxxxxxxx">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Lokasi Pilihan</label>
+                    <select class="form-select" required id="locationSelect">
+                        <option value="">Pilih lokasi</option>
+                        <option value="panjang">Pulau Panjang</option>
+                        <option value="karangantu">Karangantu</option>
+                        <option value="potong">Potong</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Jadwal</label>
+                    <select class="form-select" required id="scheduleSelect">
+                        <option value="">Pilih jadwal</option>
+                        <option value="jan20">Sabtu, 20 Jan - Pulau Panjang</option>
+                        <option value="jan28">Minggu, 28 Jan - Karangantu</option>
+                        <option value="feb3">Sabtu, 3 Feb - Potong</option>
+                    </select>
+                </div>
+                
+                <div class="form-group full-width">
+                    <label class="form-label">Pengalaman Relawan (jika ada)</label>
+                    <textarea class="form-textarea" placeholder="Ceritakan pengalaman volunteer sebelumnya..."></textarea>
+                </div>
+                
+                <div class="form-group full-width">
+                    <label class="form-label">Alasan Bergabung</label>
+                    <textarea class="form-textarea" required placeholder="Apa yang membuat Anda tertarik bergabung?"></textarea>
+                </div>
+                
+                <button type="submit" class="submit-btn pulse">
+                    🚀 Daftar Sekarang
+                </button>
+            </form>
+        </section>
+
+        <!-- Equipment Section -->
+        <section class="equipment-section">
+            <h2 class="equipment-title">🎒 BARANG YANG HARUS DIBAWA</h2>
+            <div class="equipment-grid">
+                <div class="equipment-category">
+                    <h3 class="category-title">👕 Pakaian</h3>
+                    <ul class="equipment-list">
+                        <li class="equipment-item">Baju lengan panjang (warna cerah)</li>
+                        <li class="equipment-item">Celana panjang bahan nyaman</li>
+                        <li class="equipment-item">Topi lapangan/topi rimba</li>
+                        <li class="equipment-item">Sepatu boots atau sepatu anti air</li>
+                        <li class="equipment-item">Kaos kaki tambahan</li>
+                    </ul>
+                </div>
+
+                <div class="equipment-category">
+                    <h3 class="category-title">🧤 Perlengkapan</h3>
+                    <ul class="equipment-list">
+                        <li class="equipment-item">Sarung tangan kerja</li>
+                        <li class="equipment-item">Botol minum (min. 1L)</li>
+                        <li class="equipment-item">Tas ransel tahan air</li>
+                        <li class="equipment-item">Handuk kecil</li>
+                        <li class="equipment-item">Pisau kecil/multitool</li>
+                    </ul>
+                </div>
+
+                <div class="equipment-category">
+                    <h3 class="category-title">🧴 Perlindungan</h3>
+                    <ul class="equipment-list">
+                        <li class="equipment-item">Sunblock SPF 30+</li>
+                        <li class="equipment-item">Losion anti nyamuk</li>
+                        <li class="equipment-item">Obat pribadi (jika perlu)</li>
+                        <li class="equipment-item">P3K kecil pribadi</li>
+                        <li class="equipment-item">Masker cadangan</li>
+                    </ul>
+                </div>
+
+                <div class="equipment-category">
+                    <h3 class="category-title">📱 Lainnya</h3>
+                    <ul class="equipment-list">
+                        <li class="equipment-item">HP dengan baterai penuh</li>
+                        <li class="equipment-item">Power bank</li>
+                        <li class="equipment-item">Kamera (opsional)</li>
+                        <li class="equipment-item">Notebook & pulpen</li>
+                        <li class="equipment-item">Snack/energi bar</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Video Section -->
+        <section class="video-section">
+            <h2 class="video-title">🎥 VIDEO EDUKASI MANGROVE</h2>
+            <div class="video-container">
+                <div class="video-player">
+                    <iframe class="video-frame" src="https://www.youtube.com/embed/XePJsf-parU" 
+                            frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen></iframe>
+                    <div class="video-info">
+                        <h3 class="video-name">Teknik Penanaman Mangrove yang Benar</h3>
+                        <p class="video-description">Pelajari cara menanam bibit mangrove dengan teknik yang tepat untuk memastikan tingkat hidup yang tinggi.</p>
+                    </div>
+                </div>
+
+                <div class="video-player">
+                    <iframe class="video-frame" src="https://www.youtube.com/embed/Wj4NX5icR9U" 
+                            frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen></iframe>
+                    <div class="video-info">
+                        <h3 class="video-name">Manfaat Ekosistem Mangrove</h3>
+                        <p class="video-description">Temukan berbagai manfaat mangrove bagi lingkungan, ekonomi, dan masyarakat pesisir.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="video-controls">
+                <button class="video-btn" onclick="changeVideo(0)">Video 1</button>
+                <button class="video-btn" onclick="changeVideo(1)">Video 2</button>
+                <button class="video-btn" onclick="changeVideo(2)">Video 3</button>
+                <button class="video-btn" onclick="changeVideo(3)">Video 4</button>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>© 2024 Mangrove Guardian - Volunteer Offline Banten</p>
+            <p style="margin-top: 10px; font-size: 0.9em;">
+                Aksi nyata untuk konservasi mangrove Indonesia
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // Video data - Ganti dengan video ID YouTube yang sebenarnya
+        const videoData = [
+            {
+                id: "VIDEO_ID_1",
+                title: "Teknik Penanaman Mangrove yang Benar",
+                description: "Pelajari cara menanam bibit mangrove dengan teknik yang tepat untuk memastikan tingkat hidup yang tinggi."
+            },
+            {
+                id: "VIDEO_ID_2", 
+                title: "Manfaat Ekosistem Mangrove",
+                description: "Temukan berbagai manfaat mangrove bagi lingkungan, ekonomi, dan masyarakat pesisir."
+            },
+            {
+                id: "VIDEO_ID_3",
+                title: "Pemeliharaan Bibit Mangrove",
+                description: "Panduan lengkap untuk merawat bibit mangrove setelah penanaman agar tumbuh optimal."
+            },
+            {
+                id: "VIDEO_ID_4",
+                title: "Konservasi Mangrove di Banten",
+                description: "Lihat aksi nyata konservasi mangrove yang telah dilakukan di berbagai lokasi di Banten."
+            }
+        ];
+
+        let currentVideos = [0, 1]; // Indeks video yang sedang ditampilkan
+
+        // Function to change videos
+        function changeVideo(index) {
+            // Update current videos array
+            currentVideos = [index, (index + 1) % videoData.length];
+            
+            // Update video frames
+            const videoFrames = document.querySelectorAll('.video-frame');
+            const videoInfos = document.querySelectorAll('.video-info');
+            
+            videoFrames[0].src = `https://www.youtube.com/embed/${videoData[currentVideos[0]].id}?autoplay=1&mute=1`;
+            videoFrames[1].src = `https://www.youtube.com/embed/${videoData[currentVideos[1]].id}?autoplay=1&mute=1`;
+            
+            videoInfos[0].querySelector('.video-name').textContent = videoData[currentVideos[0]].title;
+            videoInfos[0].querySelector('.video-description').textContent = videoData[currentVideos[0]].description;
+            
+            videoInfos[1].querySelector('.video-name').textContent = videoData[currentVideos[1]].title;
+            videoInfos[1].querySelector('.video-description').textContent = videoData[currentVideos[1]].description;
+            
+            showNotification(`Video diganti ke: ${videoData[currentVideos[0]].title}`, 'success');
+        }
+
+        // Location Selection
+        let selectedLocation = '';
+        
+        function selectLocation(location) {
+            selectedLocation = location;
+            
+            // Visual feedback
+            const buttons = document.querySelectorAll('.select-btn');
+            buttons.forEach(btn => {
+                btn.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    btn.style.transform = 'scale(1)';
+                }, 150);
+            });
+            
+            // Update form selection
+            document.getElementById('locationSelect').value = location;
+            
+            const locationNames = {
+                'panjang': 'Pulau Panjang',
+                'karangantu': 'Karangantu',
+                'potong': 'Potong'
+            };
+            
+            showNotification(`Lokasi dipilih: ${locationNames[location]}`, 'success');
+        }
+
+        // Join Schedule
+        function joinSchedule(location) {
+            const scheduleNames = {
+                'panjang': 'Sabtu, 20 Jan - Pulau Panjang',
+                'karangantu': 'Minggu, 28 Jan - Karangantu', 
+                'potong': 'Sabtu, 3 Feb - Potong'
+            };
+            
+            // Update form selections
+            document.getElementById('locationSelect').value = location;
+            document.getElementById('scheduleSelect').value = 
+                location === 'panjang' ? 'jan20' : 
+                location === 'karangantu' ? 'jan28' : 'feb3';
+            
+            showNotification(`Jadwal dipilih: ${scheduleNames[location]}`, 'success');
+            
+            // Scroll to form
+            document.getElementById('registrationForm').scrollIntoView({ 
+                behavior: 'smooth' 
+            });
+        }
+
+        // Form Submission
+        document.getElementById('registrationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = this.querySelector('input[type="text"]').value;
+            const location = this.querySelector('#locationSelect').value;
+            const schedule = this.querySelector('#scheduleSelect').value;
+            
+            if (!location || !schedule) {
+                showNotification('Silakan pilih lokasi dan jadwal terlebih dahulu!', 'error');
+                return;
+            }
+            
+            // Show loading state
+            const submitBtn = this.querySelector('.submit-btn');
+            const originalText = submitBtn.innerHTML;
+            
+            submitBtn.innerHTML = '⏳ Memproses...';
+            submitBtn.disabled = true;
+            
+            // Simulate API call
+            setTimeout(() => {
+                submitBtn.innerHTML = '✅ Pendaftaran Berhasil!';
+                submitBtn.style.background = 'linear-gradient(45deg, var(--neon-green), #00cc6a)';
+                
+                setTimeout(() => {
+                    showNotification(
+                        `Pendaftaran berhasil! ${name} telah terdaftar untuk kegiatan di ${getLocationName(location)}. Tim kami akan menghubungi via WhatsApp.`,
+                        'success'
+                    );
+                    
+                    // Reset form
+                    this.reset();
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                    submitBtn.style.background = 'linear-gradient(45deg, var(--neon-green), var(--neon-blue))';
+                    
+                }, 1000);
+                
+            }, 2000);
+        });
+
+        // Helper Functions
+        function getLocationName(location) {
+            const locations = {
+                'panjang': 'Pulau Panjang',
+                'karangantu': 'Karangantu',
+                'potong': 'Potong'
+            };
+            return locations[location] || location;
+        }
+
+        function showNotification(message, type) {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? 'var(--neon-green)' : 'var(--neon-pink)'};
+                color: black;
+                padding: 15px 20px;
+                border-radius: 10px;
+                font-weight: 600;
+                z-index: 10000;
+                transform: translateX(400px);
+                transition: transform 0.3s ease;
+                max-width: 300px;
+            `;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+            
+            // Remove after 5 seconds
+            setTimeout(() => {
+                notification.style.transform = 'translateX(400px)';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 5000);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Volunteer Offline Banten - Ready!');
+        });
+    </script>
+</body>
+</html>

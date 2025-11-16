@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mangrove Guardian - Species Scanner</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Oxanium:wght@200;300;400;500;600;700;800&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <style>
+        /* ========================================================= */
+        /* --- 1. VARIABEL WARNA (GAMING THEME) --- */
+        /* ========================================================= */
+        :root {
+            --primary: #00ff88;
+            --primary-dark: #00cc6a;
+            --primary-light: #66ffaa;
+            --secondary: #0066ff;
+            --accent: #ff00ff;
+            --accent-dark: #cc00cc;
+            --dark: #0a0a1a;
+            --darker: #050510;
+            --light: #e6f7ff;
+            --text: #ffffff;
+            --text-muted: #a0a0c0;
+            --neon-glow: 0 0 10px var(--primary), 0 0 20px var(--primary), 0 0 30px var(--primary);
+            --neon-glow-accent: 0 0 10px var(--accent), 0 0 20px var(--accent), 0 0 30px var(--accent);
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        /* ========================================================= */
+        /* --- 2. BASE STYLES --- */
+        /* ========================================================= */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Oxanium', sans-serif;
+            background-color: var(--darker);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(0, 102, 255, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(255, 0, 255, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 50% 50%, rgba(0, 255, 136, 0.05) 0%, transparent 50%);
+            padding: 20px;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* ========================================================= */
+        /* --- 3. HEADER & NAVIGATION --- */
+        /* ========================================================= */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            position: relative;
+        }
+
+        .nav-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+        }
+
+        /* Tombol Panah Minimalis */
+        .back-arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            background: rgba(0, 102, 255, 0.2);
+            border: 2px solid var(--secondary);
+            border-radius: 50%;
+            color: var(--text);
+            text-decoration: none;
+            transition: var(--transition);
+            box-shadow: 0 0 15px rgba(0, 102, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .back-arrow:hover {
+            background: rgba(0, 102, 255, 0.4);
+            transform: translateX(-5px) scale(1.1);
+            box-shadow: 0 0 25px rgba(0, 102, 255, 0.6);
+            border-color: var(--primary);
+        }
+
+        .back-arrow i {
+            font-size: 1.3em;
+            transition: var(--transition);
+        }
+
+        .back-arrow:hover i {
+            transform: translateX(-3px);
+        }
+
+        .main-title {
+            font-size: 2.5em;
+            color: var(--primary);
+            text-shadow: var(--neon-glow);
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.1em;
+        }
+
+        /* ========================================================= */
+        /* --- 4. MAIN CONTAINER --- */
+        /* ========================================================= */
+        .scanner-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 968px) {
+            .scanner-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-container {
+                position: relative;
+                top: 0;
+                left: 0;
+                margin-bottom: 20px;
+                text-align: center;
+            }
+            
+            .back-arrow {
+                display: inline-flex;
+            }
+        }
+
+        /* ========================================================= */
+        /* --- 5. CAMERA SECTION --- */
+        /* ========================================================= */
+        .camera-section {
+            background: rgba(10, 10, 26, 0.8);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .camera-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+        }
+
+        .camera-frame {
+            position: relative;
+            width: 100%;
+            border-radius: 15px;
+            overflow: hidden;
+            border: 3px solid rgba(0, 255, 136, 0.3);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+            margin-bottom: 25px;
+        }
+
+        video {
+            width: 100%;
+            height: 300px;
+            background: #000;
+            display: block;
+        }
+
+        .scan-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, 
+                transparent 0%, 
+                rgba(0, 255, 136, 0.1) 50%, 
+                transparent 100%);
+            animation: scan 2s infinite linear;
+            pointer-events: none;
+        }
+
+        @keyframes scan {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+
+        canvas {
+            display: none;
+        }
+
+        /* ========================================================= */
+        /* --- 6. CONTROL BUTTONS --- */
+        /* ========================================================= */
+        .control-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .gaming-btn {
+            padding: 15px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .gaming-btn.primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: var(--dark);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
+        }
+
+        .gaming-btn.primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 25px rgba(0, 255, 136, 0.7);
+        }
+
+        .gaming-btn.secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .gaming-btn.secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-3px);
+        }
+
+        .gaming-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .scan-btn {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, var(--secondary), #0055cc);
+            color: white;
+            box-shadow: 0 0 15px rgba(0, 102, 255, 0.4);
+        }
+
+        .scan-btn:hover {
+            box-shadow: 0 0 25px rgba(0, 102, 255, 0.7);
+        }
+
+        /* ========================================================= */
+        /* --- 7. RESULTS SECTION --- */
+        /* ========================================================= */
+        .results-section {
+            background: rgba(10, 10, 26, 0.8);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .results-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--accent), var(--secondary));
+        }
+
+        .results-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .results-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 0, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--accent);
+            border: 2px solid rgba(255, 0, 255, 0.3);
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.3);
+        }
+
+        .results-title {
+            font-size: 1.5em;
+            color: var(--text);
+            text-shadow: var(--neon-glow-accent);
+        }
+
+        .prediction-card {
+            background: rgba(20, 20, 40, 0.6);
+            border: 1px solid rgba(0, 255, 136, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            transition: var(--transition);
+        }
+
+        .prediction-card:hover {
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .species-name {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: var(--primary);
+            text-shadow: var(--neon-glow);
+            margin-bottom: 10px;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .confidence-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 4px;
+            transition: width 0.5s ease;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+
+        .confidence-text {
+            color: var(--text-muted);
+            font-size: 0.9em;
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        .species-details {
+            margin-top: 20px;
+        }
+
+        .detail-item {
+            margin-bottom: 15px;
+            padding-left: 20px;
+            border-left: 3px solid var(--accent);
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 5px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9em;
+        }
+
+        .detail-value {
+            color: var(--text-muted);
+            font-family: 'Rajdhani', sans-serif;
+            line-height: 1.5;
+        }
+
+        /* ========================================================= */
+        /* --- 8. LOADING & STATUS --- */
+        /* ========================================================= */
+        .loading-container {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .scanner-loading {
+            width: 60px;
+            height: 60px;
+            border: 3px solid rgba(0, 255, 136, 0.3);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: var(--primary);
+            font-family: 'Orbitron', sans-serif;
+            text-shadow: var(--neon-glow);
+        }
+
+        .status-message {
+            background: rgba(255, 0, 255, 0.1);
+            border: 1px solid rgba(255, 0, 255, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        /* ========================================================= */
+        /* --- 9. FLOATING PARTICLES --- */
+        /* ========================================================= */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: rgba(0, 255, 136, 0.5);
+            border-radius: 50%;
+            animation: float-particle 15s infinite linear;
+        }
+
+        @keyframes float-particle {
+            0% {
+                transform: translateY(100vh) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) translateX(20px);
+                opacity: 0;
+            }
+        }
+
+        /* ========================================================= */
+        /* --- 10. RESPONSIVE STYLES --- */
+        /* ========================================================= */
+        @media (max-width: 768px) {
+            .main-title {
+                font-size: 2em;
+            }
+            
+            .scanner-container {
+                gap: 20px;
+            }
+            
+            .camera-section, .results-section {
+                padding: 20px;
+            }
+            
+            .control-panel {
+                grid-template-columns: 1fr;
+            }
+            
+            .species-name {
+                font-size: 1.5em;
+            }
+            
+            .back-arrow {
+                width: 45px;
+                height: 45px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .main-title {
+                font-size: 1.6em;
+            }
+            
+            .header {
+                margin-bottom: 20px;
+                padding: 10px;
+            }
+            
+            .nav-container {
+                position: relative;
+                margin-bottom: 15px;
+            }
+            
+            .back-arrow {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .back-arrow i {
+                font-size: 1.1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header & Navigation -->
+    <div class="header">
+        <div class="nav-container">
+            <a href="indeks.html" class="back-arrow" title="Kembali ke Home">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+        </div>
+        
+        <h1 class="main-title">
+            <i class="fas fa-camera"></i> MANGROVE SPECIES SCANNER
+        </h1>
+        <p class="subtitle">AI-Powered Mangrove Species Identification</p>
+    </div>
+
+    <!-- Main Container -->
+    <div class="scanner-container">
+        <!-- Camera Section -->
+        <div class="camera-section">
+            <div class="camera-frame">
+                <video id="videoElement" autoplay playsinline></video>
+                <div class="scan-overlay"></div>
+            </div>
+            <canvas id="canvasElement"></canvas>
+            
+            <div class="control-panel">
+                <button class="gaming-btn primary" id="startButton">
+                    <i class="fas fa-play"></i> START CAM
+                </button>
+                <button class="gaming-btn secondary" id="stopButton" disabled>
+                    <i class="fas fa-stop"></i> STOP CAM
+                </button>
+                <button class="gaming-btn scan-btn" id="scanButton" disabled>
+                    <i class="fas fa-search"></i> SCAN LEAF
+                </button>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-section">
+            <div class="results-header">
+                <div class="results-icon">
+                    <i class="fas fa-microscope"></i>
+                </div>
+                <h2 class="results-title">SCAN RESULTS</h2>
+            </div>
+
+            <div id="loadingContainer" class="loading-container" style="display: none;">
+                <div class="scanner-loading"></div>
+                <p class="loading-text">ANALYZING LEAF PATTERNS...</p>
+            </div>
+
+            <div id="resultsContainer">
+                <div class="prediction-card">
+                    <div class="species-name" id="speciesName">READY TO SCAN</div>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" id="confidenceFill" style="width: 0%"></div>
+                    </div>
+                    <div class="confidence-text" id="confidenceText">
+                        Point camera at mangrove leaf and press SCAN
+                    </div>
+                    
+                    <div class="species-details" id="speciesDetails">
+                        <div class="status-message">
+                            <i class="fas fa-info-circle"></i> Scanner ready for species identification
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Particles -->
+    <div class="particles" id="particles"></div>
+
+    <script>
+        // =========================================================
+        // --- ELEMENTS & VARIABLES ---
+        // =========================================================
+        const videoElement = document.getElementById('videoElement');
+        const canvasElement = document.getElementById('canvasElement');
+        const context = canvasElement.getContext('2d');
+        const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
+        const scanButton = document.getElementById('scanButton');
+        const speciesName = document.getElementById('speciesName');
+        const confidenceFill = document.getElementById('confidenceFill');
+        const confidenceText = document.getElementById('confidenceText');
+        const speciesDetails = document.getElementById('speciesDetails');
+        const loadingContainer = document.getElementById('loadingContainer');
+        const resultsContainer = document.getElementById('resultsContainer');
+
+        let currentStream;
+        let model;
+
+        // =========================================================
+        // --- MANGROVE SPECIES DATABASE ---
+        // =========================================================
+        const mangroveSpecies = {
+            'Rhizophora mucronata': {
+                commonName: 'Bakau Hitam',
+                description: 'Dikenal sebagai "Bakau Hitam", daunnya tebal, hijau gelap, dan berbentuk elips dengan ujung meruncing.',
+                characteristics: 'Akar tunjang yang khas, buah vivipar (berkecambah di pohon)',
+                habitat: 'Garis pantai terdepan, muara sungai, area pasang surut harian',
+                distribution: 'Tersebar luas di Indo-Pasifik, termasuk Indonesia',
+                conservation: 'Stable',
+                funFact: 'Akar tunjangnya bisa tumbuh hingga 3 meter di atas permukaan tanah!'
+            },
+            'Bruguiera gymnorrhiza': {
+                commonName: 'Tancang',
+                description: 'Daunnya hijau cerah, tebal, dan berbentuk telur memanjang dengan ujung meruncing.',
+                characteristics: 'Akar lutut yang melengkung, bunga merah cerah, buah berbentuk cerutu',
+                habitat: 'Area yang lebih tinggi dari Rhizophora, dekat dengan daratan',
+                distribution: 'Indo-Pasifik, zona tengah hutan mangrove',
+                conservation: 'Stable',
+                funFact: 'Bunganya yang merah cerah hanya mekar di malam hari!'
+            },
+            'Sonneratia alba': {
+                commonName: 'Pidada',
+                description: 'Daunnya oval hingga bulat, tebal, dan berwarna hijau kekuningan dengan tekstur kasar.',
+                characteristics: 'Akar napas (pneumatofor) yang tegak seperti pensil, bunga putih',
+                habitat: 'Zona terdepan yang berlumpur, estuari, area berpasir',
+                distribution: 'Pantai tropis Indo-Pasifik, pesisir Jawa dan Sulawesi',
+                conservation: 'Vulnerable',
+                funFact: 'Buahnya bisa dimakan dan sering digunakan dalam masakan lokal!'
+            },
+            'Avicennia marina': {
+                commonName: 'Api-api',
+                description: 'Daunnya kecil, lonjong, dengan bagian bawah berwarna keperakan karena kelenjar garam.',
+                characteristics: 'Akar napas tipis seperti spaghetti, daun mengeluarkan garam',
+                habitat: 'Zona intertidal atas, berbagai kondisi salinitas',
+                distribution: 'Tersebar sangat luas di seluruh dunia',
+                conservation: 'Stable',
+                funFact: 'Daunnya bisa mengeluarkan butiran garam sebagai adaptasi!'
+            },
+            'Ceriops tagal': {
+                commonName: 'Tengar',
+                description: 'Daunnya kecil, agak tebal, dan berbentuk oval dengan ujung membulat.',
+                characteristics: 'Akar tunjang kecil, kulit kayu berwarna abu-abu, buah kecil',
+                habitat: 'Area tinggi dan kering di hutan mangrove',
+                distribution: 'Indo-Pasifik, bagian belakang hutan mangrove',
+                conservation: 'Near Threatened',
+                funFact: 'Kayunya digunakan untuk membuat arang berkualitas tinggi!'
+            },
+            'Xylocarpus granatum': {
+                commonName: 'Nyirih',
+                description: 'Daun majemuk menyirip, hijau tua mengkilap, dengan anak daun oval.',
+                characteristics: 'Buah besar seperti bola, kulit kayu mengelupas, akar papan',
+                habitat: 'Zona belakang mangrove, area dengan sedimentasi tinggi',
+                distribution: 'Indo-Pasifik, muara sungai besar',
+                conservation: 'Vulnerable',
+                funFact: 'Buahnya bisa sebesar bola sepak dan sangat keras!'
+            }
+        };
+
+        // =========================================================
+        // --- FUNGSI UTILITAS ---
+        // =========================================================
+        
+        // Buat partikel floating
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 25;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                const left = Math.random() * 100;
+                const size = Math.random() * 6 + 4;
+                const duration = Math.random() * 20 + 10;
+                const delay = Math.random() * 5;
+                
+                particle.style.left = `${left}%`;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.animationDuration = `${duration}s`;
+                particle.style.animationDelay = `${delay}s`;
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Simulasi AI Prediction
+        async function predictLeaf() {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    const species = Object.keys(mangroveSpecies);
+                    const randomIndex = Math.floor(Math.random() * species.length);
+                    const randomSpecies = species[randomIndex];
+                    
+                    const confidence = (Math.random() * 0.3 + 0.7).toFixed(2);
+                    resolve({ className: randomSpecies, probability: parseFloat(confidence) });
+                }, 2000);
+            });
+        }
+
+        // Tampilkan hasil scan
+        function displayResults(species, confidence) {
+            const speciesInfo = mangroveSpecies[species];
+            const confidencePercent = Math.round(confidence * 100);
+            
+            // Update nama species dan confidence
+            speciesName.innerHTML = `${species}<br><span style="font-size: 0.6em; color: var(--text-muted);">${speciesInfo.commonName}</span>`;
+            confidenceFill.style.width = `${confidencePercent}%`;
+            confidenceText.textContent = `AI Confidence: ${confidencePercent}%`;
+            
+            // Update details
+            speciesDetails.innerHTML = `
+                <div class="detail-item">
+                    <div class="detail-label">DESCRIPTION</div>
+                    <div class="detail-value">${speciesInfo.description}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">CHARACTERISTICS</div>
+                    <div class="detail-value">${speciesInfo.characteristics}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">HABITAT</div>
+                    <div class="detail-value">${speciesInfo.habitat}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">CONSERVATION STATUS</div>
+                    <div class="detail-value" style="color: ${getConservationColor(speciesInfo.conservation)}">
+                        ${speciesInfo.conservation}
+                    </div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">DID YOU KNOW?</div>
+                    <div class="detail-value">${speciesInfo.funFact}</div>
+                </div>
+            `;
+        }
+
+        function getConservationColor(status) {
+            const colors = {
+                'Stable': '#00ff88',
+                'Vulnerable': '#ffaa00',
+                'Near Threatened': '#ff6600',
+                'Endangered': '#ff3366'
+            };
+            return colors[status] || '#ffffff';
+        }
+
+        // =========================================================
+        // --- FUNGSI KAMERA ---
+        // =========================================================
+        startButton.addEventListener('click', async () => {
+            try {
+                currentStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment' } 
+                });
+                videoElement.srcObject = currentStream;
+                videoElement.play();
+
+                startButton.disabled = true;
+                stopButton.disabled = false;
+                scanButton.disabled = false;
+
+                speciesName.textContent = "CAMERA ACTIVE";
+                confidenceText.textContent = "Aim at mangrove leaf and press SCAN";
+                speciesDetails.innerHTML = '<div class="status-message"><i class="fas fa-camera"></i> Camera ready for scanning</div>';
+                
+            } catch (err) {
+                console.error('Error accessing camera: ', err);
+                speciesName.textContent = "CAMERA ERROR";
+                confidenceText.textContent = "Failed to access camera. Check permissions.";
+            }
+        });
+
+        stopButton.addEventListener('click', () => {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                videoElement.srcObject = null;
+            }
+
+            startButton.disabled = false;
+            stopButton.disabled = true;
+            scanButton.disabled = true;
+
+            speciesName.textContent = "CAMERA OFF";
+            confidenceText.textContent = "Press START CAM to begin";
+            speciesDetails.innerHTML = '<div class="status-message"><i class="fas fa-power-off"></i> Camera stopped</div>';
+        });
+
+        scanButton.addEventListener('click', async () => {
+            if (!videoElement.srcObject) {
+                alert('Please start camera first!');
+                return;
+            }
+
+            // Show loading
+            loadingContainer.style.display = 'block';
+            resultsContainer.style.opacity = '0.5';
+            scanButton.disabled = true;
+
+            // Capture frame
+            canvasElement.width = videoElement.videoWidth;
+            canvasElement.height = videoElement.videoHeight;
+            context.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+
+            // Simulate AI processing
+            const result = await predictLeaf();
+
+            // Hide loading
+            loadingContainer.style.display = 'none';
+            resultsContainer.style.opacity = '1';
+            scanButton.disabled = false;
+
+            // Display results
+            if (result && result.className) {
+                displayResults(result.className, result.probability);
+            } else {
+                speciesName.textContent = "SCAN FAILED";
+                confidenceText.textContent = "Unable to identify species";
+                speciesDetails.innerHTML = '<div class="status-message"><i class="fas fa-exclamation-triangle"></i> Try again with better lighting</div>';
+            }
+        });
+
+        // =========================================================
+        // --- INISIALISASI ---
+        // =========================================================
+        document.addEventListener('DOMContentLoaded', () => {
+            createParticles();
+            scanButton.disabled = true;
+            stopButton.disabled = true;
+        });
+    </script>
+</body>
+</html>

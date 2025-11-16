@@ -1,0 +1,2110 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mangrove Guardian - EVI Cipasilin 2021</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+  <!-- Leaflet JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <!-- Leaflet Draw -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.min.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+
+  <style>
+    /* [KEEP ALL THE EXISTING CSS STYLES - SAMA DENGAN SEBELUMNYA] */
+    /* VARIABLES */
+    :root{
+      --mg-green:#0a5c36;
+      --mg-green-light:#1a7d4e;
+      --mg-green-dark:#064527;
+      --panel:rgba(255,255,255,0.95);
+      --muted:#51606a;
+      --navbar-height: 60px; 
+    }
+    
+    *{box-sizing:border-box; margin:0; padding:0;}
+    
+    html,body{height:100%; margin:0; font-family:'Segoe UI', system-ui, sans-serif; color:#15302a;}
+    body{background:#f8f9fa;}
+    #map{flex:1; z-index:1;}
+
+    .topbar{
+      height: var(--navbar-height);
+      padding:0 20px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      background:var(--mg-green);
+      color:#fff;
+      position:sticky;
+      top:0;
+      z-index:1500;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      border-bottom: 1px solid var(--mg-green-dark);
+    }
+    
+    .brand{
+      font-weight:600;
+      font-size:20px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    
+    .nav-right-container{display:flex; align-items:center; gap:25px;}
+    .nav-menu{display:flex; gap:25px}
+    .nav-menu a{
+      color:#fff;
+      text-decoration:none;
+      font-size:14px;
+      font-weight:500;
+      padding:8px 0;
+      transition:opacity 0.2s;
+    }
+    .nav-menu a:hover{opacity:0.8;}
+    .lang-switch{
+      font-size:13px;
+      cursor:pointer;
+      background:rgba(255,255,255,0.15);
+      padding:6px 12px;
+      border-radius:4px;
+      font-weight:500;
+    }
+
+    .chat-box-container{
+      position:fixed;
+      bottom:20px;
+      right:20px;
+      z-index:1600;
+      width:350px;
+      background:var(--panel);
+      border-radius:8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      border:1px solid #e1e5e9;
+      display:flex;
+      flex-direction:column;
+      max-height:500px;
+    }
+    
+    .chat-header{
+      background: var(--mg-green);
+      color: #fff;
+      padding: 12px 16px;
+      font-weight: 600;
+      cursor:pointer;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      border-radius:8px 8px 0 0;
+    }
+    
+    .chat-content{
+      padding: 16px;
+      flex:1;
+      overflow-y: auto;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      max-height:300px;
+    }
+    
+    .chat-input-row{
+      display:flex;
+      gap:8px;
+      padding:12px 16px;
+      border-top:1px solid #e1e5e9;
+      background:#f8f9fa;
+    }
+    
+    .chat-input-row input{
+      flex:1;
+      padding:10px 12px;
+      border-radius:6px;
+      border:1px solid #ddd;
+      outline:none;
+      font-size:14px;
+      background:#fff;
+    }
+    
+    .chat-input-row button{
+      background:var(--mg-green);
+      border:0;
+      color:#fff;
+      padding:10px 16px;
+      border-radius:6px;
+      cursor:pointer;
+      font-weight:600;
+      font-size:14px;
+    }
+
+    .chat-message{
+      padding:10px 14px;
+      border-radius:8px;
+      max-width:85%;
+      font-size:14px;
+      line-height:1.4;
+    }
+    
+    .chat-user{
+      background:#e3f2fd;
+      align-self:flex-end;
+      border-bottom-right-radius:2px;
+    }
+    
+    .chat-bot{
+      background:#f5f5f5;
+      align-self:flex-start;
+      border-bottom-left-radius:2px;
+    }
+
+    .app{
+      height:calc(100vh - var(--navbar-height));
+      position:relative;
+      display:flex;
+    }
+
+    .search-row-container{
+      position:absolute;
+      top:20px;
+      left:50%;
+      transform:translateX(-50%);
+      z-index:1300;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:8px;
+      width:90%;
+      max-width:700px;
+    }
+    
+    .search-row{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      width:100%;
+    }
+    
+    .search-box{
+      display:flex;
+      align-items:center;
+      background:var(--panel);
+      padding:8px 16px;
+      border-radius:8px;
+      box-shadow:0 2px 8px rgba(0,0,0,0.1);
+      width:100%;
+      border:1px solid #e1e5e9;
+      flex:1;
+    }
+    
+    .search-box input{
+      border:0;
+      outline:none;
+      padding:8px;
+      font-size:14px;
+      background:transparent;
+      flex:1;
+    }
+    
+    .search-box button{
+      background:var(--mg-green);
+      border:0;
+      color:#fff;
+      padding:8px 16px;
+      border-radius:6px;
+      cursor:pointer;
+      font-weight:600;
+      font-size:14px;
+    }
+    
+    .action-btn{
+      background:var(--mg-green);
+      color:#fff;
+      border-radius:8px;
+      padding:10px 16px;
+      border:none;
+      cursor:pointer;
+      font-weight:600;
+      font-size:14px;
+      white-space:nowrap;
+    }
+    
+    .mapFlipBtn{
+      background:var(--mg-green);
+      border:none;
+      padding:10px;
+      border-radius:6px;
+      color:white;
+      cursor:pointer;
+      font-size:16px;
+    }
+
+    .stats-toggle-btn {
+      background:var(--mg-green);
+      border:none;
+      padding:10px 14px;
+      border-radius:6px;
+      color:white;
+      cursor:pointer;
+      font-size:16px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      box-shadow:0 2px 6px rgba(0,0,0,0.1);
+      transition:all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .stats-toggle-btn:hover {
+      background:var(--mg-green-light);
+      transform: translateY(-1px);
+    }
+
+    .vtoolbar{
+      position:absolute;
+      left:20px;
+      top:120px;
+      z-index:1300;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      padding:8px;
+      border-radius:8px;
+      background:transparent;
+    }
+    
+    .vt-btn{
+      width:44px;
+      height:44px;
+      border-radius:6px;
+      background:var(--panel);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border:1px solid #e1e5e9;
+      box-shadow:0 2px 6px rgba(0,0,0,0.08);
+      cursor:pointer;
+      font-size:16px;
+      transition:all 0.2s;
+    }
+    
+    .vt-btn:hover{
+      background:#f8f9fa;
+    }
+
+    .right-panel{
+      position:absolute;
+      right:20px;
+      top:20px;
+      width:320px;
+      z-index:1300;
+      background:var(--panel);
+      border-radius:8px;
+      box-shadow:0 4px 20px rgba(0,0,0,0.15);
+      border:1px solid #e1e5e9;
+      max-height:calc(100vh - 100px);
+      overflow-y:auto;
+    }
+    
+    .panel-inner{
+      padding:16px;
+    }
+    
+    .panel-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:16px;
+      padding-bottom:12px;
+      border-bottom:1px solid #e1e5e9;
+    }
+    
+    .panel-header h3{
+      margin:0;
+      color:var(--mg-green);
+      font-size:16px;
+      font-weight:600;
+    }
+
+    .switch-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:12px 0;
+      border-bottom:1px solid #f0f0f0;
+    }
+    
+    .switch-label{
+      font-size:14px;
+      color:#333;
+    }
+    
+    .switch{
+      position:relative;
+      width:44px;
+      height:24px;
+      border-radius:12px;
+      background:#ddd;
+      cursor:pointer;
+    }
+    
+    .switch .knob{
+      position:absolute;
+      top:2px;
+      left:2px;
+      width:20px;
+      height:20px;
+      border-radius:50%;
+      background:white;
+      box-shadow:0 1px 3px rgba(0,0,0,0.2);
+      transition:left 0.2s;
+    }
+    
+    .switch.on{
+      background:var(--mg-green);
+    }
+    
+    .switch.on .knob{
+      left:22px;
+    }
+
+    .basemap-toggle{
+      position:absolute;
+      right:20px;
+      top:70px;
+      z-index:1350;
+    }
+    
+    .basemap-card{
+      width:250px;
+      background:var(--panel);
+      border-radius:8px;
+      padding:12px;
+      box-shadow:0 4px 20px rgba(0,0,0,0.15);
+      border:1px solid #e1e5e9;
+    }
+    
+    .basemap-card.hidden{
+      display:none;
+    }
+    
+    .basemap-item{
+      padding:10px;
+      border-radius:6px;
+      margin-bottom:6px;
+      cursor:pointer;
+      font-size:14px;
+      border:1px solid transparent;
+    }
+    
+    .basemap-item:hover{
+      background:#f8f9fa;
+    }
+    
+    .basemap-item.active{
+      background:#e8f5e8;
+      border-color:var(--mg-green);
+    }
+
+    .scale-box{
+      position:absolute;
+      left:20px;
+      bottom:20px;
+      background:var(--panel);
+      padding:8px 12px;
+      border-radius:6px;
+      font-size:12px;
+      border:1px solid #e1e5e9;
+      z-index:1300;
+      box-shadow:0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .class-item{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 0;
+      border-bottom:1px solid #f0f0f0;
+    }
+    
+    .class-color{
+      width:16px;
+      height:16px;
+      border-radius:3px;
+    }
+    
+    .class-label{
+      flex:1;
+      font-size:13px;
+    }
+
+    .file-upload{
+      margin-top:16px;
+      padding:12px;
+      border:2px dashed #ddd;
+      border-radius:6px;
+      text-align:center;
+      cursor:pointer;
+      transition:border-color 0.2s;
+    }
+    
+    .file-upload:hover{
+      border-color:var(--mg-green);
+    }
+    
+    .file-hint{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:8px;
+      text-align:center;
+    }
+
+    .vt-btn.active-draw{
+      background:var(--mg-green);
+      color:#fff;
+    }
+    
+    .vt-btn.delete-active{
+      background:#dc3545;
+      color:#fff;
+    }
+
+    @media (max-width:768px){
+      .nav-menu{display:none}
+      .search-row{flex-wrap:wrap;}
+      .right-panel{width:95%; right:2.5%;}
+      .chat-box-container{width:95%; right:2.5%;}
+      .stats-panel{width:95%; left:2.5%;}
+      .stats-toggle-btn{display:none;}
+    }
+
+    .analysis-section {
+      margin: 16px 0;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 6px;
+    }
+    
+    .pulau-selector {
+      margin-bottom: 12px;
+    }
+    
+    .pulau-selector select {
+      width: 100%;
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+    }
+    
+    .data-display {
+      background: white;
+      padding: 12px;
+      border-radius: 4px;
+      margin-top: 8px;
+    }
+    
+    .data-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+    
+    .data-value {
+      font-weight: 600;
+      color: var(--mg-green);
+    }
+
+    .custom-tooltip {
+      background: rgba(255, 255, 255, 0.95) !important;
+      border: 1px solid #0a5c36 !important;
+      border-radius: 4px !important;
+      padding: 4px 8px !important;
+      font-size: 12px !important;
+      font-weight: 500 !important;
+    }
+
+    .legend {
+      background: white;
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    
+    .legend h4 {
+      margin: 0 0 8px 0;
+    }
+
+    .stats-panel {
+      position: absolute;
+      left: 80px;
+      top: 120px;
+      z-index: 1300;
+      background: var(--panel);
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      border: 1px solid #e1e5e9;
+      width: 300px;
+      max-height: 75vh;
+      overflow-y: auto;
+      transition: all 0.3s ease;
+    }
+
+    .stats-header {
+      font-weight: 600;
+      color: var(--mg-green);
+      margin-bottom: 12px;
+      font-size: 16px;
+      border-bottom: 2px solid var(--mg-green);
+      padding-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .stats-close {
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      color: var(--muted);
+      padding: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .stats-close:hover {
+      color: var(--mg-green);
+    }
+
+    .stat-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 13px;
+      padding: 6px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .stat-item:last-child {
+      border-bottom: none;
+    }
+
+    .stat-value {
+      font-weight: 600;
+      color: var(--mg-green);
+    }
+
+    .chart-container {
+      margin-top: 15px;
+      height: 200px;
+      position: relative;
+    }
+
+    .download-btn {
+      background: var(--mg-green);
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      margin-top: 15px;
+      width: 100%;
+      transition: background 0.3s ease;
+    }
+
+    .download-btn:hover {
+      background: var(--mg-green-light);
+    }
+
+    .collapsible {
+      margin-top: 10px;
+    }
+
+    .collapsible-header {
+      background: #f8f9fa;
+      padding: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--mg-green);
+    }
+
+    .collapsible-content {
+      padding: 10px;
+      background: white;
+      border-radius: 0 0 6px 6px;
+      margin-top: 2px;
+    }
+
+    .collapsible.hidden .collapsible-content {
+      display: none;
+    }
+
+    /* Progress Bar untuk Loading */
+    .progress-bar {
+      width: 100%;
+      height: 4px;
+      background: #f0f0f0;
+      border-radius: 2px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--mg-green);
+      transition: width 0.3s ease;
+    }
+
+    /* Filter Controls */
+    .filter-controls {
+      margin: 15px 0;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 6px;
+    }
+
+    .filter-title {
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: var(--mg-green);
+    }
+
+    .filter-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .filter-btn {
+      padding: 6px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: white;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s;
+    }
+
+    .filter-btn.active {
+      background: var(--mg-green);
+      color: white;
+      border-color: var(--mg-green);
+    }
+
+    .filter-btn:hover {
+      background: #e9ecef;
+    }
+
+    .filter-btn.active:hover {
+      background: var(--mg-green-light);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="topbar">
+    <div class="brand">
+      <span>🌿 MangroveGuardian - EVI Cipasilin 2021</span>
+    </div>
+    <div class="nav-right-container">
+      <div class="nav-menu" id="navMenu">
+        <a href="indeks.html" data-key="home">Beranda</a>
+      </div>
+      <div class="lang-switch" id="langSwitch">ID / EN</div>
+    </div>
+  </div>
+
+  <!-- Chat Box -->
+  <div class="chat-box-container" id="chatBoxContainer">
+    <div class="chat-header" id="chatHeader">
+      <span>💬 Asisten Mangrove</span>
+      <span>−</span>
+    </div>
+    <div class="chat-content" id="chatContent">
+      <div class="chat-message chat-bot">Halo! Saya asisten virtual Mangrove Guardian. Data EVI Cipasilin 2021 memiliki 5 poligon dengan total luasan 8.10 ha.</div>
+    </div>
+    <div class="chat-input-row">
+      <input type="text" id="chatInput" placeholder="Ketik pertanyaan Anda..." />
+      <button id="sendChat">Kirim</button>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div class="app">
+    <div id="map"></div>
+
+    <!-- Search Bar dengan Tombol Statistik di Kiri -->
+    <div class="search-row-container">
+      <div class="search-row">
+        <!-- Tombol Statistik di sebelah kiri search box -->
+        <button class="stats-toggle-btn" id="statsToggle" title="Toggle Panel Statistik">
+          📊 Statistik
+        </button>
+
+        <!-- Search Box di tengah -->
+        <div class="search-box">
+          <input id="searchInput" placeholder="Cari lokasi atau koordinat (contoh: -6.037,106.444)..." />
+          <button id="doSearch">Cari</button>
+        </div>
+
+        <!-- Tombol-tombol lainnya di sebelah kanan -->
+        <button class="action-btn" id="addPointBtn">+ Titik Baru</button>
+        <button id="basemapFlipBtn" class="mapFlipBtn" title="Peta Dasar">🗺️</button>
+        <button id="togglePanelBtn" class="mapFlipBtn" title="Panel Layer">☰</button>
+      </div>
+    </div>
+
+    <!-- Statistics Panel -->
+    <div class="stats-panel" id="statsPanel">
+      <div class="stats-header">
+        <span>📊 Statistik EVI Cipasilin 2021</span>
+        <button class="stats-close" id="statsClose" title="Tutup">✕</button>
+      </div>
+      
+      <div class="progress-bar">
+        <div class="progress-fill" id="dataProgress" style="width: 100%"></div>
+      </div>
+      
+      <div class="stat-item">
+        <span>Total Luasan:</span>
+        <span class="stat-value" id="totalLuas">8.10 ha</span>
+      </div>
+      <div class="stat-item">
+        <span>Jumlah Poligon:</span>
+        <span class="stat-value" id="jumlahPoligon">5</span>
+      </div>
+      <div class="stat-item">
+        <span>Kerapatan Rata-rata:</span>
+        <span class="stat-value" id="kerapatanRata">2.6</span>
+      </div>
+      <div class="stat-item">
+        <span>Luasan Tertinggi:</span>
+        <span class="stat-value" id="luasMax">2.79 ha</span>
+      </div>
+      <div class="stat-item">
+        <span>Luasan Terendah:</span>
+        <span class="stat-value" id="luasMin">0.18 ha</span>
+      </div>
+
+      <!-- Filter Controls -->
+      <div class="filter-controls">
+        <div class="filter-title">Filter Kerapatan:</div>
+        <div class="filter-buttons">
+          <button class="filter-btn active" data-density="all">Semua</button>
+          <button class="filter-btn" data-density="1">Sangat Rendah</button>
+          <button class="filter-btn" data-density="2">Rendah</button>
+          <button class="filter-btn" data-density="3">Sedang-Rendah</button>
+          <button class="filter-btn" data-density="4">Sedang</button>
+          <button class="filter-btn" data-density="5">Tinggi</button>
+        </div>
+      </div>
+
+      <!-- Collapsible Chart Section -->
+      <div class="collapsible" id="chartCollapsible">
+        <div class="collapsible-header" id="chartHeader">
+          <span>📈 Grafik Distribusi</span>
+          <span>▼</span>
+        </div>
+        <div class="collapsible-content">
+          <div class="chart-container">
+            <canvas id="densityChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Collapsible Detail Section -->
+      <div class="collapsible" id="detailCollapsible">
+        <div class="collapsible-header" id="detailHeader">
+          <span>🔍 Detail Kerapatan</span>
+          <span>▼</span>
+        </div>
+        <div class="collapsible-content">
+          <div class="stat-item">
+            <span>Sangat Rendah (1):</span>
+            <span class="stat-value" id="detailSangatRendah">1 poligon</span>
+          </div>
+          <div class="stat-item">
+            <span>Rendah (2):</span>
+            <span class="stat-value" id="detailRendah">1 poligon</span>
+          </div>
+          <div class="stat-item">
+            <span>Sedang-Rendah (3):</span>
+            <span class="stat-value" id="detailSedangRendah">1 poligon</span>
+          </div>
+          <div class="stat-item">
+            <span>Sedang (4):</span>
+            <span class="stat-value" id="detailSedang">1 poligon</span>
+          </div>
+          <div class="stat-item">
+            <span>Tinggi (5):</span>
+            <span class="stat-value" id="detailTinggi">1 poligon</span>
+          </div>
+        </div>
+      </div>
+
+      <button class="download-btn" id="downloadData">
+        📥 Download Data GeoJSON
+      </button>
+
+      <button class="download-btn" id="screenshot" style="background: #6c757d; margin-top: 8px;">
+        📷 Screenshot Peta
+      </button>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="vtoolbar">
+      <div class="vt-btn" id="zoomIn" title="Zoom In">+</div>
+      <div class="vt-btn" id="zoomOut" title="Zoom Out">−</div>
+      <div class="vt-btn" id="measureBtn" title="Ukur Jarak">📏</div>
+      <div style="border-top:1px solid #eee; margin:6px 0"></div>
+      <div class="vt-btn" id="drawPt" title="Titik">•</div>
+      <div class="vt-btn" id="drawPoly" title="Poligon">△</div>
+      <div class="vt-btn" id="drawRect" title="Persegi">□</div>
+      <div style="border-top:1px solid #eee; margin:6px 0"></div>
+      <div class="vt-btn" id="deleteBtn" title="Hapus">🗑️</div>
+      <div class="vt-btn" id="printBtn" title="Cetak">🖨️</div>
+    </div>
+
+    <!-- Scale -->
+    <div class="scale-box" id="scaleBox">Skala: 1:100,000</div>
+    <div class="scale-box" id="measureBox" style="left:120px; display:none; background:#fff3cd; color:#856404;"></div>
+
+    <!-- Right Panel -->
+    <div class="right-panel" id="rightPanel">
+      <div class="panel-inner">
+        <div class="panel-header">
+          <h3>Layer & Pengaturan</h3>
+          <button id="closePanel" class="vt-btn" style="width:auto; padding:6px 10px;">✕</button>
+        </div>
+
+        <!-- Analisis Vegetasi Section -->
+        <div class="analysis-section">
+          <div style="font-weight:600; color:var(--mg-green); margin-bottom:12px;">📊 Data EVI Cipasilin 2021</div>
+          
+          <div class="pulau-selector">
+            <label for="pulauSelect">Pilih Lokasi:</label>
+            <select id="pulauSelect">
+              <option value="cipasilin" selected>Cipasilin</option>
+            </select>
+          </div>
+
+          <div class="pulau-selector">
+            <label for="tahunSelect">Pilih Tahun:</label>
+            <select id="tahunSelect">
+              <option value="2021" selected>2021</option>
+            </select>
+          </div>
+
+          <div class="data-display">
+            <div class="data-item">
+              <span>Vegetasi Sangat Rendah:</span>
+              <span class="data-value" id="dataSangatRendah">1 poligon</span>
+            </div>
+            <div class="data-item">
+              <span>Vegetasi Rendah:</span>
+              <span class="data-value" id="dataRendah">1 poligon</span>
+            </div>
+            <div class="data-item">
+              <span>Vegetasi Sedang-Rendah:</span>
+              <span class="data-value" id="dataSedangRendah">1 poligon</span>
+            </div>
+            <div class="data-item">
+              <span>Vegetasi Sedang:</span>
+              <span class="data-value" id="dataSedang">1 poligon</span>
+            </div>
+            <div class="data-item">
+              <span>Vegetasi Tinggi:</span>
+              <span class="data-value" id="dataTinggi">1 poligon</span>
+            </div>
+            <div class="data-item">
+              <span>EVI Rata-rata:</span>
+              <span class="data-value" id="dataEVI">0.38</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="switch-row">
+          <div class="switch-label">Layer EVI</div>
+          <div class="switch on" id="rasterSwitch"><div class="knob"></div></div>
+        </div>
+
+        <div style="margin:16px 0;">
+          <div style="font-weight:600; color:var(--mg-green); margin-bottom:12px;">Kelas Kerapatan EVI</div>
+          <div id="classesList"></div>
+        </div>
+
+        <hr style="margin:16px 0; border:none; border-top:1px solid #e1e5e9;">
+
+        <div style="font-weight:600; color:var(--mg-green); margin-bottom:12px;">Ekspor Data</div>
+        <div class="file-upload" id="fileUploadArea">
+          <div>📁 Upload File GeoJSON</div>
+          <input type="file" id="fileInput" accept=".json,.geojson" style="display:none" />
+        </div>
+        <div class="file-hint">Format yang didukung: GeoJSON, JSON</div>
+
+        <button class="download-btn" id="exportReport">
+          📄 Export Laporan PDF
+        </button>
+      </div>
+    </div>
+
+    <!-- Basemap Panel -->
+    <div class="basemap-toggle">
+      <div class="basemap-card hidden" id="basemapCard">
+        <div style="font-weight:600; margin-bottom:12px;">Peta Dasar</div>
+        <div class="basemap-item active" data-basemap="osm">OpenStreetMap</div>
+        <div class="basemap-item" data-basemap="satellite">Satelit</div>
+        <div class="basemap-item" data-basemap="terrain">Topografi</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==================== INISIALISASI PETA ====================
+    const map = L.map('map').setView([-6.037, 106.444], 14);
+
+    // Layer Dasar
+    const basemaps = {
+      'osm': L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }),
+      'satellite': L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: '© Esri'
+      }),
+      'terrain': L.tileLayer('https://stamen-tiles.a.ssl.fastly.net/terrain/{z}/{x}/{y}.jpg', {
+        attribution: '© Stamen Design'
+      })
+    };
+
+    let currentBasemap = 'satellite';
+    basemaps[currentBasemap].addTo(map);
+
+    // ==================== DATA GEOJSON EVI CIPASILIN 2021 SESUAI DATA ASLI ====================
+    const eviCipasilin2021 = {
+      "type": "FeatureCollection",
+      "features": [
+        {
+          "type": "Feature",
+          "id": 1,
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [106.44420335552329, -6.0370766770267368],
+                  [106.44420263694536, -6.0368053745377983],
+                  [106.44393162781692, -6.0368060938097017],
+                  [106.4439323462601, -6.0370773963311972],
+                  [106.44420335552329, -6.0370766770267368]
+                ]
+              ],
+              [
+                [
+                  [106.44447292736116, -6.0365333526719267],
+                  [106.44447220871432, -6.0362620502100155],
+                  [106.44420119988821, -6.0362627695516693],
+                  [106.44420191840034, -6.036534072046142],
+                  [106.44447292736116, -6.0365333526719267]
+                ]
+              ],
+              [
+                [
+                  [106.43362469929183, -6.0335776809347363],
+                  [106.43362398639282, -6.0333063771445055],
+                  [106.43335297773748, -6.0333070907361757],
+                  [106.43335369050183, -6.0335783945587229],
+                  [106.43362469929183, -6.0335776809347363]
+                ]
+              ],
+              [
+                [
+                  [106.43416814320847, -6.0341188607251608],
+                  [106.4344391521698, -6.0341181466320934],
+                  [106.43443701216292, -6.0333042355607152],
+                  [106.43389499501554, -6.0333056634180382],
+                  [106.43389642111546, -6.0338482709310375],
+                  [106.43335440329882, -6.0338496983784573],
+                  [106.43308339434158, -6.0338504118999516],
+                  [106.43308410703652, -6.0341217157492819],
+                  [106.43362612518776, -6.0341202885068519],
+                  [106.43362683818472, -6.0343915922887383],
+                  [106.43416885647473, -6.0343901644423923],
+                  [106.43416814320847, -6.0341188607251608]
+                ]
+              ],
+              [
+                [
+                  [106.43498045635687, -6.0338454144184928],
+                  [106.43497902917967, -6.0333028071642065],
+                  [106.43470802068764, -6.0333035214298603],
+                  [106.43470944759552, -6.0338461287488414],
+                  [106.43498045635687, -6.0338454144184928]
+                ]
+              ],
+              [
+                [
+                  [106.43985789243844, -6.0335612303776252],
+                  [106.43985717644247, -6.033289927332385],
+                  [106.43958616853956, -6.0332906440243574],
+                  [106.43958688440088, -6.0335619471020561],
+                  [106.43985789243844, -6.0335612303776252]
+                ]
+              ],
+              [
+                [
+                  [106.43118419566574, -6.0330414905332006],
+                  [106.43145520444737, -6.0330407780521753],
+                  [106.4314544926908, -6.0327694739979982],
+                  [106.43064146665203, -6.0327716109399132],
+                  [106.43064217800472, -6.0330429150908778],
+                  [106.43091318685154, -6.033042202879435],
+                  [106.4309138983714, -6.0333135069953459],
+                  [106.43118490732026, -6.0333127946168483],
+                  [106.43118419566574, -6.0330414905332006]
+                ]
+              ],
+              [
+                [
+                  [106.43795869042538, -6.0327523347924989],
+                  [106.4379579754702, -6.0324810315118533],
+                  [106.43714495218701, -6.0324831780610042],
+                  [106.4371456667383, -6.0327544814388769],
+                  [106.43795869042538, -6.0327523347924989]
+                ]
+              ],
+              [
+                [
+                  [106.44066733468274, -6.0322025646285633],
+                  [106.44039632741678, -6.0322032815950148],
+                  [106.44039775971773, -6.0327458875750821],
+                  [106.44066876725297, -6.0327451705436772],
+                  [106.44066805095144, -6.0324738675875205],
+                  [106.44066733468274, -6.0322025646285633]
+                ]
+              ],
+              [
+                [
+                  [106.44066733468274, -6.0322025646285633],
+                  [106.44093834191591, -6.0322018475273413],
+                  [106.44093762554542, -6.0319305445980849],
+                  [106.44066661844685, -6.0319312616668253],
+                  [106.44066733468274, -6.0322025646285633]
+                ]
+              ]
+            ]
+          },
+          "properties": {
+            "OBJECTID": 1,
+            "Id": 1,
+            "gridcode": 1,
+            "Shape_Length": 2039.9999999878928,
+            "Shape_Area": 24300.000000097789,
+            "luasan": 2.4304254401543903
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 2,
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [106.44204245730441, -6.0397954550245023],
+                  [106.44204173947594, -6.0395241523031773],
+                  [106.44177072873703, -6.0395248708211708],
+                  [106.44177144643074, -6.0397961735750023],
+                  [106.44204245730441, -6.0397954550245023]
+                ]
+              ],
+              [
+                [
+                  [106.44339320065869, -6.0381640448538638],
+                  [106.44339248235347, -6.0378927422784114],
+                  [106.44312147258745, -6.0378934612758481],
+                  [106.4431221907579, -6.0381647638838389],
+                  [106.44339320065869, -6.0381640448538638]
+                ]
+              ],
+              [
+                [
+                  [106.4436620553054, -6.0373494180520071],
+                  [106.44339104584168, -6.0373501371192537],
+                  [106.44339176408114, -6.0376214397002412],
+                  [106.44366277367956, -6.0376207206004509],
+                  [106.4436620553054, -6.0373494180520071]
+                ]
+              ],
+              [
+                [
+                  [106.4436620553054, -6.0373494180520071],
+                  [106.44393306473619, -6.0373486988498746],
+                  [106.4439323462601, -6.0370773963311972],
+                  [106.44366133696403, -6.0370781155007798],
+                  [106.4436620553054, -6.0373494180520071]
+                ]
+              ],
+              [
+                [
+                  [106.44447220871432, -6.0362620502100155],
+                  [106.44447149010036, -6.0359907477453207],
+                  [106.44420048140896, -6.0359914670544148],
+                  [106.44420119988821, -6.0362627695516693],
+                  [106.44447220871432, -6.0362620502100155]
+                ]
+              ],
+              [
+                [
+                  [106.44501206971647, -6.0354467039151212],
+                  [106.44501135093181, -6.0351754015072201],
+                  [106.44474034271028, -6.0351761209882975],
+                  [106.44474106136023, -6.0354474234287734],
+                  [106.44501206971647, -6.0354467039151212]
+                ]
+              ],
+              [
+                [
+                  [106.44256940579298, -6.0340966611515929],
+                  [106.4425686883848, -6.0338253584367978],
+                  [106.44229768054076, -6.033826076541752],
+                  [106.44229839781427, -6.0340973792890669],
+                  [106.44256940579298, -6.0340966611515929]
+                ]
+              ],
+              [
+                [
+                  [106.43931659209001, -6.0338339667990208],
+                  [106.43931587633057, -6.0335626636916855],
+                  [106.43904486822747, -6.0335633801465134],
+                  [106.43904558385231, -6.0338346832862948],
+                  [106.43931659209001, -6.0338339667990208]
+                ]
+              ],
+              [
+                [
+                  [106.43389642111546, -6.0338482709310375],
+                  [106.43389499501554, -6.0333056634180382],
+                  [106.43362398639282, -6.0333063771445055],
+                  [106.43362469929183, -6.0335776809347363],
+                  [106.43335369050183, -6.0335783945587229],
+                  [106.43335440329882, -6.0338496983784573],
+                  [106.43389642111546, -6.0338482709310375]
+                ]
+              ],
+              [
+                [
+                  [106.43470802068764, -6.0333035214298603],
+                  [106.43443701216292, -6.0333042355607152],
+                  [106.4344391521698, -6.0341181466320934],
+                  [106.43471016109847, -6.0341174324042104],
+                  [106.43471087463409, -6.0343887360567656],
+                  [106.43498188366478, -6.0343880216617203],
+                  [106.43498045635687, -6.0338454144184928],
+                  [106.43470944759552, -6.0338461287488414],
+                  [106.43470802068764, -6.0333035214298603]
+                ]
+              ],
+              [
+                [
+                  [106.43985717644247, -6.033289927332385],
+                  [106.43985646047928, -6.0330186242843631],
+                  [106.43958545271106, -6.0330193409438762],
+                  [106.43958616853956, -6.0332906440243574],
+                  [106.43985717644247, -6.033289927332385]
+                ]
+              ],
+              [
+                [
+                  [106.44094049122432, -6.0330157562984184],
+                  [106.44093977475538, -6.0327444533774903],
+                  [106.44066876725297, -6.0327451705436772],
+                  [106.44066948358726, -6.0330164734970877],
+                  [106.44094049122432, -6.0330157562984184]
+                ]
+              ],
+              [
+                [
+                  [106.4382296982556, -6.0327516189741397],
+                  [106.43822898316579, -6.0324803157259153],
+                  [106.4379579754702, -6.0324810315118533],
+                  [106.43795869042538, -6.0327523347924989],
+                  [106.4382296982556, -6.0327516189741397]
+                ]
+              ],
+              [
+                [
+                  [106.44121006565422, -6.0324724331853341],
+                  [106.44120934911629, -6.0322011302913499],
+                  [106.44093834191591, -6.0322018475273413],
+                  [106.44066733468274, -6.0322025646285633],
+                  [106.44066805095144, -6.0324738675875205],
+                  [106.44121006565422, -6.0324724331853341]
+                ]
+              ]
+            ]
+          },
+          "properties": {
+            "OBJECTID": 2,
+            "Id": 2,
+            "gridcode": 2,
+            "Shape_Length": 2099.9999999990687,
+            "Shape_Area": 18900.00000004191,
+            "luasan": 1.8903253561627698
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 5,
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [106.44231203225159, -6.039252130958638],
+                  [106.44204102168031, -6.0392528495790518],
+                  [106.44204173947594, -6.0395241523031773],
+                  [106.442312750182, -6.0395234336502508],
+                  [106.44231203225159, -6.039252130958638]
+                ]
+              ],
+              [
+                [
+                  [106.44231203225159, -6.039252130958638],
+                  [106.44258304279003, -6.0392514122032965],
+                  [106.44258232475768, -6.0389801095413853],
+                  [106.44231131435401, -6.0389808282642061],
+                  [106.44231203225159, -6.039252130958638]
+                ]
+              ],
+              [
+                [
+                  [106.44258232475768, -6.0389801095413853],
+                  [106.44285333512849, -6.0389793906836395],
+                  [106.44285261699422, -6.0387080880515205],
+                  [106.44312362719741, -6.0387073690913855],
+                  [106.4431221907579, -6.0381647638838389],
+                  [106.44312147258745, -6.0378934612758481],
+                  [106.44285046278856, -6.0378941801383874],
+                  [106.44285189889281, -6.0384367854166152],
+                  [106.44258088879153, -6.0384375042093099],
+                  [106.44258232475768, -6.0389801095413853]
+                ]
+              ],
+              [
+                [
+                  [106.44312147258745, -6.0378934612758481],
+                  [106.44339248235347, -6.0378927422784114],
+                  [106.44339176408114, -6.0376214397002412],
+                  [106.44312075444991, -6.0376221586651404],
+                  [106.44312147258745, -6.0378934612758481]
+                ]
+              ],
+              [
+                [
+                  [106.44420263694536, -6.0368053745377983],
+                  [106.44420191840034, -6.036534072046142],
+                  [106.4439309094066, -6.0365347912854901],
+                  [106.44393162781692, -6.0368060938097017],
+                  [106.44420263694536, -6.0368053745377983]
+                ]
+              ],
+              [
+                [
+                  [106.44474249875887, -6.0359900283013754],
+                  [106.4447417800431, -6.0357187258664506],
+                  [106.44447077151929, -6.0357194452778264],
+                  [106.44447149010036, -6.0359907477453207],
+                  [106.44474249875887, -6.0359900283013754]
+                ]
+              ],
+              [
+                [
+                  [106.44474034271028, -6.0351761209882975],
+                  [106.44446933445586, -6.0351768403345396],
+                  [106.44447005297111, -6.0354481428075832],
+                  [106.44474106136023, -6.0354474234287734],
+                  [106.44474034271028, -6.0351761209882975]
+                ]
+              ],
+              [
+                [
+                  [106.44474034271028, -6.0351761209882975],
+                  [106.44501135093181, -6.0351754015072201],
+                  [106.44501063218004, -6.0349040990965026],
+                  [106.4447396240932, -6.034904818545006],
+                  [106.44474034271028, -6.0351761209882975]
+                ]
+              ],
+              [
+                [
+                  [106.44284184892309, -6.0346385482354172],
+                  [106.44284113131452, -6.0343672455587614],
+                  [106.44257012323401, -6.0343679638635734],
+                  [106.44257084070787, -6.0346392665727526],
+                  [106.44284184892309, -6.0346385482354172]
+                ]
+              ],
+              [
+                [
+                  [106.43904558385231, -6.0338346832862948],
+                  [106.43904629950983, -6.0341059864233628],
+                  [106.43931730788223, -6.0341052699036419],
+                  [106.43931659209001, -6.0338339667990208],
+                  [106.43904558385231, -6.0338346832862948]
+                ]
+              ],
+              [
+                [
+                  [106.43904558385231, -6.0338346832862948],
+                  [106.43904486822747, -6.0335633801465134],
+                  [106.43877386009159, -6.0335640964665425],
+                  [106.43877457558173, -6.0338353996387619],
+                  [106.43904558385231, -6.0338346832862948]
+                ]
+              ],
+              [
+                [
+                  [106.44202595555788, -6.0335554917293583],
+                  [106.4420266726639, -6.0338267945119002],
+                  [106.44229768054076, -6.033826076541752],
+                  [106.44229696330008, -6.0335547737917228],
+                  [106.44202595555788, -6.0335554917293583]
+                ]
+              ],
+              [
+                [
+                  [106.44202595555788, -6.0335554917293583],
+                  [106.4420252384847, -6.0332841889440028],
+                  [106.44175423084431, -6.0332849067143313],
+                  [106.44175494778284, -6.0335562095321942],
+                  [106.44202595555788, -6.0335554917293583]
+                ]
+              ],
+              [
+                [
+                  [106.43850070605306, -6.0327509030209967],
+                  [106.4382296982556, -6.0327516189741397],
+                  [106.43795869042538, -6.0327523347924989],
+                  [106.43795940541331, -6.0330236380703965],
+                  [106.43823041337818, -6.0330229222196161],
+                  [106.4382311285335, -6.0332942254622948],
+                  [106.43850213660023, -6.0332935094442988],
+                  [106.43850070605306, -6.0327509030209967]
+                ]
+              ],
+              [
+                [
+                  [106.4390427215497, -6.032749470710363],
+                  [106.43877171381776, -6.0327501869330709],
+                  [106.43877314463424, -6.0332927932915048],
+                  [106.43958616853956, -6.0332906440243574],
+                  [106.43958545271106, -6.0330193409438762],
+                  [106.43958473691526, -6.032748037860598],
+                  [106.43931372924887, -6.0327487543528724],
+                  [106.43931444490998, -6.0330200574686019],
+                  [106.43904343707619, -6.0330207738585395],
+                  [106.4390427215497, -6.032749470710363]
+                ]
+              ],
+              [
+                [
+                  [106.44148178966176, -6.0327430186407724],
+                  [106.44148250639999, -6.0330143214967169],
+                  [106.44175351393859, -6.033013603893683],
+                  [106.44175279706573, -6.0327423010702388],
+                  [106.44148178966176, -6.0327430186407724]
+                ]
+              ],
+              [
+                [
+                  [106.43931372924887, -6.0327487543528724],
+                  [106.43931301362052, -6.0324774512343931],
+                  [106.43904200605598, -6.0324781675594386],
+                  [106.4390427215497, -6.032749470710363],
+                  [106.43931372924887, -6.0327487543528724]
+                ]
+              ],
+              [
+                [
+                  [106.43958473691526, -6.032748037860598],
+                  [106.43985574454888, -6.0327473212335425],
+                  [106.43985502865127, -6.032476018179973],
+                  [106.43958402115229, -6.0324767347745709],
+                  [106.43958473691526, -6.032748037860598]
+                ]
+              ],
+              [
+                [
+                  [106.44148178966176, -6.0327430186407724],
+                  [106.44148107295636, -6.0324717157820782],
+                  [106.44121006565422, -6.0324724331853341],
+                  [106.44066805095144, -6.0324738675875205],
+                  [106.44066876725297, -6.0327451705436772],
+                  [106.44093977475538, -6.0327444533774903],
+                  [106.44148178966176, -6.0327430186407724]
+                ]
+              ]
+            ]
+          },
+          "properties": {
+            "OBJECTID": 5,
+            "Id": 5,
+            "gridcode": 3,
+            "Shape_Length": 2999.9999999832362,
+            "Shape_Area": 27899.999999720603,
+            "luasan": 2.7904746268335741
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 6,
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [106.4447417800431, -6.0357187258664506],
+                  [106.44474106136023, -6.0354474234287734],
+                  [106.44447005297111, -6.0354481428075832],
+                  [106.44447077151929, -6.0357194452778264],
+                  [106.4447417800431, -6.0357187258664506]
+                ]
+              ],
+              [
+                [
+                  [106.44229839781427, -6.0340973792890669],
+                  [106.44229911512062, -6.0343686820335654],
+                  [106.44257012323401, -6.0343679638635734],
+                  [106.44256940579298, -6.0340966611515929],
+                  [106.44229839781427, -6.0340973792890669]
+                ]
+              ],
+              [
+                [
+                  [106.44229839781427, -6.0340973792890669],
+                  [106.44229768054076, -6.033826076541752],
+                  [106.4420266726639, -6.0338267945119002],
+                  [106.44202738980275, -6.0340980972917277],
+                  [106.44229839781427, -6.0340973792890669]
+                ]
+              ],
+              [
+                [
+                  [106.44148178966176, -6.0327430186407724],
+                  [106.44093977475538, -6.0327444533774903],
+                  [106.44094049122432, -6.0330157562984184],
+                  [106.44121149882858, -6.0330150389649617],
+                  [106.44121221546499, -6.0332863418506033],
+                  [106.44148322317105, -6.0332856243498645],
+                  [106.44148393997492, -6.0335569272002285],
+                  [106.44175494778284, -6.0335562095321942],
+                  [106.44175423084431, -6.0332849067143313],
+                  [106.44175351393859, -6.033013603893683],
+                  [106.44148250639999, -6.0330143214967169],
+                  [106.44148178966176, -6.0327430186407724]
+                ]
+              ],
+              [
+                [
+                  [106.43958473691526, -6.032748037860598],
+                  [106.43958402115229, -6.0324767347745709],
+                  [106.43931301362052, -6.0324774512343931],
+                  [106.43931372924887, -6.0327487543528724],
+                  [106.43958473691526, -6.032748037860598]
+                ]
+              ]
+            ]
+          },
+          "properties": {
+            "OBJECTID": 6,
+            "Id": 6,
+            "gridcode": 4,
+            "Shape_Length": 840.00000000558794,
+            "Shape_Area": 8100.0000001117587,
+            "luasan": 0.810137518583669
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 24,
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [106.44229911512062, -6.0343686820335654],
+                  [106.44229839781427, -6.0340973792890669],
+                  [106.44202738980275, -6.0340980972917277],
+                  [106.44202810697448, -6.0343694000687389],
+                  [106.44229911512062, -6.0343686820335654]
+                ]
+              ],
+              [
+                [
+                  [106.4420266726639, -6.0338267945119002],
+                  [106.44202595555788, -6.0335554917293583],
+                  [106.44175494778284, -6.0335562095321942],
+                  [106.44175566475417, -6.0338275123472425],
+                  [106.4420266726639, -6.0338267945119002]
+                ]
+              ]
+            ]
+          },
+          "properties": {
+            "OBJECTID": 24,
+            "Id": 24,
+            "gridcode": 5,
+            "Shape_Length": 239.99999998230487,
+            "Shape_Area": 1799.9999997345731,
+            "luasan": 0.18003050972869725
+          }
+        }
+      ]
+    };
+
+    // ==================== TOGGLE CONTROLS ====================
+    // [KEEP ALL THE EXISTING TOGGLE CONTROLS - SAMA DENGAN SEBELUMNYA]
+    // Toggle Panel Kanan
+    document.getElementById('togglePanelBtn').addEventListener('click', function() {
+        const rightPanel = document.getElementById('rightPanel');
+        rightPanel.style.display = rightPanel.style.display === 'none' ? 'block' : 'none';
+    });
+
+    // Toggle Statistics Panel
+    document.getElementById('statsToggle').addEventListener('click', function() {
+        const statsPanel = document.getElementById('statsPanel');
+        statsPanel.style.display = statsPanel.style.display === 'none' ? 'block' : 'none';
+    });
+
+    // Close Statistics Panel
+    document.getElementById('statsClose').addEventListener('click', function() {
+        document.getElementById('statsPanel').style.display = 'none';
+    });
+
+    // Collapsible Sections
+    document.querySelectorAll('.collapsible-header').forEach(header => {
+        header.addEventListener('click', function() {
+            const collapsible = this.parentElement;
+            collapsible.classList.toggle('hidden');
+            const arrow = this.querySelector('span:last-child');
+            arrow.textContent = collapsible.classList.contains('hidden') ? '▶' : '▼';
+        });
+    });
+
+    // Toggle Basemap Panel
+    document.getElementById('basemapFlipBtn').addEventListener('click', function() {
+        const basemapCard = document.getElementById('basemapCard');
+        basemapCard.classList.toggle('hidden');
+    });
+
+    // Tutup Panel Kanan
+    document.getElementById('closePanel').addEventListener('click', function() {
+        document.getElementById('rightPanel').style.display = 'none';
+    });
+
+    // Pilih Basemap
+    document.querySelectorAll('.basemap-item').forEach(item => {
+        item.addEventListener('click', function() {
+            const basemap = this.getAttribute('data-basemap');
+            
+            document.querySelectorAll('.basemap-item').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            this.classList.add('active');
+            
+            if (basemaps[currentBasemap]) {
+                map.removeLayer(basemaps[currentBasemap]);
+            }
+            
+            basemaps[basemap].addTo(map);
+            currentBasemap = basemap;
+            
+            document.getElementById('basemapCard').classList.add('hidden');
+        });
+    });
+
+    // Toolbar Controls
+    document.getElementById('zoomIn').addEventListener('click', function() {
+        map.zoomIn();
+    });
+
+    document.getElementById('zoomOut').addEventListener('click', function() {
+        map.zoomOut();
+    });
+
+    // Chatbox Toggle
+    document.getElementById('chatHeader').addEventListener('click', function() {
+        const chatContent = document.getElementById('chatContent');
+        const chatInputRow = document.querySelector('.chat-input-row');
+        
+        if (chatContent.style.display === 'none') {
+            chatContent.style.display = 'flex';
+            chatInputRow.style.display = 'flex';
+            this.querySelector('span:last-child').textContent = '−';
+        } else {
+            chatContent.style.display = 'none';
+            chatInputRow.style.display = 'none';
+            this.querySelector('span:last-child').textContent = '+';
+        }
+    });
+
+    // Search Functionality
+    document.getElementById('doSearch').addEventListener('click', function() {
+        performSearch();
+    });
+
+    document.getElementById('searchInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            performSearch();
+        }
+    });
+
+    function performSearch() {
+        const query = document.getElementById('searchInput').value.trim();
+        
+        if (!query) return;
+        
+        // Cek jika query adalah koordinat
+        const coordMatch = query.match(/^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/);
+        
+        if (coordMatch) {
+            const lat = parseFloat(coordMatch[1]);
+            const lng = parseFloat(coordMatch[2]);
+            
+            if (!isNaN(lat) && !isNaN(lng)) {
+                map.setView([lat, lng], 16);
+                L.marker([lat, lng]).addTo(map)
+                    .bindPopup(`Lokasi: ${lat}, ${lng}`)
+                    .openPopup();
+                return;
+            }
+        }
+        
+        alert('Silakan gunakan format koordinat: latitude,longitude (contoh: -6.037,106.444)');
+    }
+
+    // ==================== SISTEM INTEGRASI GEOJSON ====================
+    let geoJSONLayer = null;
+    let densityChart = null;
+    let currentFilter = 'all';
+
+    // Fungsi untuk memuat dan menampilkan data GeoJSON
+    function loadGeoJSONData() {
+        // Hapus layer sebelumnya jika ada
+        if (geoJSONLayer) {
+            map.removeLayer(geoJSONLayer);
+        }
+        
+        const data = eviCipasilin2021;
+        
+        // Hitung statistik
+        calculateStatistics(data);
+        
+        // Style berdasarkan gridcode (kerapatan vegetasi)
+        function getStyleByGridcode(feature) {
+            const gridcode = feature.properties.gridcode;
+            let color, opacity, weight;
+            
+            switch(gridcode) {
+                case 1: // Sangat Rendah
+                    color = '#ffffcc';
+                    opacity = 0.7;
+                    weight = 1;
+                    break;
+                case 2: // Rendah
+                    color = '#c2e699';
+                    opacity = 0.7;
+                    weight = 1;
+                    break;
+                case 3: // Sedang-Rendah
+                    color = '#78c679';
+                    opacity = 0.7;
+                    weight = 1.5;
+                    break;
+                case 4: // Sedang
+                    color = '#31a354';
+                    opacity = 0.8;
+                    weight = 2;
+                    break;
+                case 5: // Tinggi
+                    color = '#006837';
+                    opacity = 0.9;
+                    weight = 2.5;
+                    break;
+                default:
+                    color = '#808080';
+                    opacity = 0.5;
+                    weight = 1;
+            }
+            
+            return {
+                fillColor: color,
+                color: color,
+                weight: weight,
+                opacity: 0.8,
+                fillOpacity: opacity
+            };
+        }
+        
+        // Filter function
+        function filterByDensity(feature) {
+            if (currentFilter === 'all') return true;
+            return feature.properties.gridcode.toString() === currentFilter;
+        }
+        
+        // Tambah layer GeoJSON ke peta
+        geoJSONLayer = L.geoJSON(data, {
+            style: getStyleByGridcode,
+            filter: filterByDensity,
+            onEachFeature: function(feature, layer) {
+                const props = feature.properties;
+                
+                let popupContent = `
+                    <div style="max-width: 280px;">
+                        <h4 style="margin:0 0 8px 0; color: #0a5c36; border-bottom: 2px solid #0a5c36; padding-bottom: 4px;">
+                            EVI Cipasilin 2021 - Poligon ${props.Id}
+                        </h4>
+                        <div style="font-size: 12px; color: #333; line-height: 1.4;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <strong>Kerapatan:</strong> 
+                                <span style="color: ${getColorByGridcode(props.gridcode)}; font-weight: bold;">
+                                    ${getKerapatanLabel(props.gridcode)}
+                                </span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <strong>Gridcode:</strong> <span>${props.gridcode || 'N/A'}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <strong>Luasan:</strong> <span>${props.luasan ? props.luasan.toFixed(2) + ' ha' : 'N/A'}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <strong>Shape Length:</strong> <span>${props.Shape_Length ? props.Shape_Length.toFixed(2) + ' m' : 'N/A'}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <strong>Shape Area:</strong> <span>${props.Shape_Area ? (props.Shape_Area / 10000).toFixed(2) + ' ha' : 'N/A'}</span>
+                            </div>
+                        </div>
+                `;
+                
+                // Tambahkan info tambahan berdasarkan gridcode
+                popupContent += `
+                    <div style="margin-top: 8px; padding: 6px; background: #f8f9fa; border-radius: 4px; font-size: 11px; border-left: 3px solid ${getColorByGridcode(props.gridcode)};">
+                        <strong>Indeks Vegetasi:</strong> ${getKerapatanLabel(props.gridcode)}<br>
+                        <div style="width: 100%; height: 8px; background: linear-gradient(90deg, #ffffcc, #006837); margin: 4px 0; border-radius: 4px; position: relative;">
+                            <div style="position: absolute; left: ${((props.gridcode - 1) / 4) * 100}%; width: 25%; height: 100%; background: ${getColorByGridcode(props.gridcode)}; border-radius: 4px;"></div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 9px; color: #666;">
+                            <span>Sangat Rendah</span>
+                            <span>Tinggi</span>
+                        </div>
+                    </div>
+                `;
+                
+                popupContent += `</div>`;
+                layer.bindPopup(popupContent);
+                
+                // Tooltip
+                layer.bindTooltip(`EVI Cipasilin 2021 - ${getKerapatanLabel(props.gridcode)} (${props.luasan} ha)`, {
+                    permanent: false,
+                    direction: 'auto',
+                    className: 'custom-tooltip'
+                });
+            }
+        }).addTo(map);
+        
+        // Fit bounds ke data
+        map.fitBounds(geoJSONLayer.getBounds());
+        
+        console.log(`Data EVI Cipasilin 2021 berhasil dimuat - ${data.features.length} fitur`);
+    }
+
+    // Fungsi untuk mendapatkan label kerapatan
+    function getKerapatanLabel(gridcode) {
+        switch(gridcode) {
+            case 1: return "Sangat Rendah";
+            case 2: return "Rendah";
+            case 3: return "Sedang-Rendah";
+            case 4: return "Sedang";
+            case 5: return "Tinggi";
+            default: return "Tidak Diketahui";
+        }
+    }
+
+    // Fungsi untuk menghitung statistik
+    function calculateStatistics(data) {
+        let totalLuasan = 0;
+        let jumlahPoligon = data.features.length;
+        let luasanMax = 0;
+        let luasanMin = Infinity;
+        let kerapatanRata = 0;
+        
+        const densityCount = {
+            1: 0, 2: 0, 3: 0, 4: 0, 5: 0
+        };
+        
+        data.features.forEach(feature => {
+            const luasan = feature.properties.luasan || 0;
+            const gridcode = feature.properties.gridcode || 1;
+            
+            totalLuasan += luasan;
+            densityCount[gridcode]++;
+            
+            if (luasan > luasanMax) luasanMax = luasan;
+            if (luasan < luasanMin) luasanMin = luasan;
+            kerapatanRata += gridcode;
+        });
+        
+        kerapatanRata = (kerapatanRata / jumlahPoligon).toFixed(1);
+        
+        // Update statistik panel
+        document.getElementById('totalLuas').textContent = totalLuasan.toFixed(2) + ' ha';
+        document.getElementById('jumlahPoligon').textContent = jumlahPoligon;
+        document.getElementById('kerapatanRata').textContent = kerapatanRata;
+        document.getElementById('luasMax').textContent = luasanMax.toFixed(2) + ' ha';
+        document.getElementById('luasMin').textContent = luasanMin.toFixed(2) + ' ha';
+        
+        // Update detail kerapatan
+        document.getElementById('detailSangatRendah').textContent = densityCount[1] + ' poligon';
+        document.getElementById('detailRendah').textContent = densityCount[2] + ' poligon';
+        document.getElementById('detailSedangRendah').textContent = densityCount[3] + ' poligon';
+        document.getElementById('detailSedang').textContent = densityCount[4] + ' poligon';
+        document.getElementById('detailTinggi').textContent = densityCount[5] + ' poligon';
+        
+        // Update data display
+        document.getElementById('dataSangatRendah').textContent = densityCount[1] + ' poligon';
+        document.getElementById('dataRendah').textContent = densityCount[2] + ' poligon';
+        document.getElementById('dataSedangRendah').textContent = densityCount[3] + ' poligon';
+        document.getElementById('dataSedang').textContent = densityCount[4] + ' poligon';
+        document.getElementById('dataTinggi').textContent = densityCount[5] + ' poligon';
+        
+        // Update chart
+        updateDensityChart(densityCount);
+    }
+
+    // Fungsi untuk update chart kerapatan
+    function updateDensityChart(densityCount) {
+        const ctx = document.getElementById('densityChart').getContext('2d');
+        
+        if (densityChart) {
+            densityChart.destroy();
+        }
+        
+        densityChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Sangat Rendah', 'Rendah', 'Sedang-Rendah', 'Sedang', 'Tinggi'],
+                datasets: [{
+                    label: 'Distribusi Kerapatan',
+                    data: [
+                        densityCount[1],
+                        densityCount[2],
+                        densityCount[3],
+                        densityCount[4],
+                        densityCount[5]
+                    ],
+                    backgroundColor: [
+                        '#ffffcc',
+                        '#c2e699',
+                        '#78c679',
+                        '#31a354',
+                        '#006837'
+                    ],
+                    borderColor: [
+                        '#d9d9a3',
+                        '#a8c97f',
+                        '#5fa85a',
+                        '#298845',
+                        '#005426'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 12,
+                            font: {
+                                size: 10
+                            }
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Distribusi Kerapatan EVI',
+                        font: {
+                            size: 12
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Fungsi untuk mendapatkan warna berdasarkan gridcode
+    function getColorByGridcode(gridcode) {
+        switch(gridcode) {
+            case 1: return '#ffffcc';
+            case 2: return '#c2e699';
+            case 3: return '#78c679';
+            case 4: return '#31a354';
+            case 5: return '#006837';
+            default: return '#808080';
+        }
+    }
+
+    // Filter functionality
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Update active button
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Update current filter
+            currentFilter = this.getAttribute('data-density');
+            
+            // Reload GeoJSON data with filter
+            loadGeoJSONData();
+        });
+    });
+
+    // Download Data GeoJSON
+    document.getElementById('downloadData').addEventListener('click', function() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(eviCipasilin2021, null, 2));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", "evi_cipasilin_2021.geojson");
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+        
+        alert('Data GeoJSON EVI Cipasilin 2021 berhasil diunduh!');
+    });
+
+    // Screenshot functionality
+    document.getElementById('screenshot').addEventListener('click', function() {
+        alert('Fitur screenshot akan segera tersedia!');
+    });
+
+    // Export Report
+    document.getElementById('exportReport').addEventListener('click', function() {
+        alert('Fitur export laporan PDF akan segera tersedia!');
+    });
+
+    // ==================== LEGENDA DINAMIS ====================
+    function updateLegend() {
+        const legend = L.control({ position: 'bottomright' });
+        
+        legend.onAdd = function(map) {
+            const div = L.DomUtil.create('div', 'info legend');
+            div.style.background = 'white';
+            div.style.padding = '10px';
+            div.style.borderRadius = '5px';
+            div.style.boxShadow = '0 0 10px rgba(0,0,0,0.2)';
+            
+            const grades = [1, 2, 3, 4, 5];
+            const labels = [
+                'Sangat Rendah (1)',
+                'Rendah (2)', 
+                'Sedang-Rendah (3)',
+                'Sedang (4)',
+                'Tinggi (5)'
+            ];
+            const colors = [
+                '#ffffcc', '#c2e699', '#78c679', '#31a354', '#006837'
+            ];
+            
+            let legendHTML = '<h4 style="margin:0 0 8px 0;">Kerapatan EVI</h4>';
+            
+            for (let i = 0; i < grades.length; i++) {
+                legendHTML += `
+                    <div style="display: flex; align-items: center; margin: 4px 0;">
+                        <div style="width: 20px; height: 15px; background: ${colors[i]}; margin-right: 8px; border: 1px solid #666;"></div>
+                        <span style="font-size: 12px;">${labels[i]}</span>
+                    </div>
+                `;
+            }
+            
+            div.innerHTML = legendHTML;
+            return div;
+        };
+        
+        legend.addTo(map);
+    }
+
+    // ==================== KELAS KERAPATAN ====================
+    const CLASSES = [
+      { id: 'high', label: 'Tinggi', color: '#006837' },
+      { id: 'medium', label: 'Sedang', color: '#31a354' },
+      { id: 'low-medium', label: 'Sedang-Rendah', color: '#78c679' },
+      { id: 'low', label: 'Rendah', color: '#c2e699' }
+    ];
+
+    // Render Kelas
+    function renderClasses() {
+      const classesList = document.getElementById('classesList');
+      classesList.innerHTML = '';
+      
+      CLASSES.forEach(cls => {
+        const item = document.createElement('div');
+        item.className = 'class-item';
+        item.innerHTML = `
+          <div class="class-color" style="background:${cls.color}"></div>
+          <div class="class-label">${cls.label}</div>
+          <div class="switch"><div class="knob"></div></div>
+        `;
+        classesList.appendChild(item);
+        
+        // Switch event
+        const switchEl = item.querySelector('.switch');
+        switchEl.addEventListener('click', function() {
+          this.classList.toggle('on');
+        });
+        switchEl.classList.add('on');
+      });
+    }
+
+    // ==================== INISIALISASI ====================
+    document.addEventListener('DOMContentLoaded', function() {
+        renderClasses();
+        updateLegend();
+        
+        // Load data EVI Cipasilin 2021
+        setTimeout(() => {
+            loadGeoJSONData();
+        }, 1000);
+        
+        // Scale update
+        map.on('zoomend', function() {
+            const zoom = map.getZoom();
+            const scale = Math.round(591657550 / Math.pow(2, zoom - 1));
+            document.getElementById('scaleBox').textContent = `Skala: 1:${scale.toLocaleString()}`;
+        });
+        map.fire('zoomend');
+    });
+
+  </script>
+
+</body>
+</html>

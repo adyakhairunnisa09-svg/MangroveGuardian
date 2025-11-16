@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guardian AI - Game Themed Chatbot</title>
+  <style>
+    :root {
+      --primary-color: #4a00e0;
+      --secondary-color: #8e2de2;
+      --accent-color: #00c6ff;
+      --dark-color: #1a1a2e;
+      --light-color: #f0f0f0;
+      --success-color: #00ff88;
+      --warning-color: #ffcc00;
+      --danger-color: #ff416c;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    body {
+      background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 100%);
+      color: var(--light-color);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    /* Background Animations */
+    .floating-shapes {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: -1;
+    }
+    
+    .shape {
+      position: absolute;
+      opacity: 0.1;
+      animation: float 20s infinite linear;
+    }
+    
+    .shape.circle {
+      background: var(--accent-color);
+      border-radius: 50%;
+    }
+    
+    .shape.triangle {
+      width: 0;
+      height: 0;
+      border-left: 25px solid transparent;
+      border-right: 25px solid transparent;
+      border-bottom: 50px solid var(--primary-color);
+      background: transparent;
+    }
+    
+    .shape.square {
+      background: var(--secondary-color);
+      transform: rotate(45deg);
+    }
+    
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0) rotate(0deg);
+      }
+      25% {
+        transform: translateY(-20px) rotate(90deg);
+      }
+      50% {
+        transform: translateY(-40px) rotate(180deg);
+      }
+      75% {
+        transform: translateY(-20px) rotate(270deg);
+      }
+    }
+    
+    .particles {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: -1;
+    }
+    
+    .particle {
+      position: absolute;
+      background: var(--accent-color);
+      border-radius: 50%;
+      animation: particle-float 15s infinite linear;
+      opacity: 0.3;
+    }
+    
+    @keyframes particle-float {
+      0% {
+        transform: translateY(100vh) translateX(0) scale(0);
+        opacity: 0;
+      }
+      10% {
+        opacity: 0.3;
+      }
+      90% {
+        opacity: 0.3;
+      }
+      100% {
+        transform: translateY(-100px) translateX(100px) scale(1);
+        opacity: 0;
+      }
+    }
+    
+    .pulse-ring {
+      position: absolute;
+      border: 2px solid var(--accent-color);
+      border-radius: 50%;
+      animation: pulse 3s infinite;
+      pointer-events: none;
+    }
+    
+    @keyframes pulse {
+      0% {
+        transform: scale(0.8);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(2);
+        opacity: 0;
+      }
+    }
+    
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(circle at 20% 80%, rgba(74, 0, 224, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(0, 198, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(142, 45, 226, 0.05) 0%, transparent 50%);
+      animation: backgroundShift 10s ease-in-out infinite alternate;
+    }
+    
+    @keyframes backgroundShift {
+      0% { transform: scale(1) rotate(0deg); }
+      100% { transform: scale(1.1) rotate(1deg); }
+    }
+    
+    .game-container {
+      width: 100%;
+      max-width: 1000px;
+      height: 90vh;
+      background: rgba(25, 25, 45, 0.95);
+      border-radius: 25px;
+      overflow: hidden;
+      box-shadow: 
+        0 20px 50px rgba(0, 0, 0, 0.8),
+        0 0 0 1px rgba(0, 198, 255, 0.3),
+        inset 0 0 50px rgba(0, 198, 255, 0.1);
+      border: 2px solid var(--accent-color);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      backdrop-filter: blur(10px);
+      z-index: 1;
+      animation: containerGlow 4s ease-in-out infinite alternate;
+    }
+    
+    @keyframes containerGlow {
+      0% {
+        box-shadow: 
+          0 20px 50px rgba(0, 0, 0, 0.8),
+          0 0 0 1px rgba(0, 198, 255, 0.3),
+          inset 0 0 50px rgba(0, 198, 255, 0.1);
+      }
+      100% {
+        box-shadow: 
+          0 20px 50px rgba(0, 0, 0, 0.8),
+          0 0 0 1px rgba(0, 198, 255, 0.6),
+          inset 0 0 50px rgba(0, 198, 255, 0.3);
+      }
+    }
+    
+    .game-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(45deg, transparent 0%, rgba(0, 198, 255, 0.03) 100%);
+      pointer-events: none;
+      animation: shimmer 8s ease-in-out infinite;
+    }
+    
+    @keyframes shimmer {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 0.7; }
+    }
+    
+    .home-button {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      border: none;
+      border-radius: 15px;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 1.5rem;
+      color: white;
+      z-index: 100;
+      box-shadow: 
+        0 5px 15px rgba(74, 0, 224, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      animation: buttonPulse 2s ease-in-out infinite;
+      text-decoration: none;
+    }
+    
+    @keyframes buttonPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    
+    .home-button:hover {
+      transform: scale(1.1) translateY(-2px);
+      box-shadow: 
+        0 8px 25px rgba(74, 0, 224, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+      animation: none;
+    }
+    
+    .home-button:active {
+      transform: scale(1) translateY(0);
+    }
+    
+    .game-header {
+      background: linear-gradient(90deg, 
+        rgba(74, 0, 224, 0.9) 0%, 
+        rgba(142, 45, 226, 0.9) 50%, 
+        rgba(74, 0, 224, 0.9) 100%);
+      padding: 25px 30px 25px 90px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 3px solid var(--accent-color);
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+      animation: headerSlide 1s ease-out;
+    }
+    
+    @keyframes headerSlide {
+      from {
+        transform: translateY(-100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+    
+    .game-header::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, 
+        var(--accent-color), 
+        var(--success-color), 
+        var(--warning-color), 
+        var(--danger-color),
+        var(--accent-color));
+      animation: rainbow-border 3s linear infinite;
+      box-shadow: 0 0 10px rgba(0, 198, 255, 0.5);
+    }
+    
+    @keyframes rainbow-border {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 200% 50%; }
+    }
+    
+    .game-title {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    
+    .game-title h1 {
+      font-size: 2.2rem;
+      text-shadow: 
+        0 0 20px rgba(0, 198, 255, 0.8),
+        0 2px 4px rgba(0, 0, 0, 0.5);
+      letter-spacing: 2px;
+      background: linear-gradient(135deg, #fff, var(--accent-color));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 800;
+      animation: textGlow 2s ease-in-out infinite alternate;
+    }
+    
+    @keyframes textGlow {
+      from {
+        text-shadow: 
+          0 0 20px rgba(0, 198, 255, 0.8),
+          0 2px 4px rgba(0, 0, 0, 0.5);
+      }
+      to {
+        text-shadow: 
+          0 0 30px rgba(0, 198, 255, 1),
+          0 2px 8px rgba(0, 0, 0, 0.7);
+      }
+    }
+    
+    .game-title .ai-icon {
+      font-size: 3rem;
+      animation: float 3s ease-in-out infinite, iconSpin 6s linear infinite;
+      filter: drop-shadow(0 0 10px rgba(0, 198, 255, 0.5));
+    }
+    
+    @keyframes iconSpin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      33% { transform: translateY(-10px) rotate(2deg); }
+      66% { transform: translateY(-5px) rotate(-2deg); }
+    }
+    
+    .game-stats {
+      display: flex;
+      gap: 20px;
+    }
+    
+    .stat {
+      background: linear-gradient(135deg, rgba(0, 0, 0, 0.4), rgba(74, 0, 224, 0.2));
+      padding: 12px 18px;
+      border-radius: 15px;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+      border: 1px solid rgba(0, 198, 255, 0.2);
+      backdrop-filter: blur(10px);
+      animation: statAppear 0.6s ease-out backwards;
+    }
+    
+    .stat:nth-child(1) { animation-delay: 0.2s; }
+    .stat:nth-child(2) { animation-delay: 0.4s; }
+    .stat:nth-child(3) { animation-delay: 0.6s; }
+    
+    @keyframes statAppear {
+      from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.8);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    
+    .stat:hover {
+      background: linear-gradient(135deg, rgba(0, 0, 0, 0.6), rgba(74, 0, 224, 0.4));
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(0, 198, 255, 0.3);
+    }
+    
+    .chat-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 30px;
+      background: 
+        radial-gradient(circle at 10% 20%, rgba(74, 0, 224, 0.1) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(0, 198, 255, 0.1) 0%, transparent 40%),
+        url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" fill="rgba(26,26,46,0.8)"/><path d="M0 0L200 200M200 0L0 200" stroke="rgba(0,198,255,0.03)" stroke-width="1"/></svg>');
+      overflow: hidden;
+      position: relative;
+      animation: chatAreaReveal 0.8s ease-out;
+    }
+    
+    @keyframes chatAreaReveal {
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+    
+    .chat-box {
+      flex: 1;
+      overflow-y: auto;
+      padding: 25px;
+      margin-bottom: 20px;
+      background: rgba(15, 15, 30, 0.8);
+      border-radius: 20px;
+      border: 1px solid rgba(0, 198, 255, 0.3);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      min-height: 0;
+      backdrop-filter: blur(10px);
+      box-shadow: 
+        inset 0 0 30px rgba(0, 198, 255, 0.1),
+        0 5px 20px rgba(0, 0, 0, 0.3);
+      animation: chatBoxAppear 1s ease-out;
+    }
+    
+    @keyframes chatBoxAppear {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    /* Styling untuk pesan */
+    .chat-message {
+      max-width: 78%;
+      padding: 18px 22px;
+      border-radius: 20px;
+      position: relative;
+      animation: messageSlide 0.5s ease-out;
+      word-wrap: break-word;
+      line-height: 1.6;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    
+    @keyframes messageSlide {
+      from {
+        opacity: 0;
+        transform: translateX(-30px) scale(0.9);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+      }
+    }
+    
+    .chat-message.user {
+      align-self: flex-end;
+      background: linear-gradient(135deg, var(--accent-color), #0088cc);
+      border-bottom-right-radius: 8px;
+      box-shadow: 
+        0 6px 20px rgba(0, 198, 255, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+      animation: userMessageSlide 0.5s ease-out;
+    }
+    
+    @keyframes userMessageSlide {
+      from {
+        opacity: 0;
+        transform: translateX(30px) scale(0.9);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+      }
+    }
+    
+    .chat-message.bot {
+      align-self: flex-start;
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      border-bottom-left-radius: 8px;
+      box-shadow: 
+        0 6px 20px rgba(74, 0, 224, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+    
+    .chat-message:hover {
+      transform: translateY(-2px);
+      box-shadow: 
+        0 8px 25px rgba(0, 198, 255, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    }
+    
+    .chat-message strong {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 0.95rem;
+      opacity: 0.9;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+    
+    .chat-message.user strong {
+      color: #e6f7ff;
+    }
+    
+    .chat-message.bot strong {
+      color: #f0e6ff;
+    }
+    
+    .message-time {
+      font-size: 0.8rem;
+      opacity: 0.7;
+      margin-top: 10px;
+      text-align: right;
+      font-style: italic;
+    }
+    
+    .chat-input-container {
+      display: flex;
+      gap: 15px;
+      background: rgba(20, 20, 40, 0.9);
+      padding: 20px;
+      border-radius: 20px;
+      border: 1px solid rgba(0, 198, 255, 0.4);
+      flex-shrink: 0;
+      margin-top: auto;
+      box-shadow: 
+        0 8px 25px rgba(0, 0, 0, 0.4),
+        inset 0 0 20px rgba(0, 198, 255, 0.1);
+      backdrop-filter: blur(10px);
+      animation: inputAppear 1.2s ease-out;
+    }
+    
+    @keyframes inputAppear {
+      from {
+        opacity: 0;
+        transform: translateY(50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    #user-input {
+      flex: 1;
+      padding: 16px 20px;
+      border: none;
+      border-radius: 15px;
+      background: rgba(255, 255, 255, 0.08);
+      color: white;
+      font-size: 1.1rem;
+      outline: none;
+      transition: all 0.3s ease;
+      border: 1px solid rgba(0, 198, 255, 0.2);
+      animation: inputFocusPulse 3s ease-in-out infinite;
+    }
+    
+    @keyframes inputFocusPulse {
+      0%, 100% {
+        border-color: rgba(0, 198, 255, 0.2);
+        box-shadow: none;
+      }
+      50% {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 10px rgba(0, 198, 255, 0.3);
+      }
+    }
+    
+    #user-input:focus {
+      box-shadow: 
+        0 0 0 3px rgba(0, 198, 255, 0.3),
+        inset 0 0 20px rgba(0, 198, 255, 0.1);
+      background: rgba(255, 255, 255, 0.12);
+      border-color: var(--accent-color);
+      animation: none;
+    }
+    
+    #user-input::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+      font-style: italic;
+    }
+    
+    #send-btn {
+      padding: 16px 32px;
+      background: linear-gradient(135deg, var(--accent-color), #0077b3);
+      border: none;
+      border-radius: 15px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      flex-shrink: 0;
+      box-shadow: 
+        0 5px 15px rgba(0, 198, 255, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+      font-size: 1.1rem;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+      animation: buttonGlow 2s ease-in-out infinite alternate;
+    }
+    
+    @keyframes buttonGlow {
+      from {
+        box-shadow: 
+          0 5px 15px rgba(0, 198, 255, 0.4),
+          inset 0 1px 0 rgba(255, 255, 255, 0.3);
+      }
+      to {
+        box-shadow: 
+          0 5px 20px rgba(0, 198, 255, 0.8),
+          inset 0 1px 0 rgba(255, 255, 255, 0.5);
+      }
+    }
+    
+    #send-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 
+        0 8px 25px rgba(0, 198, 255, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+      animation: none;
+    }
+    
+    #send-btn:active {
+      transform: translateY(0);
+    }
+    
+    .typing-indicator {
+      display: none;
+      align-self: flex-start;
+      background: linear-gradient(135deg, rgba(74, 0, 224, 0.5), rgba(142, 45, 226, 0.3));
+      padding: 18px 22px;
+      border-radius: 20px;
+      border-bottom-left-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 15px rgba(74, 0, 224, 0.3);
+      backdrop-filter: blur(10px);
+      animation: typingPulse 1.5s ease-in-out infinite;
+    }
+    
+    @keyframes typingPulse {
+      0%, 100% {
+        opacity: 0.7;
+        transform: scale(1);
+      }
+      50% {
+        opacity: 1;
+        transform: scale(1.02);
+      }
+    }
+    
+    .typing-dots {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .typing-dots span {
+      height: 12px;
+      width: 12px;
+      border-radius: 50%;
+      background: var(--light-color);
+      opacity: 0.8;
+      animation: typing 1.4s infinite ease-in-out;
+      box-shadow: 0 0 5px rgba(0, 198, 255, 0.5);
+    }
+    
+    .typing-dots span:nth-child(1) { animation-delay: 0s; }
+    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+    
+    @keyframes typing {
+      0%, 60%, 100% { transform: translateY(0) scale(1); }
+      30% { transform: translateY(-8px) scale(1.2); }
+    }
+
+    /* Quick actions */
+    .quick-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-top: 20px;
+      justify-content: center;
+    }
+    
+    .quick-action {
+      background: linear-gradient(135deg, rgba(74, 0, 224, 0.5), rgba(0, 198, 255, 0.4));
+      border: 1px solid rgba(0, 198, 255, 0.6);
+      border-radius: 30px;
+      padding: 12px 22px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 15px rgba(0, 198, 255, 0.3);
+      animation: quickActionAppear 0.6s ease-out backwards;
+    }
+    
+    .quick-action:nth-child(1) { animation-delay: 0.8s; }
+    .quick-action:nth-child(2) { animation-delay: 1s; }
+    .quick-action:nth-child(3) { animation-delay: 1.2s; }
+    .quick-action:nth-child(4) { animation-delay: 1.4s; }
+    
+    @keyframes quickActionAppear {
+      from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.8);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    
+    .quick-action:hover {
+      background: linear-gradient(135deg, rgba(74, 0, 224, 0.7), rgba(0, 198, 255, 0.6));
+      transform: translateY(-4px) scale(1.05);
+      box-shadow: 0 8px 25px rgba(0, 198, 255, 0.5);
+    }
+    
+    /* Scrollbar styling */
+    .chat-box::-webkit-scrollbar {
+      width: 10px;
+    }
+    
+    .chat-box::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 5px;
+      margin: 5px;
+    }
+    
+    .chat-box::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, var(--accent-color), var(--primary-color));
+      border-radius: 5px;
+      border: 2px solid rgba(0, 198, 255, 0.3);
+      animation: scrollbarGlow 2s ease-in-out infinite alternate;
+    }
+    
+    @keyframes scrollbarGlow {
+      from {
+        background: linear-gradient(135deg, var(--accent-color), var(--primary-color));
+      }
+      to {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      }
+    }
+    
+    .chat-box::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    }
+    
+    /* Notification */
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, var(--success-color), var(--accent-color));
+      color: var(--dark-color);
+      padding: 18px 24px;
+      border-radius: 15px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+      transform: translateX(150%);
+      transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      z-index: 1000;
+      font-weight: bold;
+      font-size: 1.1rem;
+      backdrop-filter: blur(10px);
+    }
+    
+    .notification.show {
+      transform: translateX(0);
+    }
+    
+    /* Responsive design */
+    @media (max-width: 768px) {
+      .game-container {
+        height: 95vh;
+        border-radius: 20px;
+        margin: 10px;
+      }
+      
+      .game-title h1 {
+        font-size: 1.6rem;
+      }
+      
+      .chat-message {
+        max-width: 85%;
+        padding: 15px 18px;
+      }
+      
+      .game-stats {
+        gap: 10px;
+      }
+      
+      .stat {
+        font-size: 0.9rem;
+        padding: 10px 14px;
+      }
+      
+      .chat-area {
+        padding: 20px;
+      }
+      
+      .chat-box {
+        padding: 20px;
+      }
+      
+      .home-button {
+        top: 15px;
+        left: 15px;
+        width: 45px;
+        height: 45px;
+        font-size: 1.3rem;
+      }
+      
+      .game-header {
+        padding: 20px 25px 20px 70px;
+      }
+    }
+    
+    @media (max-width: 576px) {
+      .game-header {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px 20px 15px 65px;
+      }
+      
+      .game-stats {
+        justify-content: center;
+      }
+      
+      .quick-actions {
+        gap: 10px;
+      }
+      
+      .quick-action {
+        font-size: 0.9rem;
+        padding: 10px 18px;
+      }
+      
+      .chat-input-container {
+        padding: 15px;
+        gap: 12px;
+      }
+      
+      #user-input {
+        padding: 14px 18px;
+        font-size: 1rem;
+      }
+      
+      #send-btn {
+        padding: 14px 24px;
+        font-size: 1rem;
+      }
+      
+      .notification {
+        top: 15px;
+        right: 15px;
+        left: 15px;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Floating Background Shapes -->
+  <div class="floating-shapes">
+    <div class="shape circle" style="top: 10%; left: 5%; width: 60px; height: 60px; animation-delay: 0s;"></div>
+    <div class="shape triangle" style="top: 20%; left: 80%; animation-delay: 2s;"></div>
+    <div class="shape square" style="top: 60%; left: 10%; width: 40px; height: 40px; animation-delay: 4s;"></div>
+    <div class="shape circle" style="top: 80%; left: 70%; width: 30px; height: 30px; animation-delay: 6s;"></div>
+  </div>
+  
+  <!-- Floating Particles -->
+  <div class="particles" id="particles-container"></div>
+  
+  <!-- Pulse Rings -->
+  <div class="pulse-ring" style="top: 50%; left: 10%; animation-delay: 0s;"></div>
+  <div class="pulse-ring" style="top: 30%; left: 80%; animation-delay: 1.5s;"></div>
+  <div class="pulse-ring" style="top: 70%; left: 60%; animation-delay: 3s;"></div>
+  
+  <!-- Tombol Home yang langsung link ke index.html -->
+  <a href="indeks.html" class="home-button">←</a>
+  
+  <div class="game-container">
+    <div class="game-header">
+      <div class="game-title">
+        <div class="ai-icon">🤖</div>
+        <h1>Assistant Guardian</h1>
+      </div>
+      <div class="game-stats">
+        <div class="stat">🔋 <span>Power: 98%</span></div>
+        <div class="stat">⭐ <span>Level: 15</span></div>
+        <div class="stat">👥 <span>Online: 243</span></div>
+      </div>
+    </div>
+    
+    <div class="chat-area">
+      <div class="chat-box" id="chatMessages">
+        <div class="chat-message bot">
+          <strong>Bot:</strong> Halo! Aku asisten AI kamu 🤖<br> Mau bahas apa hari ini?
+          <div class="quick-actions">
+            <div class="quick-action" data-message="Apa itu mangrove?">🌿 Apa itu mangrove?</div>
+            <div class="quick-action" data-message="Manfaat mangrove bagi lingkungan">🌊 Manfaat mangrove</div>
+            <div class="quick-action" data-message="Jenis-jenis mangrove">🌴 Jenis mangrove</div>
+            <div class="quick-action" data-message="Cara melestarikan mangrove">🛡️ Konservasi</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="typing-indicator" id="typing-indicator">
+        <div class="typing-dots">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+      
+      <div class="chat-input-container">
+        <input type="text" id="user-input" placeholder="Tanya tentang mangrove..." autocomplete="off">
+        <button id="send-btn">Kirim</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Semua JavaScript termasuk dalam file HTML ini
+    document.addEventListener("DOMContentLoaded", function () {
+      const sendBtn = document.getElementById("send-btn");
+      const input = document.getElementById("user-input");
+      const chatBox = document.getElementById("chatMessages");
+      const typingIndicator = document.getElementById("typing-indicator");
+
+      // Create floating particles
+      function createParticles() {
+        const container = document.getElementById('particles-container');
+        for (let i = 0; i < 15; i++) {
+          const particle = document.createElement('div');
+          particle.className = 'particle';
+          const size = Math.random() * 6 + 2;
+          const left = Math.random() * 100;
+          const delay = Math.random() * 15;
+          const duration = 10 + Math.random() * 10;
+          
+          particle.style.cssText = `
+            left: ${left}%;
+            width: ${size}px;
+            height: ${size}px;
+            animation-delay: ${delay}s;
+            animation-duration: ${duration}s;
+            background: ${i % 3 === 0 ? 'var(--accent-color)' : i % 3 === 1 ? 'var(--primary-color)' : 'var(--secondary-color)'};
+          `;
+          container.appendChild(particle);
+        }
+      }
+
+      function addMessage(sender, text) {
+        const msgDiv = document.createElement("div");
+        msgDiv.className = `chat-message ${sender}`;
+        
+        const time = new Date();
+        const timeString = time.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        
+        msgDiv.innerHTML = `<strong>${sender === "user" ? "Anda" : "Bot"}:</strong> ${text}<div class="message-time">${timeString}</div>`;
+        chatBox.appendChild(msgDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+        
+        // Add animation to new message
+        msgDiv.style.animation = sender === 'user' ? 'userMessageSlide 0.5s ease-out' : 'messageSlide 0.5s ease-out';
+      }
+
+      function showTypingIndicator() {
+        typingIndicator.style.display = 'block';
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+
+      function hideTypingIndicator() {
+        typingIndicator.style.display = 'none';
+      }
+
+      function sendMessage() {
+        const message = input.value.trim();
+        if (message === "") return;
+
+        addMessage("user", message);
+        input.value = "";
+
+        // Tampilkan indikator mengetik
+        showTypingIndicator();
+
+        // Kirim ke server.php
+        fetch("http://localhost/mangrove-app/html/chatbot.php", { 
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message })
+        })
+        .then(async res => {
+          console.log("Response status:", res.status);
+          const text = await res.text();
+          console.log("Raw response:", text);
+          return JSON.parse(text);
+        })
+        .then(data => {
+          console.log("Data dari server:", data);
+          hideTypingIndicator();
+          addMessage("bot", data.reply);
+        })
+        .catch(err => {
+          console.error("Error:", err);
+          hideTypingIndicator();
+          addMessage("bot", "⚠️ Terjadi kesalahan saat menghubungi server.");
+        });
+      }
+      
+      sendBtn.addEventListener("click", sendMessage);
+      input.addEventListener("keypress", e => {
+        if (e.key === "Enter") sendMessage();
+      });
+
+      // Quick actions
+      document.querySelectorAll('.quick-action').forEach(button => {
+        button.addEventListener('click', function() {
+          const message = this.getAttribute('data-message');
+          input.value = message;
+          sendMessage();
+        });
+      });
+
+      // Animasi stats
+      function updateStats() {
+        const stats = document.querySelectorAll('.stat span');
+        if (stats.length >= 3) {
+          // Update power
+          let power = parseInt(stats[0].textContent.match(/\d+/)[0]);
+          power = Math.max(85, power - Math.floor(Math.random() * 2));
+          stats[0].textContent = `Power: ${power}%`;
+          
+          // Update online users
+          let online = parseInt(stats[2].textContent.match(/\d+/)[0]);
+          online = Math.max(200, online + Math.floor(Math.random() * 6) - 3);
+          stats[2].textContent = `Online: ${online}`;
+        }
+      }
+      
+      setInterval(updateStats, 30000);
+
+      // Focus input ketika halaman dimuat
+      input.focus();
+      
+      // Initialize particles
+      createParticles();
+    });
+  </script>
+</body>
+</html>

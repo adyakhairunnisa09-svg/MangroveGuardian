@@ -1,0 +1,102 @@
+/* CONTAINER UTAMA SIDEBAR */
+.sidebar {
+    /* Posisi di kiri, tetap terlihat saat scrolling */
+    position: fixed; 
+    top: 0;
+    left: 0;
+    height: 100vh; /* Tinggi penuh layar */
+    width: 240px; /* Lebar sidebar */
+    background-color: #004d40; /* Warna latar belakang hijau tua */
+    color: white;
+    padding: 15px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column; /* Mengatur elemen secara vertikal */
+    z-index: 1000;
+}
+
+/* BRAND/LOGO */
+.brand {
+    padding: 10px 0;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.brand span {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+/* CONTAINER NAVIGASI */
+.nav-menu {
+    flex-grow: 1; /* Agar menu mengisi sisa ruang di tengah */
+}
+
+/* GAYA LINK NAVIGASI UMUM */
+.nav-menu a {
+    color: white;
+    text-decoration: none;
+    padding: 10px 15px;
+    display: block;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.nav-menu a:hover {
+    background-color: #00796b;
+}
+
+/* GAYA DROPDOWN (MENU UTAMA) */
+.dropdown {
+    /* Tidak perlu posisi relatif di sini, karena sudah vertikal */
+}
+
+.dropdown-toggle {
+    font-weight: bold;
+    margin-top: 10px;
+    margin-bottom: 5px;
+}
+
+/* KONTEN DROPDOWN (SUB-MENU LEVEL 1: PULAU PANJANG, CIPASILIN, DLL.) */
+.dropdown-content {
+    /* Pada sidebar, kita biarkan sub-menu tampil tanpa hover (atau menggunakan JS/CSS target) */
+    padding-left: 10px; /* Indentasi untuk membedakan dari link utama */
+}
+
+/* SUB-MENU (LEVEL 2: EVI 2020, SAVI 2020, DLL.) */
+.dropdown-submenu-content {
+    /* Sembunyikan secara default, biasanya dikontrol oleh JavaScript */
+    display: none; 
+    padding-left: 20px; /* Indentasi lebih dalam */
+    border-left: 2px solid rgba(255, 255, 255, 0.3);
+    margin-left: 10px;
+}
+
+/* GAYA LINK DI SUB-MENU */
+.dropdown-submenu-content a {
+    font-size: 0.9em;
+    padding: 8px 10px;
+    opacity: 0.8;
+}
+
+.dropdown-submenu-content a:hover {
+    opacity: 1;
+    background-color: #00796b;
+}
+
+
+/* LANGUAGE SWITCH (DI BAGIAN BAWAH) */
+.lang-switch {
+    cursor: pointer;
+    border: 1px solid white;
+    padding: 8px 10px;
+    text-align: center;
+    border-radius: 4px;
+    margin-top: auto; /* Mendorong elemen ke bagian bawah */
+    transition: background-color 0.3s;
+}
+
+.lang-switch:hover {
+    background-color: #00796b;
+}

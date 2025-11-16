@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Mangrove Guardian</title>
+    
+    <style>
+        /* VARIABLES */
+        :root {
+            --primary-green: #00ff88;
+            --dark-green: #00cc6a;
+            --light-green: #80ffc2;
+            --black: #000000;
+            --white: #ffffff;
+            --gray: #1a1a1a;
+            --light-gray: #333333;
+            --glass-bg: rgba(0, 0, 0, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glow-green: 0 0 20px rgba(0, 255, 136, 0.5);
+        }
+
+        /* BASE STYLES */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #000000 0%, #0a0f0a 50%, #001a0d 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: var(--white);
+            overflow-x: hidden;
+        }
+
+        /* ANIMATED BACKGROUND */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .bg-circle {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--primary-green) 0%, transparent 70%);
+            opacity: 0.1;
+            animation: float 15s infinite ease-in-out;
+        }
+
+        .bg-circle:nth-child(1) {
+            width: 300px;
+            height: 300px;
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .bg-circle:nth-child(2) {
+            width: 200px;
+            height: 200px;
+            top: 60%;
+            left: 80%;
+            animation-delay: 5s;
+        }
+
+        .bg-circle:nth-child(3) {
+            width: 400px;
+            height: 400px;
+            top: 30%;
+            left: 60%;
+            animation-delay: 10s;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) translateX(0);
+            }
+            50% {
+                transform: translateY(-20px) translateX(10px);
+            }
+        }
+
+        /* LOGIN CONTAINER */
+        .login-container {
+            width: 100%;
+            max-width: 440px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 24px;
+            padding: 40px 35px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), var(--glow-green);
+            border: 1px solid var(--glass-border);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .login-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(0, 255, 136, 0.3);
+        }
+
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-green), var(--light-green));
+        }
+
+        /* LOGO SECTION */
+        .logo {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo-icon {
+            font-size: 4.5em;
+            margin-bottom: 15px;
+            display: block;
+            filter: drop-shadow(0 0 10px rgba(0, 255, 136, 0.5));
+            animation: pulse 3s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .logo h1 {
+            color: var(--white);
+            font-size: 2.2em;
+            font-weight: 800;
+            margin-bottom: 8px;
+            background: linear-gradient(90deg, var(--white), var(--light-green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .logo p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.95em;
+            font-weight: 300;
+        }
+
+        /* MESSAGES */
+        .message {
+            padding: 14px 18px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            display: none;
+            border-left: 4px solid;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .message.error {
+            background: rgba(255, 50, 50, 0.15);
+            border-left-color: #ff3232;
+            color: #ff6b6b;
+        }
+
+        .message.success {
+            background: rgba(0, 255, 136, 0.15);
+            border-left-color: var(--primary-green);
+            color: var(--light-green);
+        }
+
+        /* FORM STYLES */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2em;
+            color: var(--primary-green);
+            z-index: 2;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 16px 16px 16px 50px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1.5px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            color: white;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-green);
+            background: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.2);
+        }
+
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .forgot-password {
+            text-align: right;
+            margin-top: 12px;
+            margin-bottom: 25px;
+        }
+
+        .forgot-password a {
+            color: var(--primary-green);
+            text-decoration: none;
+            font-size: 0.85em;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .forgot-password a:hover {
+            text-decoration: underline;
+            color: var(--light-green);
+        }
+
+        /* BUTTONS */
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 14px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
+            color: var(--black);
+            box-shadow: 0 4px 20px rgba(0, 255, 136, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 25px rgba(0, 255, 136, 0.6);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-primary:hover::after {
+            left: 100%;
+        }
+
+        /* BIOMETRIC SECTION */
+        .biometric-section {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .biometric-btn {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.6em;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .biometric-btn:hover {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: var(--primary-green);
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+        }
+
+        .biometric-btn::after {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            border-radius: 50%;
+            border: 2px solid var(--primary-green);
+            opacity: 0;
+            animation: ripple 2s infinite;
+        }
+
+        @keyframes ripple {
+            0% {
+                transform: scale(0.8);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        /* DIVIDER */
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 30px 0;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .divider span {
+            padding: 0 15px;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.85em;
+            font-weight: 300;
+        }
+
+        /* GOOGLE BUTTON */
+        .google-btn {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 14px;
+            color: #333;
+            font-size: 0.95em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .google-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            background: white;
+        }
+
+        /* REGISTER LINK */
+        .register-link {
+            text-align: center;
+            margin-top: 30px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9em;
+        }
+
+        .register-link a {
+            color: var(--primary-green);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+            color: var(--light-green);
+        }
+
+        /* FOOTER LINKS */
+        .footer-links {
+            position: fixed;
+            bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.8em;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            padding: 8px 12px;
+            border-radius: 8px;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary-green);
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 35px 25px;
+                border-radius: 20px;
+            }
+
+            .logo h1 {
+                font-size: 1.8em;
+            }
+
+            .logo-icon {
+                font-size: 4em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-animation">
+        <div class="bg-circle"></div>
+        <div class="bg-circle"></div>
+        <div class="bg-circle"></div>
+    </div>
+
+    <!-- Login Container -->
+    <div class="login-container">
+        <!-- Logo -->
+        <div class="logo">
+            <span class="logo-icon">🌿</span>
+            <h1>Mangrove Guardian</h1>
+            <p>Selamatkan Mangrove Bersama</p>
+        </div>
+
+        <!-- Messages -->
+        <div class="message error" id="errorMessage"></div>
+        <div class="message success" id="successMessage"></div>
+
+        <!-- Login Form -->
+        <form id="loginForm">
+            <div class="form-group">
+                <label class="form-label">Email atau Username</label>
+                <div class="input-group">
+                    <span class="input-icon">👤</span>
+                    <input type="text" class="form-input" id="loginUsername" 
+                           placeholder="Masukkan email atau username" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <div class="input-group">
+                    <span class="input-icon">🔒</span>
+                    <input type="password" class="form-input" id="loginPassword" 
+                           placeholder="Masukkan password" required>
+                </div>
+            </div>
+
+            <div class="forgot-password">
+                <a href="#" id="forgotLink">Lupa password?</a>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <span>🚀</span>
+                <span>Masuk</span>
+            </button>
+        </form>
+
+        <!-- Biometric -->
+        <div class="biometric-section">
+            <div class="biometric-btn" id="biometricBtn" title="Login dengan Fingerprint">
+                👆
+            </div>
+        </div>
+
+        <!-- Divider -->
+        <div class="divider">
+            <span>atau masuk dengan</span>
+        </div>
+
+        <!-- Google Button -->
+        <button class="google-btn" id="googleBtn">
+            <span style="font-size: 1.3em;">🔍</span>
+            <span>Masuk dengan Google</span>
+        </button>
+
+        <!-- Register Link -->
+        <div class="register-link">
+            Belum punya akun? <a href="register.html">Daftar Sekarang</a>
+        </div>
+    </div>
+
+    <!-- Footer Links -->
+    <div class="footer-links">
+        <a href="splash.html">Kembali ke Splash</a>
+        <a href="indeks.html">Lanjut ke Dashboard</a>
+    </div>
+
+    <script>
+        // Check if already logged in
+        window.addEventListener('load', function() {
+            const isLoggedIn = localStorage.getItem('mangrove_logged_in');
+            if (isLoggedIn === 'true') {
+                window.location.href = 'dashboard.html';
+            }
+        });
+
+        // Handle Login Form Submit
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+
+            if (!username || !password) {
+                showMessage('error', '❌ Username dan password harus diisi!');
+                return;
+            }
+
+            showMessage('success', '🔄 Memproses login...');
+
+            // DEMO MODE - Auto login
+            setTimeout(function() {
+                const demoUser = {
+                    id: 'user_' + Date.now(),
+                    name: username,
+                    email: username + '@mangrove.id',
+                    avatar: '🌿',
+                    level: 1,
+                    points: 0
+                };
+
+                localStorage.setItem('mangrove_logged_in', 'true');
+                localStorage.setItem('mangrove_user', JSON.stringify(demoUser));
+
+                showMessage('success', '✅ Login berhasil! Mengalihkan...');
+
+                setTimeout(function() {
+                    window.location.href = 'dashboard.html';
+                }, 1000);
+            }, 1000);
+        });
+
+        // Google Login
+        document.getElementById('googleBtn').addEventListener('click', function() {
+            showMessage('success', '🔄 Membuka Google Sign-In...');
+
+            setTimeout(function() {
+                const googleUser = {
+                    id: 'google_' + Date.now(),
+                    name: 'Google User',
+                    email: 'user@gmail.com',
+                    avatar: '👤',
+                    level: 1,
+                    points: 0
+                };
+
+                localStorage.setItem('mangrove_logged_in', 'true');
+                localStorage.setItem('mangrove_user', JSON.stringify(googleUser));
+
+                showMessage('success', '✅ Login dengan Google berhasil!');
+
+                setTimeout(function() {
+                    window.location.href = 'dashboard.html';
+                }, 1000);
+            }, 1000);
+        });
+
+        // Biometric Login
+        document.getElementById('biometricBtn').addEventListener('click', function() {
+            const savedUser = localStorage.getItem('mangrove_user');
+
+            if (savedUser) {
+                showMessage('success', '👆 Menggunakan fingerprint...');
+
+                setTimeout(function() {
+                    localStorage.setItem('mangrove_logged_in', 'true');
+                    showMessage('success', '✅ Biometric login berhasil!');
+
+                    setTimeout(function() {
+                        window.location.href = 'dashboard.html';
+                    }, 1000);
+                }, 1500);
+            } else {
+                showMessage('error', '❌ Belum ada data biometric. Login normal dulu.');
+            }
+        });
+
+        // Forgot Password
+        document.getElementById('forgotLink').addEventListener('click', function(e) {
+            e.preventDefault();
+            alert('Reset password via email akan segera hadir!');
+        });
+
+        // Show Message Function
+        function showMessage(type, text) {
+            const errorDiv = document.getElementById('errorMessage');
+            const successDiv = document.getElementById('successMessage');
+
+            // Hide both
+            errorDiv.classList.remove('show');
+            successDiv.classList.remove('show');
+
+            if (type === 'error') {
+                errorDiv.textContent = text;
+                errorDiv.classList.add('show');
+
+                setTimeout(function() {
+                    errorDiv.classList.remove('show');
+                }, 5000);
+            } else {
+                successDiv.textContent = text;
+                successDiv.classList.add('show');
+            }
+        }
+    </script>
+</body>
+</html>

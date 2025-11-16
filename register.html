@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrasi - Mangrove Guardian Game</title>
+    
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    
+    <style>
+        /* VARIABLES - GAME THEME */
+        :root {
+            --neon-green: #00ff88;
+            --neon-blue: #00ccff;
+            --neon-purple: #aa00ff;
+            --neon-pink: #ff00aa;
+            --dark-bg: #0a0a1a;
+            --darker-bg: #050510;
+            --panel-bg: rgba(16, 16, 32, 0.9);
+            --panel-glow: 0 0 30px rgba(0, 255, 136, 0.3);
+            --text-glow: 0 0 10px currentColor;
+        }
+
+        /* BASE STYLES */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Orbitron', sans-serif;
+        }
+
+        body {
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(0, 255, 136, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(0, 204, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(170, 0, 255, 0.05) 0%, transparent 50%),
+                linear-gradient(135deg, var(--darker-bg) 0%, var(--dark-bg) 50%, #0a1520 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: white;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* ANIMATED GAME BACKGROUND */
+        .game-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .floating-particle {
+            position: absolute;
+            background: var(--neon-green);
+            border-radius: 50%;
+            opacity: 0.6;
+            filter: blur(1px);
+            animation: floatParticle 20s infinite linear;
+        }
+
+        .floating-particle:nth-child(1) {
+            width: 4px; height: 4px;
+            top: 20%; left: 10%;
+            animation-delay: 0s;
+            background: var(--neon-green);
+        }
+        .floating-particle:nth-child(2) {
+            width: 3px; height: 3px;
+            top: 60%; left: 80%;
+            animation-delay: 2s;
+            background: var(--neon-blue);
+        }
+        .floating-particle:nth-child(3) {
+            width: 5px; height: 5px;
+            top: 40%; left: 40%;
+            animation-delay: 4s;
+            background: var(--neon-purple);
+        }
+        .floating-particle:nth-child(4) {
+            width: 2px; height: 2px;
+            top: 80%; left: 30%;
+            animation-delay: 6s;
+            background: var(--neon-pink);
+        }
+
+        @keyframes floatParticle {
+            0% {
+                transform: translateY(0) translateX(0) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.8;
+            }
+            90% {
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* SCAN LINES EFFECT */
+        .scan-lines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                to bottom,
+                transparent 50%,
+                rgba(0, 255, 136, 0.03) 50%
+            );
+            background-size: 100% 4px;
+            z-index: -1;
+            pointer-events: none;
+            animation: scanMove 2s linear infinite;
+        }
+
+        @keyframes scanMove {
+            0% {
+                background-position: 0 0;
+            }
+            100% {
+                background-position: 0 4px;
+            }
+        }
+
+        /* GAME CONTAINER */
+        .game-container {
+            width: 100%;
+            max-width: 500px;
+            background: var(--panel-bg);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(0, 255, 136, 0.3);
+            border-radius: 20px;
+            padding: 40px 35px;
+            box-shadow: 
+                0 0 50px rgba(0, 255, 136, 0.2),
+                inset 0 0 50px rgba(0, 255, 136, 0.1);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .game-container::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, 
+                var(--neon-green), 
+                var(--neon-blue), 
+                var(--neon-purple), 
+                var(--neon-pink));
+            border-radius: 22px;
+            z-index: -1;
+            animation: borderGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes borderGlow {
+            0%, 100% {
+                opacity: 0.5;
+                filter: blur(10px);
+            }
+            50% {
+                opacity: 0.8;
+                filter: blur(15px);
+            }
+        }
+
+        /* GAME HEADER */
+        .game-header {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .game-logo {
+            font-size: 5em;
+            margin-bottom: 20px;
+            display: block;
+            filter: drop-shadow(0 0 20px var(--neon-green));
+            animation: logoGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes logoGlow {
+            from {
+                filter: drop-shadow(0 0 10px var(--neon-green));
+                transform: scale(1);
+            }
+            to {
+                filter: drop-shadow(0 0 30px var(--neon-green)) 
+                        drop-shadow(0 0 40px var(--neon-blue));
+                transform: scale(1.05);
+            }
+        }
+
+        .game-title {
+            font-size: 2.8em;
+            font-weight: 800;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, var(--neon-green), var(--neon-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: var(--text-glow);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .game-subtitle {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.1em;
+            font-weight: 300;
+            text-shadow: var(--text-glow);
+        }
+
+        /* LEVEL INDICATOR */
+        .level-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: rgba(0, 255, 136, 0.1);
+            border-radius: 15px;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+
+        .level-badge {
+            background: linear-gradient(45deg, var(--neon-green), var(--neon-blue));
+            color: black;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 0.9em;
+            text-shadow: none;
+        }
+
+        .level-text {
+            font-size: 0.9em;
+            color: var(--neon-green);
+            text-shadow: var(--text-glow);
+        }
+
+        /* GAME FORM */
+        .game-form {
+            position: relative;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .form-label {
+            display: block;
+            color: var(--neon-blue);
+            font-size: 0.95em;
+            margin-bottom: 12px;
+            font-weight: 600;
+            text-shadow: var(--text-glow);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .game-input {
+            width: 100%;
+            padding: 18px 20px 18px 50px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(0, 255, 136, 0.2);
+            border-radius: 15px;
+            color: white;
+            font-size: 1em;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-shadow: var(--text-glow);
+        }
+
+        .game-input:focus {
+            outline: none;
+            border-color: var(--neon-green);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        .game-input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+            text-shadow: none;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.3em;
+            color: var(--neon-green);
+            text-shadow: var(--text-glow);
+            z-index: 2;
+        }
+
+        /* PASSWORD STRENGTH - GAME STYLE */
+        .power-meter {
+            margin-top: 10px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            padding: 12px;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+        }
+
+        .power-label {
+            display: flex;
+            justify-content: between;
+            margin-bottom: 8px;
+            font-size: 0.8em;
+            color: var(--neon-blue);
+            text-shadow: var(--text-glow);
+        }
+
+        .power-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .power-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 4px;
+            transition: all 0.5s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .power-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: powerShine 2s infinite;
+        }
+
+        @keyframes powerShine {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .power-weak { 
+            background: linear-gradient(90deg, #ff4444, #ff6b6b);
+            width: 33%;
+        }
+        .power-medium { 
+            background: linear-gradient(90deg, #ffaa00, #ffcc00);
+            width: 66%;
+        }
+        .power-strong { 
+            background: linear-gradient(90deg, var(--neon-green), var(--neon-blue));
+            width: 100%;
+        }
+
+        .power-text {
+            font-size: 0.75em;
+            margin-top: 5px;
+            text-align: right;
+            color: var(--neon-green);
+            text-shadow: var(--text-glow);
+        }
+
+        /* TERMS - GAME STYLE */
+        .terms-section {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            margin: 30px 0;
+            padding: 20px;
+            background: rgba(0, 255, 136, 0.05);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .terms-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .terms-section:hover::before {
+            left: 100%;
+        }
+
+        .game-checkbox {
+            width: 20px;
+            height: 20px;
+            margin-top: 2px;
+            accent-color: var(--neon-green);
+            filter: drop-shadow(0 0 5px var(--neon-green));
+        }
+
+        .terms-text {
+            font-size: 0.85em;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.5;
+            text-shadow: var(--text-glow);
+        }
+
+        .terms-text a {
+            color: var(--neon-blue);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .terms-text a:hover {
+            text-decoration: underline;
+            text-shadow: 0 0 10px var(--neon-blue);
+        }
+
+        /* GAME BUTTONS */
+        .game-btn {
+            width: 100%;
+            padding: 18px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.1em;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+            text-shadow: var(--text-glow);
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, var(--neon-green), var(--neon-blue));
+            color: black;
+            box-shadow: 
+                0 5px 25px rgba(0, 255, 136, 0.4),
+                0 0 30px rgba(0, 255, 136, 0.2);
+            border: 2px solid transparent;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 
+                0 8px 35px rgba(0, 255, 136, 0.6),
+                0 0 40px rgba(0, 255, 136, 0.3);
+            animation: btnPulse 0.5s ease-in-out;
+        }
+
+        @keyframes btnPulse {
+            0%, 100% { transform: translateY(-3px); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+
+        /* GOOGLE BUTTON STYLING */
+        .google-btn-container {
+            margin: 20px 0;
+        }
+
+        .g_id_signin {
+            width: 100% !important;
+            margin-bottom: 15px;
+        }
+
+        .g_id_signin > div {
+            width: 100% !important;
+            border-radius: 12px !important;
+            margin: 0 auto !important;
+        }
+
+        /* SOCIAL BUTTONS */
+        .social-divider {
+            display: flex;
+            align-items: center;
+            margin: 25px 0;
+            color: var(--neon-purple);
+            text-shadow: var(--text-glow);
+        }
+
+        .social-divider::before,
+        .social-divider::after {
+            content: '';
+            flex: 1;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--neon-purple), transparent);
+        }
+
+        .social-divider span {
+            padding: 0 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .social-buttons {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .social-btn {
+            padding: 15px;
+            border: 2px solid;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-shadow: var(--text-glow);
+        }
+
+        .social-btn.apple {
+            border-color: var(--neon-pink);
+            color: var(--neon-pink);
+        }
+
+        .social-btn.apple:hover {
+            background: rgba(255, 0, 170, 0.1);
+            box-shadow: 0 0 20px rgba(255, 0, 170, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* LOGIN LINK */
+        .login-link {
+            text-align: center;
+            margin-top: 25px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.95em;
+            text-shadow: var(--text-glow);
+        }
+
+        .login-link a {
+            color: var(--neon-green);
+            text-decoration: none;
+            font-weight: 800;
+            transition: all 0.3s ease;
+        }
+
+        .login-link a:hover {
+            text-shadow: 0 0 15px var(--neon-green);
+            text-decoration: none;
+        }
+
+        /* GAME FOOTER */
+        .game-footer {
+            position: fixed;
+            bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+
+        .footer-btn {
+            color: var(--neon-blue);
+            text-decoration: none;
+            font-size: 0.85em;
+            font-weight: 600;
+            padding: 10px 15px;
+            border: 1px solid rgba(0, 204, 255, 0.3);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            text-shadow: var(--text-glow);
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .footer-btn:hover {
+            background: rgba(0, 204, 255, 0.1);
+            box-shadow: 0 0 15px rgba(0, 204, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* ACHIEVEMENT POPUP */
+        .achievement-popup {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--panel-bg);
+            border: 2px solid var(--neon-green);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
+            transform: translateX(400px);
+            transition: transform 0.5s ease;
+            z-index: 1000;
+        }
+
+        .achievement-popup.show {
+            transform: translateX(0);
+        }
+
+        .achievement-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .achievement-text {
+            font-size: 0.9em;
+            color: var(--neon-green);
+            text-align: center;
+            text-shadow: var(--text-glow);
+        }
+
+        /* LOADING STATES */
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .loading::after {
+            content: ' ⏳';
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .game-container {
+                padding: 30px 25px;
+                margin: 20px;
+            }
+
+            .game-title {
+                font-size: 2.2em;
+            }
+
+            .game-logo {
+                font-size: 4em;
+            }
+
+            .game-footer {
+                flex-direction: column;
+                gap: 10px;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Game Background Effects -->
+    <div class="game-bg">
+        <div class="floating-particle"></div>
+        <div class="floating-particle"></div>
+        <div class="floating-particle"></div>
+        <div class="floating-particle"></div>
+    </div>
+    <div class="scan-lines"></div>
+
+    <!-- Achievement Popup -->
+    <div class="achievement-popup" id="achievementPopup">
+        <div class="achievement-icon">🏆</div>
+        <div class="achievement-text">New Player Unlocked!</div>
+    </div>
+
+    <!-- Game Container -->
+    <div class="game-container">
+        <!-- Game Header -->
+        <div class="game-header">
+            <div class="game-logo">🌿</div>
+            <h1 class="game-title">Mangrove Guardian</h1>
+            <p class="game-subtitle">LEVEL UP YOUR CONSERVATION JOURNEY</p>
+        </div>
+
+        <!-- Level Indicator -->
+        <div class="level-indicator">
+            <span class="level-badge">LEVEL 1</span>
+            <span class="level-text">NEW PLAYER REGISTRATION</span>
+        </div>
+
+        <!-- Game Form -->
+        <form id="gameRegisterForm" class="game-form">
+            <div class="form-group">
+                <label class="form-label">Player Name</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">👤</span>
+                    <input type="text" class="game-input" id="playerName" 
+                           placeholder="Enter your full name" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Game ID</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">🎮</span>
+                    <input type="text" class="game-input" id="gameId" 
+                           placeholder="Choose your game username" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">📧</span>
+                    <input type="email" class="game-input" id="gameEmail" 
+                           placeholder="your@email.com" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Security Code</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">🔒</span>
+                    <input type="password" class="game-input" id="gamePassword" 
+                           placeholder="Create secure password" required>
+                </div>
+                
+                <!-- Power Meter -->
+                <div class="power-meter">
+                    <div class="power-label">
+                        <span>POWER LEVEL</span>
+                        <span id="powerText">UNKNOWN</span>
+                    </div>
+                    <div class="power-bar">
+                        <div class="power-fill" id="powerFill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Confirm Code</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">✅</span>
+                    <input type="password" class="game-input" id="confirmCode" 
+                           placeholder="Re-enter security code" required>
+                </div>
+            </div>
+
+            <!-- Terms Section -->
+            <div class="terms-section">
+                <input type="checkbox" class="game-checkbox" id="gameTerms" required>
+                <label class="terms-text">
+                    I accept the <a href="#">Game Rules</a> and <a href="#">Privacy Policy</a>. 
+                    Ready to start my conservation mission!
+                </label>
+            </div>
+
+            <button type="submit" class="game-btn btn-primary">
+                <span>🚀</span>
+                <span>START MISSION</span>
+            </button>
+        </form>
+
+        <!-- Google Sign-In -->
+        <div class="google-btn-container">
+            <div id="g_id_onload"
+                 data-client_id="YOUR_CLIENT_ID.apps.googleusercontent.com"
+                 data-context="signup"
+                 data-ux_mode="popup"
+                 data-callback="handleGoogleSignIn"
+                 data-auto_prompt="false">
+            </div>
+
+            <div class="g_id_signin" 
+                 data-type="standard"
+                 data-shape="rectangular"
+                 data-theme="filled_blue"
+                 data-text="signup_with"
+                 data-size="large"
+                 data-logo_alignment="left"
+                 data-width="300">
+            </div>
+        </div>
+
+        <!-- Social Login -->
+        <div class="social-divider">
+            <span>QUICK JOIN</span>
+        </div>
+
+        <div class="social-buttons">
+            <button class="social-btn apple" id="appleJoin">
+                <span>🍎</span>
+                <span>APPLE ID</span>
+            </button>
+        </div>
+
+        <!-- Login Link -->
+        <div class="login-link">
+            Already a player? <a href="login.html">ACCESS YOUR ACCOUNT</a>
+        </div>
+    </div>
+
+    <!-- Game Footer -->
+    <div class="game-footer">
+        <a href="splash.html" class="footer-btn">⬅️ BACK TO SPLASH</a>
+        <a href="login.html" class="footer-btn">ALREADY PLAYING? ➡️</a>
+    </div>
+
+    <script>
+        // Power Level System
+        document.getElementById('gamePassword').addEventListener('input', function() {
+            const password = this.value;
+            const powerFill = document.getElementById('powerFill');
+            const powerText = document.getElementById('powerText');
+            
+            let power = 0;
+            let text = 'UNKNOWN';
+            let className = '';
+
+            // Calculate power level
+            if (password.length >= 8) power++;
+            if (password.match(/[a-z]/) && password.match(/[A-Z]/)) power++;
+            if (password.match(/\d/)) power++;
+            if (password.match(/[^a-zA-Z\d]/)) power++;
+
+            switch(power) {
+                case 0:
+                    text = 'WEAK';
+                    className = 'power-weak';
+                    break;
+                case 1:
+                    text = 'LOW';
+                    className = 'power-weak';
+                    break;
+                case 2:
+                    text = 'MEDIUM';
+                    className = 'power-medium';
+                    break;
+                case 3:
+                    text = 'STRONG';
+                    className = 'power-strong';
+                    break;
+                case 4:
+                    text = 'ULTRA';
+                    className = 'power-strong';
+                    break;
+            }
+
+            powerFill.className = 'power-fill ' + className;
+            powerText.textContent = text;
+        });
+
+        // Show Achievement
+        function showAchievement() {
+            const popup = document.getElementById('achievementPopup');
+            popup.classList.add('show');
+            setTimeout(() => {
+                popup.classList.remove('show');
+            }, 3000);
+        }
+
+        // Google Sign-In Handler - WORKING VERSION
+        function handleGoogleSignIn(response) {
+            console.log('Google Sign-In Successful!', response);
+            
+            // Decode the credential to get user info
+            const responsePayload = parseJwt(response.credential);
+            
+            console.log('User Data:', responsePayload);
+            
+            // Create player data from Google
+            const googlePlayer = {
+                id: 'google_' + responsePayload.sub,
+                name: responsePayload.name,
+                username: responsePayload.email.split('@')[0],
+                email: responsePayload.email,
+                avatar: responsePayload.picture,
+                level: 1,
+                xp: 100, // Bonus XP for Google signup
+                missions: 1,
+                joinDate: new Date().toISOString(),
+                provider: 'google',
+                verified: true
+            };
+
+            // Save to localStorage
+            const existingPlayers = JSON.parse(localStorage.getItem('mangrove_players') || '[]');
+            const playerExists = existingPlayers.find(player => player.email === googlePlayer.email);
+            
+            if (!playerExists) {
+                existingPlayers.push(googlePlayer);
+                localStorage.setItem('mangrove_players', JSON.stringify(existingPlayers));
+            }
+
+            // Auto login
+            localStorage.setItem('mangrove_logged_in', 'true');
+            localStorage.setItem('mangrove_player', JSON.stringify(googlePlayer));
+
+            showAchievement();
+            
+            setTimeout(() => {
+                alert(`🎮 GOOGLE SIGN-IN SUCCESS!\n\nWelcome ${googlePlayer.name}!\n+100 XP Bonus!`);
+                window.location.href = 'dashboard.html';
+            }, 1000);
+        }
+
+        // JWT Parser for Google response
+        function parseJwt(token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (error) {
+                console.error('Error parsing JWT:', error);
+                return {};
+            }
+        }
+
+        // Handle Game Registration
+        document.getElementById('gameRegisterForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const playerName = document.getElementById('playerName').value.trim();
+            const gameId = document.getElementById('gameId').value.trim();
+            const gameEmail = document.getElementById('gameEmail').value.trim();
+            const gamePassword = document.getElementById('gamePassword').value;
+            const confirmCode = document.getElementById('confirmCode').value;
+            const termsChecked = document.getElementById('gameTerms').checked;
+
+            // Game-style validations
+            if (!playerName || !gameId || !gameEmail || !gamePassword || !confirmCode) {
+                alert('🚨 MISSION FAILED: All fields required!');
+                return;
+            }
+
+            if (!termsChecked) {
+                alert('🚨 ACCEPT GAME RULES TO CONTINUE!');
+                return;
+            }
+
+            if (gamePassword.length < 8) {
+                alert('🚨 SECURITY CODE TOO WEAK! Minimum 8 characters.');
+                return;
+            }
+
+            if (gamePassword !== confirmCode) {
+                alert('🚨 SECURITY CODE MISMATCH!');
+                return;
+            }
+
+            if (!validateEmail(gameEmail)) {
+                alert('🚨 INVALID COMMS CHANNEL (EMAIL)!');
+                return;
+            }
+
+            // Mission success!
+            showAchievement();
+
+            // Save player data
+            setTimeout(() => {
+                const playerData = {
+                    id: 'player_' + Date.now(),
+                    name: playerName,
+                    username: gameId,
+                    email: gameEmail,
+                    level: 1,
+                    xp: 0,
+                    missions: 0,
+                    joinDate: new Date().toISOString(),
+                    avatar: '🌿'
+                };
+
+                const existingPlayers = JSON.parse(localStorage.getItem('mangrove_players') || '[]');
+                const playerExists = existingPlayers.find(player => 
+                    player.username === playerData.username || player.email === playerData.email
+                );
+                
+                if (playerExists) {
+                    alert('🚨 PLAYER ID OR EMAIL ALREADY EXISTS!');
+                    return;
+                }
+
+                existingPlayers.push(playerData);
+                localStorage.setItem('mangrove_players', JSON.stringify(existingPlayers));
+
+                // Auto login
+                localStorage.setItem('mangrove_logged_in', 'true');
+                localStorage.setItem('mangrove_player', JSON.stringify(playerData));
+
+                alert('🎉 MISSION SUCCESS! Welcome to Mangrove Guardian!');
+                window.location.href = 'dashboard.html';
+            }, 1500);
+        });
+
+        // Apple Sign-In Simulation
+        document.getElementById('appleJoin').addEventListener('click', function() {
+            const btn = this;
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<span>⏳</span><span>AUTHENTICATING...</span>';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                const randomId = Math.floor(Math.random() * 10000);
+                const firstNames = ['Alex', 'Sam', 'Jordan', 'Taylor'];
+                const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown'];
+                
+                const randomName = firstNames[Math.floor(Math.random() * firstNames.length)] + 
+                                  ' ' + lastNames[Math.floor(Math.random() * lastNames.length)];
+                
+                const applePlayer = {
+                    id: 'apple_' + randomId,
+                    name: randomName,
+                    username: 'appleuser' + randomId,
+                    email: `user${randomId}@apple.com`,
+                    level: 1,
+                    xp: 100,
+                    missions: 1,
+                    joinDate: new Date().toISOString(),
+                    avatar: '🍎',
+                    provider: 'apple',
+                    verified: true
+                };
+
+                const existingPlayers = JSON.parse(localStorage.getItem('mangrove_players') || '[]');
+                const playerExists = existingPlayers.find(player => player.id === applePlayer.id);
+                
+                if (!playerExists) {
+                    existingPlayers.push(applePlayer);
+                    localStorage.setItem('mangrove_players', JSON.stringify(existingPlayers));
+                }
+
+                localStorage.setItem('mangrove_logged_in', 'true');
+                localStorage.setItem('mangrove_player', JSON.stringify(applePlayer));
+
+                showAchievement();
+                
+                setTimeout(() => {
+                    alert(`🍎 APPLE SIGN-IN SUCCESS!\n\nWelcome ${randomName}!\n+100 XP Bonus!`);
+                    window.location.href = 'dashboard.html';
+                }, 1500);
+
+            }, 2000);
+        });
+
+        // Utility functions
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+
+        // Check if already playing
+        window.addEventListener('load', function() {
+            const isPlaying = localStorage.getItem('mangrove_logged_in');
+            if (isPlaying === 'true') {
+                window.location.href = 'dashboard.html';
+            }
+        });
+
+        // Demo Google Client ID (replace with your actual Client ID)
+        console.log('🔧 Untuk Google Sign-In yang real:');
+        console.log('1. Buka https://console.cloud.google.com/');
+        console.log('2. Buat project baru atau pilih existing project');
+        console.log('3. Enable Google Identity Services API');
+        console.log('4. Create OAuth 2.0 Client ID untuk Web application');
+        console.log('5. Ganti YOUR_CLIENT_ID dengan Client ID yang asli');
+    </script>
+</body>
+</html>
