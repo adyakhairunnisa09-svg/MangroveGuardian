@@ -61,10 +61,10 @@
         /* --- Navbar Style --- */
         .navbar {
             width: 100%;
-            padding: 15px 5%;
+            padding: 10px 5%;
             background: rgba(0, 0, 0, 0.8); /* Latar belakang navbar lebih gelap */
-            border-bottom: 3px solid var(--primary-glow);
-            box-shadow: 0 0 15px var(--primary-glow);
+            border-bottom: 2px solid var(--primary-glow);
+            box-shadow: 0 0 10px var(--primary-glow);
             position: fixed;
             top: 0;
             z-index: 100;
@@ -75,17 +75,17 @@
 
         .logo {
             font-family: 'Press Start 2P', cursive;
-            font-size: 1.1em;
+            font-size: 0.9em;
             color: var(--secondary-glow);
             text-decoration: none;
             text-shadow: 0 0 8px var(--secondary-glow);
         }
 
         .nav-link {
-            font-size: 0.8em;
+            font-size: 0.7em;
             color: var(--text-color);
             text-decoration: none;
-            padding: 5px 10px;
+            padding: 4px 8px;
             border: 2px solid var(--primary-glow);
             border-radius: 5px;
             transition: background-color 0.3s, color 0.3s;
@@ -99,38 +99,38 @@
 
         /* --- Struktur Mesin Arcade --- */
         .arcade-cabinet {
-            width: 700px;
-            height: 750px;
+            width: 550px;
+            height: 600px;
             background-color: var(--arcade-frame);
-            border: 10px solid var(--arcade-trim);
-            border-radius: 20px 20px 40px 40px;
-            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+            border: 8px solid var(--arcade-trim);
+            border-radius: 15px 15px 30px 30px;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.8);
             position: relative;
-            padding: 20px;
+            padding: 15px;
             box-sizing: border-box;
-            margin-top: 100px; 
+            margin-top: 80px; 
             animation: cabinet-glow 4s infinite alternate ease-in-out; /* Animasi glow pada kabinet */
         }
 
         @keyframes cabinet-glow {
-            from { box-shadow: 0 0 30px var(--primary-glow), inset 0 0 15px var(--secondary-glow); }
-            to { box-shadow: 0 0 50px var(--secondary-glow), inset 0 0 25px var(--primary-glow); }
+            from { box-shadow: 0 0 20px var(--primary-glow), inset 0 0 10px var(--secondary-glow); }
+            to { box-shadow: 0 0 40px var(--secondary-glow), inset 0 0 20px var(--primary-glow); }
         }
 
         .screen-frame {
             background-color: var(--screen-bg);
-            border: 5px solid var(--arcade-trim);
-            border-radius: 8px;
+            border: 4px solid var(--arcade-trim);
+            border-radius: 6px;
             width: 100%;
-            height: 60%; 
+            height: 55%; 
             position: relative;
-            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.9), 0 0 10px var(--primary-glow);
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.9), 0 0 8px var(--primary-glow);
             overflow: hidden;
         }
 
         /* --- Konten Layar --- */
         .game-display {
-            padding: 20px;
+            padding: 15px;
             height: 100%;
             box-sizing: border-box;
             background: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.5) 100%), var(--screen-bg);
@@ -141,43 +141,43 @@
 
         .title {
             font-family: 'Press Start 2P', cursive;
-            font-size: 1.4em;
+            font-size: 1.1em;
             color: var(--primary-glow);
-            text-shadow: 0 0 12px var(--primary-glow), 0 0 20px var(--secondary-glow);
-            margin-bottom: 15px;
+            text-shadow: 0 0 10px var(--primary-glow), 0 0 15px var(--secondary-glow);
+            margin-bottom: 10px;
         }
 
         .message {
-            font-size: 0.7em;
+            font-size: 0.6em;
             color: var(--secondary-glow); /* Pesan utama dengan glow biru */
-            margin-top: 10px;
-            line-height: 1.5;
-            text-shadow: 0 0 8px var(--secondary-glow);
+            margin-top: 8px;
+            line-height: 1.4;
+            text-shadow: 0 0 6px var(--secondary-glow);
         }
         
         /* --- 3D Battle Scene --- */
         .battle-scene {
-            height: 200px;
+            height: 150px;
             position: relative;
             overflow: hidden;
-            border-bottom: 5px solid var(--arcade-trim);
+            border-bottom: 4px solid var(--arcade-trim);
             background: linear-gradient(to bottom, #0d0d26 0%, #1a1a3a 100%);
-            box-shadow: inset 0 0 15px rgba(0, 255, 255, 0.2);
-            margin-top: 10px;
-            perspective: 800px;
+            box-shadow: inset 0 0 10px rgba(0, 255, 255, 0.2);
+            margin-top: 8px;
+            perspective: 600px;
             transform-style: preserve-3d;
         }
 
         /* Planet 3D */
         .planet {
             position: absolute;
-            top: 30%;
+            top: 35%;
             left: 20%;
-            width: 80px;
-            height: 80px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
             background: radial-gradient(circle at 30% 30%, #00a86b, #006e47);
-            box-shadow: 0 0 30px #00ff88;
+            box-shadow: 0 0 20px #00ff88;
             transform-style: preserve-3d;
             animation: planet-rotate 15s infinite linear;
         }
@@ -187,8 +187,8 @@
             position: absolute;
             top: 10%;
             left: 20%;
-            width: 20px;
-            height: 20px;
+            width: 15px;
+            height: 15px;
             border-radius: 50%;
             background: rgba(0, 100, 60, 0.7);
         }
@@ -196,13 +196,13 @@
         /* Spaceships */
         .spaceship {
             position: absolute;
-            width: 30px;
-            height: 30px;
+            width: 25px;
+            height: 25px;
             background: #3a86ff;
             clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
             transform-style: preserve-3d;
             animation: spaceship-move 12s infinite linear;
-            filter: drop-shadow(0 0 5px #3a86ff);
+            filter: drop-shadow(0 0 4px #3a86ff);
         }
 
         .spaceship:nth-child(2) {
@@ -224,7 +224,7 @@
             position: absolute;
             height: 2px;
             background: #00ff88;
-            box-shadow: 0 0 10px #00ff88, 0 0 20px #00ff88;
+            box-shadow: 0 0 8px #00ff88, 0 0 15px #00ff88;
             transform-origin: left center;
             transform-style: preserve-3d;
             animation: laser-shoot 3s infinite;
@@ -234,47 +234,47 @@
         .mangrove-3d {
             position: absolute;
             bottom: 0;
-            width: 25px;
-            height: 60px;
+            width: 20px;
+            height: 50px;
             background: linear-gradient(to top, #00a86b, #006e47);
             clip-path: polygon(0% 100%, 25% 0%, 50% 30%, 75% 0%, 100% 100%);
             transform-style: preserve-3d;
-            filter: drop-shadow(0 0 5px #00ff88);
+            filter: drop-shadow(0 0 4px #00ff88);
         }
 
         .mangrove-3d:nth-child(1) {
             left: 10%;
-            height: 80px;
-            transform: translateZ(20px);
+            height: 65px;
+            transform: translateZ(15px);
         }
 
         .mangrove-3d:nth-child(2) {
             left: 25%;
-            height: 100px;
-            transform: translateZ(10px);
+            height: 80px;
+            transform: translateZ(8px);
         }
 
         .mangrove-3d:nth-child(3) {
             left: 40%;
-            height: 70px;
-            transform: translateZ(30px);
+            height: 55px;
+            transform: translateZ(20px);
         }
 
         .mangrove-3d:nth-child(4) {
             left: 55%;
-            height: 90px;
-            transform: translateZ(15px);
+            height: 70px;
+            transform: translateZ(12px);
         }
 
         .mangrove-3d:nth-child(5) {
             left: 70%;
-            height: 75px;
-            transform: translateZ(25px);
+            height: 60px;
+            transform: translateZ(18px);
         }
 
         .mangrove-3d:nth-child(6) {
             left: 85%;
-            height: 85px;
+            height: 68px;
             transform: translateZ(5px);
         }
 
@@ -282,8 +282,8 @@
         .floating-text {
             position: absolute;
             color: #a0e7ff;
-            font-size: 0.9rem;
-            text-shadow: 0 0 5px #a0e7ff;
+            font-size: 0.7rem;
+            text-shadow: 0 0 4px #a0e7ff;
             animation: float 6s infinite ease-in-out;
             font-family: 'Press Start 2P', cursive;
         }
@@ -314,100 +314,105 @@
 
         @keyframes spaceship-move {
             0% { transform: translateX(0) translateY(0) rotate(0deg) translateZ(0); }
-            25% { transform: translateX(150px) translateY(80px) rotate(90deg) translateZ(20px); }
-            50% { transform: translateX(300px) translateY(-40px) rotate(180deg) translateZ(0); }
-            75% { transform: translateX(150px) translateY(-80px) rotate(270deg) translateZ(20px); }
+            25% { transform: translateX(120px) translateY(60px) rotate(90deg) translateZ(15px); }
+            50% { transform: translateX(240px) translateY(-30px) rotate(180deg) translateZ(0); }
+            75% { transform: translateX(120px) translateY(-60px) rotate(270deg) translateZ(15px); }
             100% { transform: translateX(0) translateY(0) rotate(360deg) translateZ(0); }
         }
 
         @keyframes laser-shoot {
             0% { width: 0; opacity: 0; }
-            10% { width: 150px; opacity: 1; }
+            10% { width: 120px; opacity: 1; }
             20% { width: 0; opacity: 0; }
             100% { width: 0; opacity: 0; }
         }
 
         @keyframes float {
             0% { transform: translateY(0) translateX(0) translateZ(0); }
-            50% { transform: translateY(-15px) translateX(8px) translateZ(10px); }
+            50% { transform: translateY(-12px) translateX(6px) translateZ(8px); }
             100% { transform: translateY(0) translateX(0) translateZ(0); }
         }
 
         /* --- Progress Bar --- */
         .progress-container {
             width: 80%;
-            margin: 20px auto 10px;
+            margin: 15px auto 8px;
             background-color: #333;
             border: 2px solid var(--primary-glow);
-            border-radius: 5px;
-            padding: 3px;
-            box-shadow: 0 0 10px var(--secondary-glow); /* Glow pada container progress */
+            border-radius: 4px;
+            padding: 2px;
+            box-shadow: 0 0 8px var(--secondary-glow); /* Glow pada container progress */
         }
 
         .progress-bar {
-            height: 20px;
+            height: 16px;
             width: 0%; 
             background: linear-gradient(90deg, var(--primary-glow), var(--secondary-glow));
-            border-radius: 3px;
-            box-shadow: 0 0 10px var(--secondary-glow);
+            border-radius: 2px;
+            box-shadow: 0 0 8px var(--secondary-glow);
             transition: width 0.5s ease-in-out;
             display: flex;
             align-items: center;
             justify-content: center;
             color: var(--screen-bg);
-            font-size: 0.6em;
-            text-shadow: 0 0 3px rgba(255,255,255,0.8);
+            font-size: 0.5em;
+            text-shadow: 0 0 2px rgba(255,255,255,0.8);
         }
 
         .progress-text {
-            font-size: 0.7em;
-            margin-top: 5px;
+            font-size: 0.6em;
+            margin-top: 4px;
             color: var(--secondary-glow);
-            text-shadow: 0 0 8px var(--secondary-glow);
+            text-shadow: 0 0 6px var(--secondary-glow);
         }
 
         /* --- Control Panel --- */
         .control-panel {
             display: flex;
             justify-content: center;
-            padding: 20px 40px;
-            margin-top: 10px;
+            padding: 15px 30px;
+            margin-top: 8px;
             background-color: var(--arcade-trim);
-            border-radius: 0 0 30px 30px;
-            box-shadow: inset 0 10px 20px rgba(0, 0, 0, 0.4);
+            border-radius: 0 0 20px 20px;
+            box-shadow: inset 0 8px 15px rgba(0, 0, 0, 0.4);
         }
         
         .button {
-            width: 30px;
-            height: 30px;
+            width: 25px;
+            height: 25px;
             border-radius: 50%;
-            margin: 0 10px;
-            box-shadow: 0 4px 0 rgba(0, 0, 0, 0.5);
+            margin: 0 8px;
+            box-shadow: 0 3px 0 rgba(0, 0, 0, 0.5);
             cursor: pointer;
             transition: transform 0.1s, box-shadow 0.1s;
         }
         
         .button:active {
-            transform: translateY(4px);
+            transform: translateY(3px);
             box-shadow: none;
         }
         
         .button.glow-purple { 
             background-color: #6a0dad; 
-            box-shadow: 0 4px 0 rgba(0,0,0,0.5), 0 0 10px var(--primary-glow);
+            box-shadow: 0 3px 0 rgba(0,0,0,0.5), 0 0 8px var(--primary-glow);
         }
         .button.glow-blue { 
             background-color: #00008b; 
-            box-shadow: 0 4px 0 rgba(0,0,0,0.5), 0 0 10px var(--secondary-glow);
+            box-shadow: 0 3px 0 rgba(0,0,0,0.5), 0 0 8px var(--secondary-glow);
         }
         
         /* --- Responsif Sederhana --- */
-        @media (max-width: 750px) {
-            .arcade-cabinet { width: 95%; height: auto; }
-            .title { font-size: 1.2em; }
-            .battle-scene { height: 150px; }
-            .planet { width: 60px; height: 60px; }
-            .spaceship { width: 25px; height: 25px; }
+        @media (max-width: 600px) {
+            .arcade-cabinet { 
+                width: 90%; 
+                height: 500px;
+                margin-top: 60px;
+            }
+            .title { font-size: 0.9em; }
+            .battle-scene { height: 120px; }
+            .planet { width: 45px; height: 45px; }
+            .spaceship { width: 20px; height: 20px; }
+            .mangrove-3d { width: 15px; }
         }
     </style>
 </head>
@@ -509,18 +514,18 @@
 
         // Tambah efek partikel
         function createParticles() {
-            const particleCount = 20;
+            const particleCount = 15;
             
             for (let i = 0; i < particleCount; i++) {
                 const particle = document.createElement('div');
                 particle.style.position = 'absolute';
-                particle.style.width = Math.random() * 3 + 1 + 'px';
+                particle.style.width = Math.random() * 2 + 1 + 'px';
                 particle.style.height = particle.style.width;
                 particle.style.background = '#00ff88';
                 particle.style.borderRadius = '50%';
                 particle.style.left = Math.random() * 100 + '%';
                 particle.style.top = Math.random() * 100 + '%';
-                particle.style.boxShadow = '0 0 5px #00ff88';
+                particle.style.boxShadow = '0 0 4px #00ff88';
                 particle.style.animation = `float ${Math.random() * 10 + 10}s infinite ease-in-out`;
                 particle.style.animationDelay = Math.random() * 5 + 's';
                 particle.style.zIndex = '1';
