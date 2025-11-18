@@ -6,6 +6,7 @@
     <title>Mangrove Guardian - Game Volunteer</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Oxanium:wght@200;300;400;500;600;700;800&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
         :root {
             --primary: #00ff88;
@@ -1050,6 +1051,197 @@
             text-shadow: var(--neon-glow);
         }
 
+        /* Styles untuk peta di leaderboard */
+        .leaderboard-map-container {
+            margin-bottom: 4rem;
+            background: rgba(10, 10, 26, 0.7);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .map-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: var(--dark);
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .map-header h3 {
+            color: var(--dark);
+            margin: 0;
+            text-shadow: none;
+        }
+
+        .map-full-link {
+            color: var(--dark);
+            text-decoration: none;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition);
+        }
+
+        .map-full-link:hover {
+            text-decoration: underline;
+            transform: translateX(3px);
+        }
+
+        .map-container {
+            position: relative;
+            height: 500px;
+        }
+
+        #leaderboard-map {
+            height: 100%;
+            width: 100%;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        #leaderboard-map:hover {
+            filter: brightness(1.1);
+        }
+
+        .map-legend {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--dark);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            max-width: 200px;
+        }
+
+        .legend-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--primary);
+            text-shadow: var(--neon-glow);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            border-radius: 3px;
+        }
+
+        .map-controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .map-control-btn {
+            background: var(--dark);
+            color: var(--primary);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 4px;
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .map-control-btn:hover {
+            background: rgba(0, 255, 136, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Tree Details Popup */
+        .tree-popup {
+            background: var(--dark);
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            max-width: 250px;
+        }
+
+        .tree-popup h3 {
+            color: var(--primary);
+            margin-bottom: 10px;
+            text-shadow: var(--neon-glow);
+        }
+
+        .tree-popup p {
+            margin-bottom: 5px;
+            color: var(--text);
+        }
+
+        .tree-popup .tree-status {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .tree-popup .status-new {
+            background: rgba(255, 0, 0, 0.2);
+            color: #ff6b6b;
+        }
+
+        .tree-popup .status-growing {
+            background: rgba(255, 165, 0, 0.2);
+            color: #ffa500;
+        }
+
+        .tree-popup .status-healthy {
+            background: rgba(0, 255, 136, 0.2);
+            color: var(--primary);
+        }
+
+        .tree-popup .status-mature {
+            background: rgba(0, 102, 255, 0.2);
+            color: var(--secondary);
+        }
+
+        .view-photos-btn {
+            display: block;
+            width: 100%;
+            padding: 8px 15px;
+            margin-top: 10px;
+            background: var(--primary);
+            color: var(--dark);
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .view-photos-btn:hover {
+            background: var(--primary-light);
+            transform: translateY(-2px);
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+
         /* Footer */
         footer {
             background-color: var(--darker);
@@ -1266,6 +1458,20 @@
             .footer-content {
                 grid-template-columns: 1fr;
             }
+            
+            .map-container {
+                height: 300px;
+            }
+            
+            .map-controls {
+                top: 10px;
+                left: 10px;
+            }
+            
+            .map-control-btn {
+                padding: 8px 12px;
+                font-size: 0.9rem;
+            }
         }
 
         @media (max-width: 480px) {
@@ -1322,7 +1528,7 @@
                     <li><a href="#features">FEATURES</a></li>         
                     <li><a href="#how-to-play">HOW TO PLAY</a></li>
                     <li><a href="#leaderboard">LEADERBOARD</a></li>
-                    <li><a href="evicipasilin20.html">MAP</a></li>
+                    <li><a href="evipanjang21.html">MAP</a></li>
                     <li><a href="login.html" class="nav-cta">LOG-IN</a></li>
                 </ul>
                 
@@ -1394,7 +1600,7 @@
             <p class="hero-subtitle">CHILL & PLAY WHILE SAVING THE ENVIRONMENT</p>
             
             <div class="cta-buttons">
-                <a href="gamee.html" class="btn btn-primary">
+                <a href="coba.html" class="btn btn-primary">
                     <i class="fas fa-gamepad"></i> PLAY GAME
                 </a>
                 <a href="openvolunter.html" class="btn btn-secondary">
@@ -1492,7 +1698,7 @@
                     <div class="partners-scroll">
                         <!-- Duplicate logos for seamless loop -->
                         <div class="partner-logo">
-                            <img src="mitra.jpg" alt="WWF">
+                            <img src="https://cdn-icons-png.flaticon.com/512/5968/5968885.png" alt="WWF">
                         </div>
                         <div class="partner-logo">
                             <img src="https://cdn-icons-png.flaticon.com/512/5968/5968887.png" alt="Greenpeace">
@@ -1631,14 +1837,57 @@
         </div>
     </section>
 
-    <!-- Leaderboard Section -->
+    <!-- Leaderboard Section dengan Peta -->
     <section class="leaderboard" id="leaderboard">
         <div class="container">
+            <!-- Peta Interaktif -->
+            <div class="leaderboard-map-container">
+                <div class="map-header">
+                    <h3>Peta Pemantauan Mangrove</h3>
+                    <a href="petavolunter.html" class="map-full-link">
+                        Lihat Peta Lengkap <i class="fas fa-external-link-alt"></i>
+                    </a>
+                </div>
+                <div class="map-container">
+                    <div id="leaderboard-map"></div>
+                    
+                    <!-- Map Controls -->
+                    <div class="map-controls">
+                        <button class="map-control-btn" id="satelliteView">
+                            <i class="fas fa-satellite"></i> Tampilan Satelit
+                        </button>
+                    </div>
+                    
+                    <!-- Map Legend -->
+                    <div class="map-legend">
+                        <div class="legend-title">Status Mangrove</div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #ff6b6b;"></div>
+                            <span>Baru Ditanam</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #ffa500;"></div>
+                            <span>Sedang Tumbuh</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #00ff88;"></div>
+                            <span>Sehat</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #0066ff;"></div>
+                            <span>Dewasa</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Judul Leaderboard di bawah peta -->
             <div class="section-title">
                 <h2>LEADERBOARD</h2>
                 <p>Top volunteers making a difference in mangrove conservation</p>
             </div>
             
+            <!-- Leaderboard yang sudah ada -->
             <div class="leaderboard-container">
                 <div class="leaderboard-header">
                     <h3>TOP VOLUNTEERS</h3>
@@ -1743,7 +1992,7 @@
                         <li><a href="#home">Home</a></li>
                         <li><a href="#about">About</a></li>
                         <li><a href="#features">Features</a></li>
-                        <li><a href="#how-to-pla">How to Play</a></li>
+                        <li><a href="#how-to-play">How to Play</a></li>
                         <li><a href="#leaderboard">Leaderboard</a></li>
                     </ul>
                 </div>
@@ -1777,6 +2026,7 @@
         </div>
     </footer>
 
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
         // Header scroll effect
         window.addEventListener('scroll', function() {
@@ -1881,6 +2131,158 @@
             this.style.animationPlayState = 'running';
         });
 
+        // Data 25 volunteer dengan koordinat yang tepat sesuai permintaan
+        const volunteersData = [
+            // Pulau Panjang (Koordinat: -6.341667, 110.628889)
+            { id: 1, name: "Mangrove_Budi_01", volunteer: "Budi Santoso", location: "Pulau Panjang", type: "Rhizophora", planted: "2023-05-15", status: "healthy", lat: -6.341667, lng: 110.628889 },
+            { id: 2, name: "Mangrove_Sari_01", volunteer: "Sari Indah", location: "Pulau Panjang", type: "Avicennia", planted: "2023-06-20", status: "growing", lat: -6.342, lng: 110.629 },
+            { id: 3, name: "Mangrove_Rizki_01", volunteer: "Rizki Pratama", location: "Pulau Panjang", type: "Bruguiera", planted: "2023-07-10", status: "new", lat: -6.341, lng: 110.627 },
+            { id: 4, name: "Mangrove_Dewi_01", volunteer: "Dewi Lestari", location: "Pulau Panjang", type: "Rhizophora", planted: "2023-04-05", status: "mature", lat: -6.343, lng: 110.6295 },
+            { id: 5, name: "Mangrove_Adi_01", volunteer: "Adi Wijaya", location: "Pulau Panjang", type: "Avicennia", planted: "2023-08-12", status: "growing", lat: -6.3405, lng: 110.628 },
+            
+            // Pulau Tunda (Koordinat: -5.938852, 106.160665 dan -5.935608, 106.166201)
+            { id: 6, name: "Mangrove_Ani_01", volunteer: "Ani Rahayu", location: "Pulau Tunda", type: "Rhizophora", planted: "2023-03-22", status: "mature", lat: -5.938852, lng: 106.160665 },
+            { id: 7, name: "Mangrove_Hendra_01", volunteer: "Hendra Setiawan", location: "Pulau Tunda", type: "Bruguiera", planted: "2023-05-30", status: "healthy", lat: -5.935608, lng: 106.166201 },
+            { id: 8, name: "Mangrove_Lina_01", volunteer: "Lina Marlina", location: "Pulau Tunda", type: "Avicennia", planted: "2023-07-18", status: "growing", lat: -5.937, lng: 106.163 },
+            { id: 9, name: "Mangrove_Fajar_01", volunteer: "Fajar Nugroho", location: "Pulau Tunda", type: "Rhizophora", planted: "2023-09-05", status: "new", lat: -5.936, lng: 106.164 },
+            { id: 10, name: "Mangrove_Rina_01", volunteer: "Rina Sari", location: "Pulau Tunda", type: "Bruguiera", planted: "2023-06-25", status: "healthy", lat: -5.939, lng: 106.162 },
+            
+            // Karangantu (Koordinat: -6.026316, 106.170546)
+            { id: 11, name: "Mangrove_Ahmad_01", volunteer: "Ahmad Fauzi", location: "Karangantu", type: "Avicennia", planted: "2023-04-18", status: "mature", lat: -6.026316, lng: 106.170546 },
+            { id: 12, name: "Mangrove_Maya_01", volunteer: "Maya Sari", location: "Karangantu", type: "Rhizophora", planted: "2023-07-30", status: "growing", lat: -6.025, lng: 106.171 },
+            { id: 13, name: "Mangrove_Dodi_01", volunteer: "Dodi Pratama", location: "Karangantu", type: "Bruguiera", planted: "2023-08-22", status: "new", lat: -6.027, lng: 106.169 },
+            { id: 14, name: "Mangrove_Sinta_01", volunteer: "Sinta Dewi", location: "Karangantu", type: "Avicennia", planted: "2023-05-12", status: "healthy", lat: -6.026, lng: 106.172 },
+            { id: 15, name: "Mangrove_Rizky_01", volunteer: "Rizky Ramadhan", location: "Karangantu", type: "Rhizophora", planted: "2023-09-10", status: "new", lat: -6.024, lng: 106.170 },
+            
+            // Pulau Sangiang (Koordinat: -5.977219, 105.852560)
+            { id: 16, name: "Mangrove_Dian_01", volunteer: "Dian Permatasari", location: "Pulau Sangiang", type: "Bruguiera", planted: "2023-03-15", status: "mature", lat: -5.977219, lng: 105.852560 },
+            { id: 17, name: "Mangrove_Eko_01", volunteer: "Eko Susilo", location: "Pulau Sangiang", type: "Rhizophora", planted: "2023-06-08", status: "healthy", lat: -5.976, lng: 105.853 },
+            { id: 18, name: "Mangrove_Fitri_01", volunteer: "Fitriani", location: "Pulau Sangiang", type: "Avicennia", planted: "2023-08-25", status: "growing", lat: -5.978, lng: 105.851 },
+            { id: 19, name: "Mangrove_Gilang_01", volunteer: "Gilang Pratama", location: "Pulau Sangiang", type: "Bruguiera", planted: "2023-07-12", status: "healthy", lat: -5.975, lng: 105.852 },
+            { id: 20, name: "Mangrove_Hana_01", volunteer: "Hana Lestari", location: "Pulau Sangiang", type: "Rhizophora", planted: "2023-09-18", status: "new", lat: -5.977, lng: 105.854 },
+            
+            // Tambahan 5 volunteer di lokasi yang berbeda
+            { id: 21, name: "Mangrove_Iwan_01", volunteer: "Iwan Setiawan", location: "Pulau Panjang", type: "Avicennia", planted: "2023-08-30", status: "growing", lat: -6.344, lng: 110.626 },
+            { id: 22, name: "Mangrove_Joko_01", volunteer: "Joko Widodo", location: "Pulau Tunda", type: "Rhizophora", planted: "2023-07-05", status: "healthy", lat: -5.934, lng: 106.165 },
+            { id: 23, name: "Mangrove_Kartika_01", volunteer: "Kartika Sari", location: "Karangantu", type: "Bruguiera", planted: "2023-06-15", status: "healthy", lat: -6.028, lng: 106.173 },
+            { id: 24, name: "Mangrove_Lukman_01", volunteer: "Lukman Hakim", location: "Pulau Sangiang", type: "Avicennia", planted: "2023-05-25", status: "mature", lat: -5.979, lng: 105.850 },
+            { id: 25, name: "Mangrove_Mira_01", volunteer: "Mira Andini", location: "Pulau Panjang", type: "Rhizophora", planted: "2023-09-05", status: "new", lat: -6.339, lng: 110.630 }
+        ];
+
+        // Initialize leaderboard map
+        const leaderboardMap = L.map('leaderboard-map').setView([-6.0, 106.1], 9);
+
+        // Add tile layers
+        const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        });
+
+        const satelliteLayer = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+            maxZoom: 20,
+            subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+            attribution: '&copy; Google'
+        });
+
+        // Add default layer
+        osmLayer.addTo(leaderboardMap);
+
+        // Color based on tree status
+        function getStatusColor(status) {
+            return status === 'mature' ? '#0066ff' :
+                   status === 'healthy' ? '#00ff88' :
+                   status === 'growing' ? '#ffa500' :
+                                          '#ff6b6b';
+        }
+        
+        // Get status text
+        function getStatusText(status) {
+            return status === 'mature' ? 'Dewasa' :
+                   status === 'healthy' ? 'Sehat' :
+                   status === 'growing' ? 'Sedang Tumbuh' :
+                                          'Baru Ditanam';
+        }
+        
+        // Get status class
+        function getStatusClass(status) {
+            return status === 'mature' ? 'status-mature' :
+                   status === 'healthy' ? 'status-healthy' :
+                   status === 'growing' ? 'status-growing' :
+                                          'status-new';
+        }
+        
+        // Add markers to the map untuk semua volunteer
+        volunteersData.forEach(tree => {
+            const treeMarker = L.circleMarker([tree.lat, tree.lng], {
+                color: getStatusColor(tree.status),
+                fillColor: getStatusColor(tree.status),
+                fillOpacity: 0.7,
+                radius: 8
+            }).addTo(leaderboardMap);
+            
+            // Create custom popup content
+            const popupContent = `
+                <div class="tree-popup">
+                    <h3>${tree.name}</h3>
+                    <p><strong>Volunteer:</strong> ${tree.volunteer}</p>
+                    <p><strong>Lokasi:</strong> ${tree.location}</p>
+                    <p><strong>Jenis:</strong> ${tree.type}</p>
+                    <p><strong>Ditanam:</strong> ${tree.planted}</p>
+                    <p><strong>Status:</strong> <span class="tree-status ${getStatusClass(tree.status)}">${getStatusText(tree.status)}</span></p>
+                </div>
+            `;
+            
+            treeMarker.bindPopup(popupContent);
+            
+            // Add click event to center map on tree
+            treeMarker.on('click', function() {
+                leaderboardMap.setView([tree.lat, tree.lng], 15);
+            });
+        });
+        
+        // Add location markers
+        const locations = [
+            { name: "Pulau Panjang", lat: -6.341667, lng: 110.628889 },
+            { name: "Pulau Tunda", lat: -5.937, lng: 106.163 },
+            { name: "Karangantu", lat: -6.026316, lng: 106.170546 },
+            { name: "Pulau Sangiang", lat: -5.977219, lng: 105.852560 }
+        ];
+
+        locations.forEach(location => {
+            const locationMarker = L.marker([location.lat, location.lng]).addTo(leaderboardMap);
+            
+            const treesInLocation = volunteersData.filter(tree => tree.location === location.name);
+            
+            locationMarker.bindPopup(`
+                <div class="tree-popup">
+                    <h3>${location.name}</h3>
+                    <p><strong>Status:</strong> Area Penanaman Mangrove</p>
+                    <p><strong>Jumlah Pohon:</strong> ${treesInLocation.length}</p>
+                    <p><strong>Volunteer:</strong> ${treesInLocation.length} orang</p>
+                </div>
+            `);
+        });
+
+        // Map controls
+        let currentLayer = 'osm';
+        document.getElementById('satelliteView').addEventListener('click', function() {
+            if (currentLayer === 'osm') {
+                leaderboardMap.removeLayer(osmLayer);
+                satelliteLayer.addTo(leaderboardMap);
+                currentLayer = 'satellite';
+                this.innerHTML = '<i class="fas fa-map"></i> Tampilan Peta';
+            } else {
+                leaderboardMap.removeLayer(satelliteLayer);
+                osmLayer.addTo(leaderboardMap);
+                currentLayer = 'osm';
+                this.innerHTML = '<i class="fas fa-satellite"></i> Tampilan Satelit';
+            }
+        });
+
+        // Click event untuk peta (redirect ke halaman peta lengkap)
+        document.getElementById('leaderboard-map').addEventListener('click', function() {
+            window.location.href = 'petavolunter.html';
+        });
+
         // Initialize when page loads
         window.addEventListener('load', () => {
             createParticles();
@@ -1892,6 +2294,3 @@
     </script>
 </body>
 </html>
-
-
-
