@@ -1,0 +1,1763 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mangrove Guardian - Savi Sangiang 20</title>
+
+  <!-- External Libraries -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/leaflet.draw/1.0.4/leaflet.draw-src.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/leaflet.draw/1.0.4/leaflet.draw-src.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+  <!-- Custom Styles -->
+  <style>
+    /* VARIABLES */
+    :root{
+      --mg-green:#0a5c36;
+      --mg-green-light:#1a7d4e;
+      --mg-green-dark:#064527;
+      --panel:rgba(255,255,255,0.95);
+      --muted:#51606a;
+      --navbar-height: 60px; 
+    }
+    
+    *{box-sizing:border-box; margin:0; padding:0;}
+    
+    html,body{height:100%; margin:0; font-family:'Segoe UI', system-ui, sans-serif; color:#15302a;}
+    body{background:#f8f9fa;}
+    #map{flex:1; z-index:1;}
+
+    .topbar{
+      height: var(--navbar-height);
+      padding:0 20px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      background:var(--mg-green);
+      color:#fff;
+      position:sticky;
+      top:0;
+      z-index:1500;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      border-bottom: 1px solid var(--mg-green-dark);
+    }
+    
+    .brand{
+      font-weight:600;
+      font-size:20px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    
+    .nav-right-container{display:flex; align-items:center; gap:25px;}
+    .nav-menu{display:flex; gap:25px}
+    .nav-menu a{
+      color:#fff;
+      text-decoration:none;
+      font-size:14px;
+      font-weight:500;
+      padding:8px 0;
+      transition:opacity 0.2s;
+    }
+    .nav-menu a:hover{opacity:0.8;}
+    .lang-switch{
+      font-size:13px;
+      cursor:pointer;
+      background:rgba(255,255,255,0.15);
+      padding:6px 12px;
+      border-radius:4px;
+      font-weight:500;
+    }
+
+    .chat-box-container{
+      position:fixed;
+      bottom:20px;
+      right:20px;
+      z-index:1600;
+      width:350px;
+      background:var(--panel);
+      border-radius:8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      border:1px solid #e1e5e9;
+      display:flex;
+      flex-direction:column;
+      max-height:500px;
+    }
+    
+    .chat-header{
+      background: var(--mg-green);
+      color: #fff;
+      padding: 12px 16px;
+      font-weight: 600;
+      cursor:pointer;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      border-radius:8px 8px 0 0;
+    }
+    
+    .chat-content{
+      padding: 16px;
+      flex:1;
+      overflow-y: auto;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      max-height:300px;
+    }
+    
+    .chat-input-row{
+      display:flex;
+      gap:8px;
+      padding:12px 16px;
+      border-top:1px solid #e1e5e9;
+      background:#f8f9fa;
+    }
+    
+    .chat-input-row input{
+      flex:1;
+      padding:10px 12px;
+      border-radius:6px;
+      border:1px solid #ddd;
+      outline:none;
+      font-size:14px;
+      background:#fff;
+    }
+    
+    .chat-input-row button{
+      background:var(--mg-green);
+      border:0;
+      color:#fff;
+      padding:10px 16px;
+      border-radius:6px;
+      cursor:pointer;
+      font-weight:600;
+      font-size:14px;
+    }
+
+    .chat-message{
+      padding:10px 14px;
+      border-radius:8px;
+      max-width:85%;
+      font-size:14px;
+      line-height:1.4;
+    }
+    
+    .chat-user{
+      background:#e3f2fd;
+      align-self:flex-end;
+      border-bottom-right-radius:2px;
+    }
+    
+    .chat-bot{
+      background:#f5f5f5;
+      align-self:flex-start;
+      border-bottom-left-radius:2px;
+    }
+
+    .app{
+      height:calc(100vh - var(--navbar-height));
+      position:relative;
+      display:flex;
+    }
+
+    .search-row-container{
+      position:absolute;
+      top:20px;
+      left:50%;
+      transform:translateX(-50%);
+      z-index:1300;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:8px;
+      width:90%;
+      max-width:700px;
+    }
+    
+    .search-row{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      width:100%;
+    }
+    
+    .search-box{
+      display:flex;
+      align-items:center;
+      background:var(--panel);
+      padding:8px 16px;
+      border-radius:8px;
+      box-shadow:0 2px 8px rgba(0,0,0,0.1);
+      width:100%;
+      border:1px solid #e1e5e9;
+      flex:1;
+    }
+    
+    .search-box input{
+      border:0;
+      outline:none;
+      padding:8px;
+      font-size:14px;
+      background:transparent;
+      flex:1;
+    }
+    
+    .search-box button{
+      background:var(--mg-green);
+      border:0;
+      color:#fff;
+      padding:8px 16px;
+      border-radius:6px;
+      cursor:pointer;
+      font-weight:600;
+      font-size:14px;
+    }
+    
+    .action-btn{
+      background:var(--mg-green);
+      color:#fff;
+      border-radius:8px;
+      padding:10px 16px;
+      border:none;
+      cursor:pointer;
+      font-weight:600;
+      font-size:14px;
+      white-space:nowrap;
+    }
+    
+    .mapFlipBtn{
+      background:var(--mg-green);
+      border:none;
+      padding:10px;
+      border-radius:6px;
+      color:white;
+      cursor:pointer;
+      font-size:16px;
+    }
+
+    .stats-toggle-btn {
+      background:var(--mg-green);
+      border:none;
+      padding:10px 14px;
+      border-radius:6px;
+      color:white;
+      cursor:pointer;
+      font-size:16px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      box-shadow:0 2px 6px rgba(0,0,0,0.1);
+      transition:all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .stats-toggle-btn:hover {
+      background:var(--mg-green-light);
+      transform: translateY(-1px);
+    }
+
+    .vtoolbar{
+      position:absolute;
+      left:20px;
+      top:120px;
+      z-index:1300;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      padding:8px;
+      border-radius:8px;
+      background:transparent;
+    }
+    
+    .vt-btn{
+      width:44px;
+      height:44px;
+      border-radius:6px;
+      background:var(--panel);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border:1px solid #e1e5e9;
+      box-shadow:0 2px 6px rgba(0,0,0,0.08);
+      cursor:pointer;
+      font-size:16px;
+      transition:all 0.2s;
+    }
+    
+    .vt-btn:hover{
+      background:#f8f9fa;
+    }
+
+    .right-panel{
+      position:absolute;
+      right:20px;
+      top:20px;
+      width:320px;
+      z-index:1300;
+      background:var(--panel);
+      border-radius:8px;
+      box-shadow:0 4px 20px rgba(0,0,0,0.15);
+      border:1px solid #e1e5e9;
+      max-height:calc(100vh - 100px);
+      overflow-y:auto;
+    }
+    
+    .panel-inner{
+      padding:16px;
+    }
+    
+    .panel-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:16px;
+      padding-bottom:12px;
+      border-bottom:1px solid #e1e5e9;
+    }
+    
+    .panel-header h3{
+      margin:0;
+      color:var(--mg-green);
+      font-size:16px;
+      font-weight:600;
+    }
+
+    .switch-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:12px 0;
+      border-bottom:1px solid #f0f0f0;
+    }
+    
+    .switch-label{
+      font-size:14px;
+      color:#333;
+    }
+    
+    .switch{
+      position:relative;
+      width:44px;
+      height:24px;
+      border-radius:12px;
+      background:#ddd;
+      cursor:pointer;
+    }
+    
+    .switch .knob{
+      position:absolute;
+      top:2px;
+      left:2px;
+      width:20px;
+      height:20px;
+      border-radius:50%;
+      background:white;
+      box-shadow:0 1px 3px rgba(0,0,0,0.2);
+      transition:left 0.2s;
+    }
+    
+    .switch.on{
+      background:var(--mg-green);
+    }
+    
+    .switch.on .knob{
+      left:22px;
+    }
+
+    .basemap-toggle{
+      position:absolute;
+      right:20px;
+      top:70px;
+      z-index:1350;
+    }
+    
+    .basemap-card{
+      width:250px;
+      background:var(--panel);
+      border-radius:8px;
+      padding:12px;
+      box-shadow:0 4px 20px rgba(0,0,0,0.15);
+      border:1px solid #e1e5e9;
+    }
+    
+    .basemap-card.hidden{
+      display:none;
+    }
+    
+    .basemap-item{
+      padding:10px;
+      border-radius:6px;
+      margin-bottom:6px;
+      cursor:pointer;
+      font-size:14px;
+      border:1px solid transparent;
+    }
+    
+    .basemap-item:hover{
+      background:#f8f9fa;
+    }
+    
+    .basemap-item.active{
+      background:#e8f5e8;
+      border-color:var(--mg-green);
+    }
+
+    .scale-box{
+      position:absolute;
+      left:20px;
+      bottom:20px;
+      background:var(--panel);
+      padding:8px 12px;
+      border-radius:6px;
+      font-size:12px;
+      border:1px solid #e1e5e9;
+      z-index:1300;
+      box-shadow:0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .class-item{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 0;
+      border-bottom:1px solid #f0f0f0;
+    }
+    
+    .class-color{
+      width:16px;
+      height:16px;
+      border-radius:3px;
+    }
+    
+    .class-label{
+      flex:1;
+      font-size:13px;
+    }
+
+    .file-upload{
+      margin-top:16px;
+      padding:12px;
+      border:2px dashed #ddd;
+      border-radius:6px;
+      text-align:center;
+      cursor:pointer;
+      transition:border-color 0.2s;
+    }
+    
+    .file-upload:hover{
+      border-color:var(--mg-green);
+    }
+    
+    .file-hint{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:8px;
+      text-align:center;
+    }
+
+    .vt-btn.active-draw{
+      background:var(--mg-green);
+      color:#fff;
+    }
+    
+    .vt-btn.delete-active{
+      background:#dc3545;
+      color:#fff;
+    }
+
+    @media (max-width:768px){
+      .nav-menu{display:none}
+      .search-row{flex-wrap:wrap;}
+      .right-panel{width:95%; right:2.5%;}
+      .chat-box-container{width:95%; right:2.5%;}
+      .stats-panel{width:95%; left:2.5%;}
+      .stats-toggle-btn{display:none;}
+    }
+
+    .analysis-section {
+      margin: 16px 0;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 6px;
+    }
+    
+    .pulau-selector {
+      margin-bottom: 12px;
+    }
+    
+    .pulau-selector select {
+      width: 100%;
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+    }
+    
+    .data-display {
+      background: white;
+      padding: 12px;
+      border-radius: 4px;
+      margin-top: 8px;
+    }
+    
+    .data-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+    
+    .data-value {
+      font-weight: 600;
+      color: var(--mg-green);
+    }
+
+    .custom-tooltip {
+      background: rgba(255, 255, 255, 0.95) !important;
+      border: 1px solid #0a5c36 !important;
+      border-radius: 4px !important;
+      padding: 4px 8px !important;
+      font-size: 12px !important;
+      font-weight: 500 !important;
+    }
+
+    .legend {
+      background: white;
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    
+    .legend h4 {
+      margin: 0 0 8px 0;
+    }
+
+    .stats-panel {
+      position: absolute;
+      left: 80px;
+      top: 120px;
+      z-index: 1300;
+      background: var(--panel);
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      border: 1px solid #e1e5e9;
+      width: 300px;
+      max-height: 75vh;
+      overflow-y: auto;
+      transition: all 0.3s ease;
+    }
+
+    .stats-header {
+      font-weight: 600;
+      color: var(--mg-green);
+      margin-bottom: 12px;
+      font-size: 16px;
+      border-bottom: 2px solid var(--mg-green);
+      padding-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .stats-close {
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      color: var(--muted);
+      padding: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .stats-close:hover {
+      color: var(--mg-green);
+    }
+
+    .stat-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 13px;
+      padding: 6px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .stat-item:last-child {
+      border-bottom: none;
+    }
+
+    .stat-value {
+      font-weight: 600;
+      color: var(--mg-green);
+    }
+
+    .chart-container {
+      margin-top: 15px;
+      height: 200px;
+      position: relative;
+    }
+
+    .download-btn {
+      background: var(--mg-green);
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      margin-top: 15px;
+      width: 100%;
+      transition: background 0.3s ease;
+    }
+
+    .download-btn:hover {
+      background: var(--mg-green-light);
+    }
+
+    .collapsible {
+      margin-top: 10px;
+    }
+
+    .collapsible-header {
+      background: #f8f9fa;
+      padding: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--mg-green);
+    }
+
+    .collapsible-content {
+      padding: 10px;
+      background: white;
+      border-radius: 0 0 6px 6px;
+      margin-top: 2px;
+    }
+
+    .collapsible.hidden .collapsible-content {
+      display: none;
+    }
+
+    /* Progress Bar untuk Loading */
+    .progress-bar {
+      width: 100%;
+      height: 4px;
+      background: #f0f0f0;
+      border-radius: 2px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--mg-green);
+      transition: width 0.3s ease;
+    }
+
+    /* Filter Controls */
+    .filter-controls {
+      margin: 15px 0;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 6px;
+    }
+
+    .filter-title {
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: var(--mg-green);
+    }
+
+    .filter-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .filter-btn {
+      padding: 6px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: white;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s;
+    }
+
+    .filter-btn.active {
+      background: var(--mg-green);
+      color: white;
+      border-color: var(--mg-green);
+    }
+
+    .filter-btn:hover {
+      background: #e9ecef;
+    }
+
+    .filter-btn.active:hover {
+      background: var(--mg-green-light);
+    }
+
+    /* Loading Spinner */
+    .loading-spinner {
+      display: none;
+      text-align: center;
+      padding: 10px;
+    }
+
+    .spinner {
+      border: 4px solid rgba(0, 0, 0, 0.1);
+      border-left-color: var(--mg-green);
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Notification */
+    .notification {
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      padding: 12px 20px;
+      border-radius: 6px;
+      background: var(--mg-green);
+      color: white;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 2000;
+      display: none;
+      max-width: 300px;
+    }
+
+    .notification.error {
+      background: #dc3545;
+    }
+
+    .notification.success {
+      background: var(--mg-green);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="topbar">
+    <div class="brand">
+      <span>🌿 MangroveGuardian - Savi Sangiang 20</span>
+    </div>
+    <div class="nav-right-container">
+      <div class="nav-menu" id="navMenu">
+        <a href="indeks.html" data-key="home">Beranda</a>
+        <a href="indeks.html" data-key="about">Tentang</a>
+        <a href="indeks.html" data-key="team">Tim</a>
+        <a href="indeks.html" data-key="contact">Kontak</a>
+      </div>
+      <div class="lang-switch" id="langSwitch">ID / EN</div>
+    </div>
+  </div>
+
+  <!-- Notification -->
+  <div class="notification" id="notification"></div>
+
+  <!-- Chat Box -->
+  <div class="chat-box-container" id="chatBoxContainer">
+    <div class="chat-header" id="chatHeader">
+      <span>💬 Asisten Mangrove</span>
+      <span>−</span>
+    </div>
+    <div class="chat-content" id="chatContent">
+      <div class="chat-message chat-bot">Halo! Saya asisten virtual Mangrove Guardian. Data Savi Sangiang 20 memiliki 64 poligon dengan total luasan akan dihitung otomatis.</div>
+    </div>
+    <div class="chat-input-row">
+      <input type="text" id="chatInput" placeholder="Ketik pertanyaan Anda..." />
+      <button id="sendChat">Kirim</button>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div class="app">
+    <div id="map"></div>
+
+    <!-- Search Bar dengan Tombol Statistik di Kiri -->
+    <div class="search-row-container">
+      <div class="search-row">
+        <!-- Tombol Statistik di sebelah kiri search box -->
+        <button class="stats-toggle-btn" id="statsToggle" title="Toggle Panel Statistik">
+          📊 Statistik
+        </button>
+
+        <!-- Search Box di tengah -->
+        <div class="search-box">
+          <input id="searchInput" placeholder="Cari lokasi atau koordinat (contoh: -5.944,105.848)..." />
+          <button id="doSearch">Cari</button>
+        </div>
+
+        <!-- Tombol-tombol lainnya di sebelah kanan -->
+        <button class="action-btn" id="addPointBtn">+ Titik Baru</button>
+        <button id="basemapFlipBtn" class="mapFlipBtn" title="Peta Dasar">🗺️</button>
+        <button id="togglePanelBtn" class="mapFlipBtn" title="Panel Layer">☰</button>
+      </div>
+    </div>
+
+    <!-- Statistics Panel -->
+    <div class="stats-panel" id="statsPanel">
+      <div class="stats-header">
+        <span>📊 Statistik Savi Sangiang 20</span>
+        <button class="stats-close" id="statsClose" title="Tutup">✕</button>
+      </div>
+      
+      <div class="loading-spinner" id="statsLoading">
+        <div class="spinner"></div>
+        <p>Memproses data...</p>
+      </div>
+      
+      <div class="progress-bar">
+        <div class="progress-fill" id="dataProgress" style="width: 100%"></div>
+      </div>
+      
+      <div class="stat-item">
+        <span>Total Luasan:</span>
+        <span class="stat-value" id="totalLuas">Menghitung...</span>
+      </div>
+      <div class="stat-item">
+        <span>Jumlah Poligon:</span>
+        <span class="stat-value" id="jumlahPoligon">64</span>
+      </div>
+      <div class="stat-item">
+        <span>Kerapatan Rata-rata:</span>
+        <span class="stat-value" id="kerapatanRata">Menghitung...</span>
+      </div>
+      <div class="stat-item">
+        <span>Luasan Tertinggi:</span>
+        <span class="stat-value" id="luasMax">Menghitung...</span>
+      </div>
+      <div class="stat-item">
+        <span>Luasan Terendah:</span>
+        <span class="stat-value" id="luasMin">Menghitung...</span>
+      </div>
+
+      <!-- Filter Controls -->
+      <div class="filter-controls">
+        <div class="filter-title">Filter Kerapatan:</div>
+        <div class="filter-buttons">
+          <button class="filter-btn active" data-density="all">Semua</button>
+          <button class="filter-btn" data-density="0">Tidak Ada Data</button>
+          <button class="filter-btn" data-density="1">Sangat Rendah</button>
+          <button class="filter-btn" data-density="2">Rendah</button>
+        </div>
+      </div>
+
+      <!-- Collapsible Chart Section -->
+      <div class="collapsible" id="chartCollapsible">
+        <div class="collapsible-header" id="chartHeader">
+          <span>📈 Grafik Distribusi</span>
+          <span>▼</span>
+        </div>
+        <div class="collapsible-content">
+          <div class="chart-container">
+            <canvas id="densityChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Collapsible Detail Section -->
+      <div class="collapsible" id="detailCollapsible">
+        <div class="collapsible-header" id="detailHeader">
+          <span>🔍 Detail Kerapatan</span>
+          <span>▼</span>
+        </div>
+        <div class="collapsible-content">
+          <div class="stat-item">
+            <span>Tidak Ada Data (0):</span>
+            <span class="stat-value" id="detailNoData">Menghitung...</span>
+          </div>
+          <div class="stat-item">
+            <span>Sangat Rendah (1):</span>
+            <span class="stat-value" id="detailSangatRendah">Menghitung...</span>
+          </div>
+          <div class="stat-item">
+            <span>Rendah (2):</span>
+            <span class="stat-value" id="detailRendah">Menghitung...</span>
+          </div>
+        </div>
+      </div>
+
+      <button class="download-btn" id="downloadData">
+        📥 Download Data GeoJSON
+      </button>
+
+      <button class="download-btn" id="screenshot" style="background: #6c757d; margin-top: 8px;">
+        📷 Screenshot Peta
+      </button>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="vtoolbar">
+      <div class="vt-btn" id="zoomIn" title="Zoom In">+</div>
+      <div class="vt-btn" id="zoomOut" title="Zoom Out">−</div>
+      <div class="vt-btn" id="measureBtn" title="Ukur Jarak">📏</div>
+      <div style="border-top:1px solid #eee; margin:6px 0"></div>
+      <div class="vt-btn" id="drawPt" title="Titik">•</div>
+      <div class="vt-btn" id="drawPoly" title="Poligon">△</div>
+      <div class="vt-btn" id="drawRect" title="Persegi">□</div>
+      <div style="border-top:1px solid #eee; margin:6px 0"></div>
+      <div class="vt-btn" id="deleteBtn" title="Hapus">🗑️</div>
+      <div class="vt-btn" id="printBtn" title="Cetak">🖨️</div>
+    </div>
+
+    <!-- Scale -->
+    <div class="scale-box" id="scaleBox">Skala: 1:100,000</div>
+    <div class="scale-box" id="measureBox" style="left:120px; display:none; background:#fff3cd; color:#856404;"></div>
+
+    <!-- Right Panel -->
+    <div class="right-panel" id="rightPanel">
+      <div class="panel-inner">
+        <div class="panel-header">
+          <h3>Layer & Pengaturan</h3>
+          <button id="closePanel" class="vt-btn" style="width:auto; padding:6px 10px;">✕</button>
+        </div>
+
+        <!-- Analisis Vegetasi Section -->
+        <div class="analysis-section">
+          <div style="font-weight:600; color:var(--mg-green); margin-bottom:12px;">📊 Data Savi Sangiang 20</div>
+          
+          <div class="pulau-selector">
+            <label for="pulauSelect">Pilih Lokasi:</label>
+            <select id="pulauSelect">
+              <option value="savisangiang20" selected>Savi Sangiang 20</option>
+            </select>
+          </div>
+
+          <div class="pulau-selector">
+            <label for="tahunSelect">Pilih Tahun:</label>
+            <select id="tahunSelect">
+              <option value="2020" selected>2020</option>
+            </select>
+          </div>
+
+          <div class="data-display">
+            <div class="data-item">
+              <span>Tidak Ada Data:</span>
+              <span class="data-value" id="dataNoData">Menghitung...</span>
+            </div>
+            <div class="data-item">
+              <span>Vegetasi Sangat Rendah:</span>
+              <span class="data-value" id="dataSangatRendah">Menghitung...</span>
+            </div>
+            <div class="data-item">
+              <span>Vegetasi Rendah:</span>
+              <span class="data-value" id="dataRendah">Menghitung...</span>
+            </div>
+            <div class="data-item">
+              <span>Kerapatan Rata-rata:</span>
+              <span class="data-value" id="dataEVI">Menghitung...</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="switch-row">
+          <div class="switch-label">Layer Savi</div>
+          <div class="switch on" id="rasterSwitch"><div class="knob"></div></div>
+        </div>
+
+        <div style="margin:16px 0;">
+          <div style="font-weight:600; color:var(--mg-green); margin-bottom:12px;">Kelas Kerapatan Savi</div>
+          <div id="classesList"></div>
+        </div>
+
+        <hr style="margin:16px 0; border:none; border-top:1px solid #e1e5e9;">
+
+        <div style="font-weight:600; color:var(--mg-green); margin-bottom:12px;">Ekspor Data</div>
+        <div class="file-upload" id="fileUploadArea">
+          <div>📁 Upload File GeoJSON</div>
+          <input type="file" id="fileInput" accept=".json,.geojson" style="display:none" />
+        </div>
+        <div class="file-hint">Format yang didukung: GeoJSON, JSON</div>
+
+        <button class="download-btn" id="exportReport">
+          📄 Export Laporan PDF
+        </button>
+      </div>
+    </div>
+
+    <!-- Basemap Panel -->
+    <div class="basemap-toggle">
+      <div class="basemap-card hidden" id="basemapCard">
+        <div style="font-weight:600; margin-bottom:12px;">Peta Dasar</div>
+        <div class="basemap-item active" data-basemap="osm">OpenStreetMap</div>
+        <div class="basemap-item" data-basemap="satellite">Satelit</div>
+        <div class="basemap-item" data-basemap="terrain">Topografi</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==================== DATA SAVI SANGIANG 20 LENGKAP ====================
+    const savisangiang20 = {
+      "type": "FeatureCollection",
+      "features": [
+        {"type": "Feature","id": 1,"geometry": {"type": "Polygon","coordinates": [[[105.84885317293856,-5.9441692420527588],[105.84885275710162,-5.9438978818494732],[105.84858173705815,-5.9438982981322299],[105.84858215276236,-5.9441696583546513],[105.84885317293856,-5.9441692420527588]]]},"properties": {"OBJECTID": 1,"Id": 1,"gridcode": 2,"Shape_Length": 120.00000000186265,"Shape_Area": 900.00000002793968}},
+        {"type": "Feature","id": 2,"geometry": {"type": "Polygon","coordinates": [[[105.84966623335114,-5.944167992349688],[105.84966664960561,-5.9444393524928909],[105.8499376698372,-5.9444389356402416],[105.84993725345001,-5.9441675755162011],[105.84966623335114,-5.944167992349688]]]},"properties": {"OBJECTID": 2,"Id": 2,"gridcode": 0,"Shape_Length": 120.00000000558794,"Shape_Area": 900.00000008381903}},
+        {"type": "Feature","id": 3,"geometry": {"type": "Polygon","coordinates": [[[105.84912502509275,-5.9447115459782562],[105.84912419309542,-5.9441688256179672],[105.84885317293856,-5.9441692420527588],[105.8488540046704,-5.9447119624513327],[105.84912502509275,-5.9447115459782562]]]},"properties": {"OBJECTID": 3,"Id": 3,"gridcode": 2,"Shape_Length": 180.00000000372529,"Shape_Area": 1800.0000000558794}},
+        {"type": "Feature","id": 4,"geometry": {"type": "Polygon","coordinates": [[[105.84831362640131,-5.9457982359166435],[105.84831154815768,-5.9444414347625605],[105.84804052781011,-5.9444418508177792],[105.84804177430011,-5.9452559315756668],[105.84777075353502,-5.9452563475553362],[105.84777158435935,-5.9457990680853898],[105.84831362640131,-5.9457982359166435]]]},"properties": {"OBJECTID": 4,"Id": 4,"gridcode": 2,"Shape_Length": 420.00000000372529,"Shape_Area": 6300.0000001955777}},
+        {"type": "Feature","id": 5,"geometry": {"type": "Polygon","coordinates": [[[105.83991278930193,-5.9463537964003494],[105.84045483298947,-5.9463529718661228],[105.84045442111409,-5.9460816110938994],[105.84072544279638,-5.9460811986463158],[105.84072503080736,-5.9458098378904269],[105.84018298768919,-5.9458106626147504],[105.84018339941268,-5.9460820234085396],[105.8399123776921,-5.9460824355902382],[105.83991278930193,-5.9463537964003494]]]},"properties": {"OBJECTID": 5,"Id": 5,"gridcode": 0,"Shape_Length": 299.99999999813735,"Shape_Area": 3599.999999916181}},
+        {"type": "Feature","id": 6,"geometry": {"type": "Polygon","coordinates": [[[105.84587526564766,-5.9463446972751433],[105.84614628707881,-5.9463442821496368],[105.84614587241506,-5.9460729217767154],[105.8458748511167,-5.9460733368831464],[105.84587526564766,-5.9463446972751433]]]},"properties": {"OBJECTID": 6,"Id": 6,"gridcode": 2,"Shape_Length": 120.00000000372529,"Shape_Area": 900.00000005587935}},
+        {"type": "Feature","id": 7,"geometry": {"type": "Polygon","coordinates": [[[105.8469593512566,-5.9463430359754295],[105.84695893619453,-5.9460716756597707],[105.84641689369414,-5.9460725065373428],[105.84641730849066,-5.9463438668911817],[105.84668832988326,-5.9463434514997795],[105.8469593512566,-5.9463430359754295]]]},"properties": {"OBJECTID": 7,"Id": 7,"gridcode": 2,"Shape_Length": 180.00000000558794,"Shape_Area": 1800.0000001396984}},
+        {"type": "Feature","id": 8,"geometry": {"type": "Polygon","coordinates": [[[105.84099728876058,-5.9466235075316884],[105.8409968766005,-5.9463521468001002],[105.84072585480455,-5.9463525593995863],[105.84072626683185,-5.9466239201501336],[105.84099728876058,-5.9466235075316884]]]},"properties": {"OBJECTID": 8,"Id": 8,"gridcode": 0,"Shape_Length": 120.00000000186265,"Shape_Area": 900.00000002793968}},
+        {"type": "Feature","id": 9,"geometry": {"type": "Polygon","coordinates": [[[105.83937156828375,-5.9468973420905966],[105.83937115690127,-5.9466259812480322],[105.83964217892563,-5.9466255692943628],[105.83991320093087,-5.9466251572077384],[105.83991278930193,-5.9463537964003494],[105.83937074553791,-5.9463546204027793],[105.83937033419363,-5.9460832595548041],[105.83882829061875,-5.9460840829875981],[105.83882870169745,-5.9463554438734123],[105.83855767974856,-5.9463558554093057],[105.83855850169768,-5.9468985772106224],[105.83937156828375,-5.9468973420905966]]]},"properties": {"OBJECTID": 9,"Id": 9,"gridcode": 0,"Shape_Length": 480.00000000558794,"Shape_Area": 9000.0000001117587}},
+        {"type": "Feature","id": 10,"geometry": {"type": "Polygon","coordinates": [[[105.8469601814386,-5.9468857565986113],[105.84695976633796,-5.9466143962883642],[105.8469593512566,-5.9463430359754295],[105.84668832988326,-5.9463434514997795],[105.84668915979968,-5.9468861721611486],[105.8469601814386,-5.9468857565986113]]]},"properties": {"OBJECTID": 10,"Id": 10,"gridcode": 0,"Shape_Length": 180.00000000186265,"Shape_Area": 1800.0000000558794}},
+        {"type": "Feature","id": 11,"geometry": {"type": "Polygon","coordinates": [[[105.8469601814386,-5.9468857565986113],[105.84723120305823,-5.9468853409031128],[105.8472307878248,-5.946613980611966],[105.84695976633796,-5.9466143962883642],[105.8469601814386,-5.9468857565986113]]]},"properties": {"OBJECTID": 11,"Id": 11,"gridcode": 2,"Shape_Length": 120.00000000186265,"Shape_Area": 900.00000002793968}},
+        {"type": "Feature","id": 12,"geometry": {"type": "Polygon","coordinates": [[[105.83937156828375,-5.9468973420905966],[105.83937197968534,-5.9471687029304388],[105.83964300197528,-5.9471682909389116],[105.83964217892563,-5.9466255692943628],[105.83937115690127,-5.9466259812480322],[105.83937156828375,-5.9468973420905966]]]},"properties": {"OBJECTID": 12,"Id": 12,"gridcode": 2,"Shape_Length": 179.99999999627471,"Shape_Area": 1799.9999999441206}},
+        {"type": "Feature","id": 13,"geometry": {"type": "Polygon","coordinates": [[[105.85183856763592,-5.9468782537367924],[105.85183940267584,-5.9474209736597512],[105.85211042421295,-5.9474205555325597],[105.8521100065505,-5.9471491955916012],[105.85210958890745,-5.9468778356480199],[105.85183856763592,-5.9468782537367924]]]},"properties": {"OBJECTID": 13,"Id": 13,"gridcode": 2,"Shape_Length": 180,"Shape_Area": 1800}},
+        {"type": "Feature","id": 14,"geometry": {"type": "Polygon","coordinates": [[[105.85617574493853,-5.9474142676681367],[105.85617406643755,-5.9463288290438294],[105.85590304572322,-5.9463292490883815],[105.85590472369302,-5.9474146877898955],[105.85617574493853,-5.9474142676681367]]]},"properties": {"OBJECTID": 14,"Id": 14,"gridcode": 0,"Shape_Length": 300,"Shape_Area": 3600}},
+        {"type": "Feature","id": 15,"geometry": {"type": "Polygon","coordinates": [[[105.84289609427547,-5.9477060578477534],[105.84316711658207,-5.9477056440896368],[105.84316670328292,-5.9474342835206988],[105.84289568110913,-5.9474346972598076],[105.84289609427547,-5.9477060578477534]]]},"properties": {"OBJECTID": 15,"Id": 15,"gridcode": 2,"Shape_Length": 120,"Shape_Area": 900}},
+        {"type": "Feature","id": 16,"geometry": {"type": "Polygon","coordinates": [[[105.84858755867496,-5.9476973410017537],[105.84858714271964,-5.9474259808142653],[105.84831612093092,-5.9474263972128245],[105.84831653675344,-5.9476977574194425],[105.84858755867496,-5.9476973410017537]]]},"properties": {"OBJECTID": 16,"Id": 16,"gridcode": 2,"Shape_Length": 119.99999999627471,"Shape_Area": 899.99999994412065}},
+        {"type": "Feature","id": 17,"geometry": {"type": "Polygon","coordinates": [[[105.83557889436391,-5.9479885401468167],[105.83584991731925,-5.9479881299603079],[105.83584950758697,-5.9477167688829944],[105.83557848476444,-5.9477171790506587],[105.83557889436391,-5.9479885401468167]]]},"properties": {"OBJECTID": 17,"Id": 17,"gridcode": 2,"Shape_Length": 119.99999999813735,"Shape_Area": 899.99999997206032}},
+        {"type": "Feature","id": 18,"geometry": {"type": "Polygon","coordinates": [[[105.84858797464962,-5.947968701186535],[105.84858755867496,-5.9476973410017537],[105.84831653675344,-5.9476977574194425],[105.84831612093092,-5.9474263972128245],[105.84831362640131,-5.9457982359166435],[105.84777158435935,-5.9457990680853898],[105.84777075353502,-5.9452563475553362],[105.84804177430011,-5.9452559315756668],[105.84804052781011,-5.9444418508177792],[105.84831154815768,-5.9444414347625605],[105.84831071699541,-5.9438987142820938],[105.84858173705815,-5.9438982981322299],[105.84885275710162,-5.9438978818494732],[105.84885317293856,-5.9441692420527588],[105.84912419309542,-5.9441688256179672],[105.84912502509275,-5.9447115459782562],[105.84912544112039,-5.9449829061543342],[105.84939646165614,-5.9449824895291981],[105.84939521323294,-5.9441684090502767],[105.84966623335114,-5.944167992349688],[105.84966540090024,-5.9436252720553231],[105.84912336117542,-5.9436261052469952],[105.8491229452444,-5.9433547450574613],[105.84858090570769,-5.9433555776793092],[105.84858049006144,-5.9430842174487744],[105.84830947039683,-5.9430846335412459],[105.84830905490259,-5.9428132732889614],[105.8477670157808,-5.9428141050370424],[105.84776743100964,-5.9430854653275693],[105.8474964112871,-5.9430858810214193],[105.84749682640252,-5.9433572413284388],[105.84722580652799,-5.9433576569085194],[105.84722622152999,-5.9436290172319222],[105.84695520150343,-5.9436294326982226],[105.84695561639199,-5.9439007930380212],[105.8458715355622,-5.9439024536506917],[105.84587194993911,-5.9441738140641416],[105.84668501098855,-5.9441725687467333],[105.84668584059658,-5.9447152894511488],[105.84695686117334,-5.9447148740413613],[105.84695810612821,-5.9455289550204915],[105.84614504314536,-5.945530201022911],[105.84614421395271,-5.9449874802583018],[105.8458731931854,-5.9449878952884312],[105.8458748511167,-5.9460733368831464],[105.84614587241506,-5.9460729217767154],[105.84614628707881,-5.9463442821496368],[105.84587526564766,-5.9463446972751433],[105.84587568019788,-5.9466160576644178],[105.84641772330644,-5.9466152272422992],[105.84641730849066,-5.9463438668911817],[105.84641689369414,-5.9460725065373428],[105.84695893619453,-5.9460716756597707],[105.84722995741581,-5.9460712600215722],[105.84723037261067,-5.9463426203181307],[105.84777241526088,-5.9463417886046903],[105.84777407729553,-5.9474272296110264],[105.84804509912287,-5.9474268134784118],[105.84804593052161,-5.9479695339271919],[105.84831695259528,-5.947969117623356],[105.84858797464962,-5.947968701186535]]]},"properties": {"OBJECTID": 18,"Id": 18,"gridcode": 0,"Shape_Length": 2940.0000000018626,"Shape_Area": 86399.999999748543}},
+        {"type": "Feature","id": 19,"geometry": {"type": "Polygon","coordinates": [[[105.83557930398241,-5.9482599012402844],[105.83557889436391,-5.9479885401468167],[105.83557848476444,-5.9477171790506587],[105.83557807518399,-5.9474458179517962],[105.83612012054438,-5.9474449975211794],[105.83611889112036,-5.9466309143215401],[105.83530582424643,-5.9466321445984143],[105.83530623363704,-5.9469035057241779],[105.8350352111749,-5.946903915569389],[105.8350348019171,-5.9466325544247933],[105.83476377956876,-5.9466329641182174],[105.83476500700078,-5.9474470476004155],[105.83503602974754,-5.9474466378505157],[105.83503643906236,-5.9477179989870477],[105.83530746192291,-5.9477175890853431],[105.83530828087522,-5.9482603113126435],[105.83557930398241,-5.9482599012402844]]]},"properties": {"OBJECTID": 19,"Id": 19,"gridcode": 0,"Shape_Length": 719.99999999813735,"Shape_Area": 16200.00000002794}},
+        {"type": "Feature","id": 20,"geometry": {"type": "Polygon","coordinates": [[[105.84885941281145,-5.9482396447796866],[105.84885899668467,-5.9479682846167314],[105.84858797464962,-5.947968701186535],[105.84831695259528,-5.947969117623356],[105.84831736845643,-5.9482404778245783],[105.84885941281145,-5.9482396447796866]]]},"properties": {"OBJECTID": 20,"Id": 20,"gridcode": 2,"Shape_Length": 179.99999999813735,"Shape_Area": 1799.9999999720603}},
+        {"type": "Feature","id": 21,"geometry": {"type": "Polygon","coordinates": [[[105.85184065538112,-5.9482350535239839],[105.85238269923286,-5.9482342170213505],[105.85238228137941,-5.9479628571077283],[105.85211125959606,-5.9479632754063232],[105.85184023779331,-5.9479636935719356],[105.85184065538112,-5.9482350535239839]]]},"properties": {"OBJECTID": 21,"Id": 21,"gridcode": 2,"Shape_Length": 180.00000000186265,"Shape_Area": 1800.0000000279397}},
+        {"type": "Feature","id": 22,"geometry": {"type": "Polygon","coordinates": [[[105.83557971361992,-5.948531262331116],[105.83585073684091,-5.9485308521069209],[105.83585032707057,-5.9482594910349329],[105.83557930398241,-5.9482599012402844],[105.83557971361992,-5.948531262331116]]]},"properties": {"OBJECTID": 22,"Id": 22,"gridcode": 1,"Shape_Length": 120.00000000558794,"Shape_Area": 900.00000008381903}},
+        {"type": "Feature","id": 23,"geometry": {"type": "Polygon","coordinates": [[[105.84289609427547,-5.9477060578477534],[105.84262507194968,-5.947706471472892],[105.84262424590182,-5.947163750256272],[105.84208220172394,-5.9471645770316384],[105.84208178899438,-5.9468932163813593],[105.84181076700948,-5.9468936295506074],[105.84181035443187,-5.9466222688786239],[105.84153933256059,-5.9466226818959331],[105.84153974500541,-5.9468940425868961],[105.84126872298219,-5.9468944554902219],[105.84126913531337,-5.9471658161974341],[105.84154015746937,-5.947165403275136],[105.8415405699525,-5.9474367639607548],[105.842353636704,-5.9474355243391059],[105.84235528842193,-5.9485209668267514],[105.84262631116535,-5.9485205532776035],[105.84262589807429,-5.9482491926786878],[105.84316794323794,-5.9482483652194116],[105.84316835659469,-5.9485197257803168],[105.84343937928054,-5.948519311832178],[105.84343855232062,-5.9479765907457587],[105.84370957472164,-5.9479761767026629],[105.84370916113767,-5.9477048161744657],[105.84398018338666,-5.9477044020174121],[105.8439797696891,-5.9474330415055352],[105.84425079178608,-5.9474326272345346],[105.8442503779749,-5.9471612667389682],[105.84452139991984,-5.9471608523540338],[105.84452098599509,-5.9468894918748854],[105.84397894235158,-5.9468903204737158],[105.84397935601073,-5.947161680990936],[105.84370833402734,-5.9471620951099373],[105.8437087475729,-5.9474334556435622],[105.84316670328292,-5.9474342835206988],[105.84316711658207,-5.9477056440896368],[105.84289609427547,-5.9477060578477534]]]},"properties": {"OBJECTID": 23,"Id": 23,"gridcode": 0,"Shape_Length": 1380,"Shape_Area": 24299.999999888241}},
+        {"type": "Feature","id": 24,"geometry": {"type": "Polygon","coordinates": [[[105.83558012327646,-5.9488026234192244],[105.83557971361992,-5.948531262331116],[105.83557930398241,-5.9482599012402844],[105.83530828087522,-5.9482603113126435],[105.83530909990364,-5.9488030335292583],[105.83558012327646,-5.9488026234192244]]]},"properties": {"OBJECTID": 24,"Id": 24,"gridcode": 2,"Shape_Length": 180.00000000372529,"Shape_Area": 1800.0000000558794}},
+        {"type": "Feature","id": 25,"geometry": {"type": "Polygon","coordinates": [[[105.84723411023226,-5.9487848628658453],[105.84723286418482,-5.9479707820407928],[105.84696184203396,-5.9479711978126906],[105.84696308768294,-5.948785278695043],[105.84723411023226,-5.9487848628658453]]]},"properties": {"OBJECTID": 25,"Id": 25,"gridcode": 0,"Shape_Length": 240.00000000558794,"Shape_Area": 2700.0000001396984}},
+        {"type": "Feature","id": 26,"geometry": {"type": "Polygon","coordinates": [[[105.8388324022651,-5.948797691724458],[105.83856137912092,-5.9487981034305459],[105.83856179025773,-5.9490694643083328],[105.83883281353475,-5.9490690525833338],[105.8388324022651,-5.948797691724458]]]},"properties": {"OBJECTID": 26,"Id": 26,"gridcode": 0,"Shape_Length": 119.99999999813735,"Shape_Area": 899.99999997206032}},
+        {"type": "Feature","id": 27,"geometry": {"type": "Polygon","coordinates": [[[105.84723411023226,-5.9487848628658453],[105.84723452562,-5.9490562231354591],[105.84750554828287,-5.9490558071541528],[105.84750513276231,-5.9487844469036437],[105.84723411023226,-5.9487848628658453]]]},"properties": {"OBJECTID": 27,"Id": 27,"gridcode": 0,"Shape_Length": 119.99999999254942,"Shape_Area": 899.99999988824129}},
+        {"type": "Feature","id": 28,"geometry": {"type": "Polygon","coordinates": [[[105.85184065538112,-5.9482350535239839],[105.85156963342617,-5.9482354715758161],[105.85157005090056,-5.9485068315444298],[105.85129902879341,-5.9485072494824696],[105.85129944615436,-5.9487786094675581],[105.85102842389496,-5.9487790272917938],[105.85102884114245,-5.949050387293366],[105.85184190826095,-5.9490491333640598],[105.85184065538112,-5.9482350535239839]]]},"properties": {"OBJECTID": 28,"Id": 28,"gridcode": 2,"Shape_Length": 360,"Shape_Area": 5399.9999998882413}},
+        {"type": "Feature","id": 29,"geometry": {"type": "Polygon","coordinates": [[[105.83666544725547,-5.9496150646709998],[105.83666503701045,-5.9493437036663686],[105.83639401344804,-5.949344114346145],[105.83639442356021,-5.9496154753696384],[105.83666544725547,-5.9496150646709998]]]},"properties": {"OBJECTID": 29,"Id": 29,"gridcode": 0,"Shape_Length": 120,"Shape_Area": 900}},
+        {"type": "Feature","id": 30,"geometry": {"type": "Polygon","coordinates": [[[105.83747851822696,-5.9496138317769471],[105.83747810758337,-5.9493424708289391],[105.83720708407813,-5.9493428819077652],[105.83720749458887,-5.9496142428746541],[105.83747851822696,-5.9496138317769471]]]},"properties": {"OBJECTID": 30,"Id": 30,"gridcode": 0,"Shape_Length": 119.99999999627471,"Shape_Area": 899.99999994412065}},
+        {"type": "Feature","id": 31,"geometry": {"type": "Polygon","coordinates": [[[105.83530828087522,-5.9482603113126435],[105.83449521143964,-5.9482615407317647],[105.83449562054584,-5.9485329018979094],[105.83395357389479,-5.9485337208833133],[105.83395439163283,-5.9490764432826886],[105.8342254152335,-5.9490760338188728],[105.83422582426385,-5.9493473949957458],[105.83476787167399,-5.9493465756314476],[105.83476828098902,-5.949617936767984],[105.83503930479844,-5.9496175268674838],[105.83503971426533,-5.949888887982504],[105.8353107381886,-5.9498884779301493],[105.83531032858883,-5.9496171168339611],[105.83612339984593,-5.9496158859352537],[105.83612298986662,-5.9493445248929042],[105.83558094264662,-5.949345345587373],[105.83558012327646,-5.9488026234192244],[105.83530909990364,-5.9488030335292583],[105.83530828087522,-5.9482603113126435]]]},"properties": {"OBJECTID": 31,"Id": 31,"gridcode": 0,"Shape_Length": 840.00000000558794,"Shape_Area": 22500.000000083819}},
+        {"type": "Feature","id": 32,"geometry": {"type": "Polygon","coordinates": [[[105.84669414091728,-5.9501424959034379],[105.84696516415018,-5.9501420801117728],[105.84696474881817,-5.9498707198338332],[105.84669372571815,-5.9498711356064042],[105.84669414091728,-5.9501424959034379]]]},"properties": {"OBJECTID": 32,"Id": 32,"gridcode": 2,"Shape_Length": 119.99999999813735,"Shape_Area": 899.99999997206032}},
+        {"type": "Feature","id": 33,"geometry": {"type": "Polygon","coordinates": [[[105.84805050459504,-5.9509544962032566],[105.84805008867365,-5.9506831360098102],[105.84723701835139,-5.950684384696781],[105.84723743387411,-5.9509557449475645],[105.84805050459504,-5.9509544962032566]]]},"properties": {"OBJECTID": 33,"Id": 33,"gridcode": 2,"Shape_Length": 239.99999999441206,"Shape_Area": 2699.9999998044223}},
+        {"type": "Feature","id": 34,"geometry": {"type": "Polygon","coordinates": [[[105.85455464498276,-5.9506731034074267],[105.85455506409332,-5.9509444631401953],[105.85482608716316,-5.9509440434327674],[105.85482566791973,-5.9506726837192696],[105.85455464498276,-5.9506731034074267]]]},"properties": {"OBJECTID": 34,"Id": 34,"gridcode": 0,"Shape_Length": 119.99999999627471,"Shape_Area": 899.99999994412065}},
+        {"type": "Feature","id": 35,"geometry": {"type": "Polygon","coordinates": [[[105.84696641026189,-5.9509561609295645],[105.84696682567102,-5.9512275211967589],[105.84723784941615,-5.9512271051956578],[105.84723743387411,-5.9509557449475645],[105.84696641026189,-5.9509561609295645]]]},"properties": {"OBJECTID": 35,"Id": 35,"gridcode": 2,"Shape_Length": 120.00000000186265,"Shape_Area": 900.00000002793968}},
+        {"type": "Feature","id": 36,"geometry": {"type": "Polygon","coordinates": [[[105.8507611563452,-5.9512216850731203],[105.8507603218254,-5.95067896507196],[105.8502182753498,-5.9506798003238917],[105.85021910933806,-5.9512225204017577],[105.8507611563452,-5.9512216850731203]]]},"properties": {"OBJECTID": 36,"Id": 36,"gridcode": 2,"Shape_Length": 239.99999999441206,"Shape_Area": 3599.9999998323619}},
+        {"type": "Feature","id": 37,"geometry": {"type": "Polygon","coordinates": [[[105.8507611563452,-5.9512216850731203],[105.85157422671067,-5.9512204310822359],[105.85157339139356,-5.950677711196227],[105.8507603218254,-5.95067896507196],[105.8507611563452,-5.9512216850731203]]]},"properties": {"OBJECTID": 37,"Id": 37,"gridcode": 0,"Shape_Length": 299.99999999627471,"Shape_Area": 5399.9999998323619}},
+        {"type": "Feature","id": 38,"geometry": {"type": "Polygon","coordinates": [[[105.85455464498276,-5.9506731034074267],[105.85455422589165,-5.9504017436719492],[105.85536729424554,-5.9504004842661757],[105.85536855277317,-5.9512145632910043],[105.85591059904235,-5.9512137229062079],[105.85590975947292,-5.9506710036361961],[105.85618078231252,-5.9506705832828173],[105.85618036242415,-5.9503992236630596],[105.85590933971743,-5.9503996439971365],[105.85590891998143,-5.9501282843553511],[105.85536687477527,-5.9501291245858052],[105.85536603589316,-5.9495864052170946],[105.85563705824023,-5.9495859852069621],[105.85563621917032,-5.949043265866016],[105.85536519708893,-5.9490436858375695],[105.85536435836259,-5.9485009664473179],[105.85509333652737,-5.9485013862472966],[105.85509291732625,-5.9482300265288091],[105.85482189560439,-5.9482304461765159],[105.85482147655554,-5.9479590864361134],[105.85455045494706,-5.9479595059315589],[105.85455003605048,-5.9476881461691944],[105.85427901455536,-5.9476885655123928],[105.85427859581105,-5.9474172057280565],[105.85400757442929,-5.9474176249190194],[105.8540079930408,-5.947688984722614],[105.85319492838046,-5.9476902415554127],[105.85319451016738,-5.9474188816940785],[105.85265246722899,-5.947419718879261],[105.85265204930093,-5.947148358976742],[105.8521100065505,-5.9471491955916012],[105.85211042421295,-5.9474205555325597],[105.85183940267584,-5.9474209736597512],[105.85183856763592,-5.9468782537367924],[105.8518377326736,-5.9463355338030777],[105.85129569060354,-5.9463363695049409],[105.85129443910209,-5.9455222894689976],[105.85156545974849,-5.9455218717421321],[105.85156379082021,-5.9444364317333589],[105.85020869004944,-5.9444385186546898],[105.85020910658874,-5.944709878756842],[105.85048012691435,-5.9447094616192118],[105.8504809603165,-5.9452521817771053],[105.85102300144067,-5.9452513470263844],[105.85102466953944,-5.9463367871564516],[105.85075364845595,-5.9463372046750154],[105.85075406539629,-5.9466085647199955],[105.85048304416065,-5.9466089821247916],[105.85048346098758,-5.9468803421862626],[105.84994141819267,-5.9468811766353342],[105.84994058508936,-5.9463384564330237],[105.84966956392844,-5.9463388734197977],[105.84967122968131,-5.9474243138903091],[105.84940020796989,-5.9474247308207566],[105.84940104069675,-5.9479674510781697],[105.84885899668467,-5.9479682846167314],[105.84885941281145,-5.9482396447796866],[105.84967247919906,-5.9482383942149211],[105.84967414549349,-5.949323834610162],[105.84940312285228,-5.9493242516746943],[105.84940437237765,-5.9501383320002859],[105.84913334931854,-5.9501387489892492],[105.84913376573279,-5.9504101091115942],[105.84967581209743,-5.9504092749623281],[105.84967664551544,-5.9509519951222503],[105.84994766893453,-5.950951577809735],[105.84994808580545,-5.9512229378664907],[105.85021910933806,-5.9512225204017577],[105.8502182753498,-5.9506798003238917],[105.8507603218254,-5.95067896507196],[105.85075907019097,-5.9498648850499878],[105.8518431613153,-5.9498632131799249],[105.85184357903887,-5.950134573113127],[105.85211460190436,-5.950134154793834],[105.85211376621089,-5.9495914349631285],[105.85238478879126,-5.9495910165492356],[105.85238353499801,-5.9487769368405958],[105.85265455716041,-5.9487765183513499],[105.85265497520493,-5.9490478782376801],[105.85346804197421,-5.9490466219142286],[105.85346846043667,-5.9493179817402],[105.85373948278711,-5.9493175626804531],[105.85374032003602,-5.9498602822857976],[105.85401134263273,-5.949859863054531],[105.8540117614192,-5.9501312228338818],[105.85428278412932,-5.95013080345033],[105.85428320306812,-5.9504021632077979],[105.85401218022513,-5.9504025826106082],[105.85401259905048,-5.9506739423846087],[105.85455464498276,-5.9506731034074267]],[[105.85075698452094,-5.9485080849595624],[105.85048596235565,-5.9485085024986137],[105.85048554541257,-5.9482371424532445],[105.85075656744503,-5.9482367249333725],[105.85075698452094,-5.9485080849595624]],[[105.85184065538112,-5.9482350535239839],[105.85184023779331,-5.9479636935719356],[105.85211125959606,-5.9479632754063232],[105.8521108418948,-5.9476919154707941],[105.85238186354535,-5.947691497191415],[105.85238228137941,-5.9479628571077283],[105.85238269923286,-5.9482342170213505],[105.85184065538112,-5.9482350535239839],[105.85184190826095,-5.9490491333640598],[105.85102884114245,-5.949050387293366],[105.85102842389496,-5.9487790272917938],[105.85129944615436,-5.9487786094675581],[105.85129902879341,-5.9485072494824696],[105.85157005090056,-5.9485068315444298],[105.85156963342617,-5.9482354715758161],[105.85184065538112,-5.9482350535239839]]]},"properties": {"OBJECTID": 38,"Id": 38,"gridcode": 0,"Shape_Length": 5219.9999999850988,"Shape_Area": 220500.0000004191}},
+        {"type": "Feature","id": 39,"geometry": {"type": "Polygon","coordinates": [[[105.84750970454965,-5.9517694095114706],[105.84750928883616,-5.9514980492878484],[105.84723826497745,-5.9514984654411132],[105.84723868055805,-5.9517698256838409],[105.84750970454965,-5.9517694095114706]]]},"properties": {"OBJECTID": 39,"Id": 39,"gridcode": 2,"Shape_Length": 119.99999999627471,"Shape_Area": 899.99999994412065}},
+        {"type": "Feature","id": 40,"geometry": {"type": "Polygon","coordinates": [[[105.8388324022651,-5.948797691724458],[105.83937444849613,-5.9487968679132681],[105.83937486003147,-5.9490682287343049],[105.83991690645179,-5.9490674043532348],[105.83991731827193,-5.9493387651337528],[105.83964629493849,-5.949339177409728],[105.83964753011507,-5.9501532597918656],[105.8399185538471,-5.9501528474590843],[105.83992020154835,-5.9512382905219132],[105.84019122579278,-5.9512378779803328],[105.84019205002393,-5.9517805994577575],[105.840463074515,-5.9517801867452222],[105.84046389908849,-5.9523229081739553],[105.84100594854493,-5.9523220822738452],[105.8410055359828,-5.9520507215987202],[105.84127656054939,-5.9520503084680065],[105.84127573521674,-5.9515075871476677],[105.84100471091595,-5.9515080002404499],[105.84100429841125,-5.9512366395572363],[105.84127532257914,-5.9512362264834202],[105.84127367222027,-5.9501507837996623],[105.84154469583746,-5.9501503706686742],[105.84154428316275,-5.9498790100100152],[105.84100223617493,-5.9498798361010188],[105.84100141141442,-5.9493371146996896],[105.84127243465221,-5.9493367017586332],[105.84127202216783,-5.949065341072882],[105.84181406832022,-5.9490645148296721],[105.84181324287755,-5.9485217935260533],[105.84100017441725,-5.9485230325775236],[105.84099976212315,-5.9482516718647229],[105.84072873939758,-5.9482520845969242],[105.84072832725543,-5.9479807238625266],[105.8399152593624,-5.9479819612043396],[105.83991567110607,-5.9482533219955798],[105.83964464830397,-5.9482537341958137],[105.83964505993393,-5.9485250950033528],[105.83883199101453,-5.9485263308628742],[105.8388324022651,-5.948797691724458]],[[105.8404589527956,-5.9490665794401236],[105.84018792963326,-5.9490669919631847],[105.84018751769941,-5.9487956311989532],[105.84045854072889,-5.9487952186948396],[105.8404589527956,-5.9490665794401236]]]},"properties": {"OBJECTID": 40,"Id": 40,"gridcode": 0,"Shape_Length": 1979.9999999981374,"Shape_Area": 72900.000000167638}},
+        {"type": "Feature","id": 41,"geometry": {"type": "Polygon","coordinates": [[[105.84669372571815,-5.9498711356064042],[105.84669289537769,-5.9493284150042012],[105.84587982675917,-5.9493296614092603],[105.8458802415212,-5.9496010217689541],[105.84615126454617,-5.9496006064145393],[105.84615167946031,-5.9498719667524655],[105.84560963312542,-5.9498727973664165],[105.8456100477931,-5.9501441577397651],[105.84533902446391,-5.9501445728662627],[105.84534026818382,-5.950958654027473],[105.84588231562024,-5.9509578235270446],[105.84588356031074,-5.9517719045496413],[105.84615458439873,-5.9517714890426214],[105.8461554145545,-5.9523142096727346],[105.84642643888905,-5.952313793994481],[105.84642685412875,-5.9525851542864192],[105.84615582966128,-5.9525855699837553],[105.84615624478732,-5.9528569302920831],[105.84669829396886,-5.9528560987261523],[105.84669870938002,-5.9531274589936034],[105.84696973407483,-5.9531270429919019],[105.84696890300592,-5.9525843224924815],[105.84723992741557,-5.9525839063958816],[105.84723951177712,-5.9523125461612247],[105.84805258449155,-5.9523112971302305],[105.84805175247503,-5.9517685767675204],[105.84832277640876,-5.9517681601959405],[105.84832194420366,-5.951225439860683],[105.84805092053573,-5.9512258563940126],[105.84805050459504,-5.9509544962032566],[105.84723743387411,-5.9509557449475645],[105.84723784941615,-5.9512271051956578],[105.84696682567102,-5.9512275211967589],[105.84696641026189,-5.9509561609295645],[105.84696557950147,-5.9504134403870887],[105.8466945561357,-5.9504138561978488],[105.84669414091728,-5.9501424959034379],[105.84669372571815,-5.9498711356064042]],[[105.84750970454965,-5.9517694095114706],[105.84723868055805,-5.9517698256838409],[105.84723826497745,-5.9514984654411132],[105.84750928883616,-5.9514980492878484],[105.84750970454965,-5.9517694095114706]]]},"properties": {"OBJECTID": 41,"Id": 41,"gridcode": 0,"Shape_Length": 1799.9999999962747,"Shape_Area": 63900.000000419095}},
+        {"type": "Feature","id": 42,"geometry": {"type": "Polygon","coordinates": [[[105.8569984751589,-5.9536542764267519],[105.8569980546573,-5.9533829168945438],[105.85672703054709,-5.9533833378402568],[105.8567261898683,-5.9528406187291258],[105.85645516600444,-5.9528410395031059],[105.85645642665308,-5.9536551182237059],[105.8569984751589,-5.9536542764267519]]]},"properties": {"OBJECTID": 42,"Id": 42,"gridcode": 0,"Shape_Length": 300.00000000372529,"Shape_Area": 3600.0000001117587}},
+        {"type": "Feature","id": 43,"geometry": {"type": "Polygon","coordinates": [[[105.86025329754587,-5.9552773702064341],[105.86025287533144,-5.9550060109227232],[105.85998185065802,-5.9550064335820547],[105.85998227273946,-5.9552777928851599],[105.86025329754587,-5.9552773702064341]]]},"properties": {"OBJECTID": 43,"Id": 43,"gridcode": 2,"Shape_Length": 120,"Shape_Area": 900}},
+        {"type": "Feature","id": 44,"geometry": {"type": "Polygon","coordinates": [[[105.86079703721738,-5.9563619614023287],[105.86079534709991,-5.9552765244495429],[105.86052432233268,-5.9552769473945624],[105.86052389998528,-5.955005588130251],[105.86079492461954,-5.9550051652046374],[105.86079450215874,-5.9547338059570389],[105.85971040403612,-5.9547354967830595],[105.85970998212682,-5.9544641374551635],[105.85943895768018,-5.9544645598094501],[105.8594385359234,-5.9541932004594456],[105.85916751159016,-5.9541936226612275],[105.85916877652029,-5.9550077007612021],[105.85889775176859,-5.9550081228879685],[105.85889943808398,-5.9560935603943506],[105.85944148863176,-5.9560927158526971],[105.85944106675758,-5.9558213565189035],[105.85917004162647,-5.9558217788369374],[105.85916961990485,-5.9555504194810576],[105.85944064490297,-5.9555499971823984],[105.85943980125245,-5.9550072785012942],[105.859710825965,-5.9550068561082448],[105.85971166988151,-5.9555495747505871],[105.85998269484047,-5.955549152185621],[105.85998353910125,-5.9560918707783799],[105.86052558949241,-5.9560910251714017],[105.86052601191817,-5.9563623844249713],[105.86079703721738,-5.9563619614023287]],[[105.86025329754587,-5.9552773702064341],[105.85998227273946,-5.9552777928851599],[105.85998185065802,-5.9550064335820547],[105.86025287533144,-5.9550060109227232],[105.86025329754587,-5.9552773702064341]]]},"properties": {"OBJECTID": 44,"Id": 44,"gridcode": 0,"Shape_Length": 1380.0000000055879,"Shape_Area": 26099.999999944121}},
+        {"type": "Feature","id": 45,"geometry": {"type": "Polygon","coordinates": [[[105.85808888978106,-5.9577229827352909],[105.85863094204235,-5.9577221387603814],[105.85863136365437,-5.9579934981334421],[105.85917341610357,-5.9579926535869907],[105.85917172870855,-5.9569072162335166],[105.85890070302584,-5.9569076384958688],[105.85890112471225,-5.9571789978576142],[105.85835907302219,-5.9571798420214872],[105.85835780881976,-5.9563657638119389],[105.85808678334445,-5.9563661856360364],[105.8580880471478,-5.9571802639036378],[105.8575459953405,-5.9571811072683687],[105.8575464163813,-5.9574524667242423],[105.85808846845468,-5.9574516233208277],[105.85808888978106,-5.9577229827352909]]]},"properties": {"OBJECTID": 45,"Id": 45,"gridcode": 0,"Shape_Length": 779.99999999813735,"Shape_Area": 14400.000000391155}},
+        {"type": "Feature","id": 46,"geometry": {"type": "Polygon","coordinates": [[[105.85808888978106,-5.9577229827352909],[105.85754683744162,-5.9577238261773893],[105.85754767962084,-5.9582665450755643],[105.85781870606641,-5.9582661233824386],[105.857818284834,-5.9579947639540549],[105.85808931112699,-5.9579943421470585],[105.85808888978106,-5.9577229827352909]]]},"properties": {"OBJECTID": 46,"Id": 46,"gridcode": 0,"Shape_Length": 239.99999999813735,"Shape_Area": 2699.9999999720603}},
+        {"type": "Feature","id": 47,"geometry": {"type": "Polygon","coordinates": [[[105.86025836564646,-5.958533681401077],[105.86025752076718,-5.9579909628955869],[105.85998649463063,-5.95799138576825],[105.85998607235342,-5.9577200264920682],[105.85971504633034,-5.9577204492121352],[105.85971631282159,-5.9585345270907597],[105.86025836564646,-5.958533681401077]]]},"properties": {"OBJECTID": 47,"Id": 47,"gridcode": 0,"Shape_Length": 300.00000000186265,"Shape_Area": 4500.000000083819}},
+        {"type": "Feature","id": 48,"geometry": {"type": "Polygon","coordinates": [[[105.85565343567718,-5.960169010202705],[105.85592446319082,-5.9601685893070107],[105.85592404275333,-5.9598972297622277],[105.85700815208051,-5.9598955449241178],[105.85700731019934,-5.9593528259809263],[105.85619422903169,-5.9593540896935],[105.85619380851959,-5.959082730159901],[105.8556517545765,-5.9590835719301536],[105.85565343567718,-5.960169010202705]]]},"properties": {"OBJECTID": 48,"Id": 48,"gridcode": 0,"Shape_Length": 540.00000000186265,"Shape_Area": 11700.000000167638}},
+        {"type": "Feature","id": 49,"geometry": {"type": "Polygon","coordinates": [[[105.85565343567718,-5.960169010202705],[105.85484035301948,-5.9601702720902416],[105.8548411928881,-5.9607129913260666],[105.85538324854512,-5.9607121501238423],[105.85538282833488,-5.9604407905458485],[105.85565385600106,-5.9604403697641208],[105.85565343567718,-5.960169010202705]]]},"properties": {"OBJECTID": 49,"Id": 49,"gridcode": 0,"Shape_Length": 300.00000000372529,"Shape_Area": 4500.0000002235174}},
+        {"type": "Feature","id": 50,"geometry": {"type": "Polygon","coordinates": [[[105.85321670222609,-5.9618009506356788],[105.85348773071348,-5.9618005308238589],[105.85348731135723,-5.9615291711217857],[105.85321628300298,-5.9615295909143642],[105.85321670222609,-5.9618009506356788]]]},"properties": {"OBJECTID": 50,"Id": 50,"gridcode": 0,"Shape_Length": 119.99999999813735,"Shape_Area": 899.99999997206032}},
+        {"type": "Feature","id": 51,"geometry": {"type": "Polygon","coordinates": [[[105.85945035250926,-5.9617912612402764],[105.85944908571274,-5.9609771834005425],[105.8591780580536,-5.960977606086713],[105.85917932445075,-5.9617916839845755],[105.85945035250926,-5.9617912612402764]]]},"properties": {"OBJECTID": 51,"Id": 51,"gridcode": 2,"Shape_Length": 240.00000000186265,"Shape_Area": 2700.000000083819}},
+        {"type": "Feature","id": 52,"geometry": {"type": "Polygon","coordinates": [[[105.85321670222609,-5.9618009506356788],[105.85294567371928,-5.9618013703142037],[105.85294483555872,-5.9612586508303762],[105.85267380729871,-5.9612590703371469],[105.85267506416929,-5.9620731496164998],[105.85321712146865,-5.962072310354281],[105.85321670222609,-5.9618009506356788]]]},"properties": {"OBJECTID": 52,"Id": 52,"gridcode": 0,"Shape_Length": 300.00000000186265,"Shape_Area": 3600.0000000279397}},
+        {"type": "Feature","id": 53,"geometry": {"type": "Polygon","coordinates": [[[105.8561996974628,-5.9628817633847717],[105.8561992766973,-5.9626104038862344],[105.85592824800506,-5.9626108250889098],[105.85592782739219,-5.9623394655683404],[105.85565679881363,-5.9623398866184054],[105.85565763979254,-5.9628826056954081],[105.8561996974628,-5.9628817633847717]]]},"properties": {"OBJECTID": 53,"Id": 53,"gridcode": 0,"Shape_Length": 240.00000000558794,"Shape_Area": 2700.0000001117587}},
+        {"type": "Feature","id": 54,"geometry": {"type": "Polygon","coordinates": [[[105.86297541174612,-5.9628711895067905],[105.86324644006268,-5.9628707648185353],[105.86324601583522,-5.9625994058240108],[105.86297498765181,-5.9625998304928043],[105.86297541174612,-5.9628711895067905]]]},"properties": {"OBJECTID": 54,"Id": 54,"gridcode": 1,"Shape_Length": 120,"Shape_Area": 900}},
+        {"type": "Feature","id": 55,"geometry": {"type": "Polygon","coordinates": [[[105.85484539339893,-5.9634265873433598],[105.85484497326027,-5.963155227753747],[105.85511600229673,-5.9631548070457665],[105.85511516181147,-5.9626120878970577],[105.85484413304133,-5.9626125085664814],[105.85484455314106,-5.9628838681614695],[105.8543024952761,-5.9628847091389154],[105.85430207544267,-5.9626133495053883],[105.85376001776619,-5.9626141899110436],[105.85376085691989,-5.9631569092524117],[105.85457394420435,-5.9631556483284003],[105.85457436420984,-5.9634270079372858],[105.85484539339893,-5.9634265873433598]]]},"properties": {"OBJECTID": 55,"Id": 55,"gridcode": 0,"Shape_Length": 540.00000000186265,"Shape_Area": 8099.9999998603016}},
+        {"type": "Feature","id": 56,"geometry": {"type": "Polygon","coordinates": [[[105.85620053905228,-5.9634244823737559],[105.8562001182478,-5.9631531228805965],[105.85674217610639,-5.9631522799980594],[105.85674175505507,-5.9628809205408588],[105.85647072626867,-5.9628813420294744],[105.8561996974628,-5.9628817633847717],[105.85565763979254,-5.9628826056954081],[105.85538661092819,-5.962883026650748],[105.85538703131373,-5.9631543862044616],[105.85565806031121,-5.9631539652298313],[105.85592908928925,-5.9631535441218757],[105.85592950996059,-5.9634249036343396],[105.85620053905228,-5.9634244823737559]]]},"properties": {"OBJECTID": 56,"Id": 56,"gridcode": 2,"Shape_Length": 419.99999999627471,"Shape_Area": 5399.9999997206032}},
+        {"type": "Feature","id": 57,"geometry": {"type": "Polygon","coordinates": [[[105.86243420276901,-5.9634147565810389],[105.86270523139116,-5.9634143321205206],[105.86270480739071,-5.9631429730924568],[105.86162069331689,-5.9631446700567876],[105.86162111678469,-5.9634160291626124],[105.86189214546575,-5.9634156051020843],[105.86243420276901,-5.9634147565810389]]]},"properties": {"OBJECTID": 57,"Id": 57,"gridcode": 2,"Shape_Length": 300.00000000372529,"Shape_Area": 3600.0000002235174}},
+        {"type": "Feature","id": 58,"geometry": {"type": "Polygon","coordinates": [[[105.86189214546575,-5.9634156051020843],[105.86189256908632,-5.963686964185765],[105.86243462665593,-5.9636861156258378],[105.86243420276901,-5.9634147565810389],[105.86189214546575,-5.9634156051020843]]]},"properties": {"OBJECTID": 58,"Id": 58,"gridcode": 0,"Shape_Length": 180.00000000372529,"Shape_Area": 1800.0000000558794}},
+        {"type": "Feature","id": 59,"geometry": {"type": "Polygon","coordinates": [[[105.86162196377913,-5.9639587473661368],[105.86162111678469,-5.9634160291626124],[105.86107905936373,-5.9634168768836773],[105.86107948258481,-5.9636882360256314],[105.86135051143826,-5.9636878122123456],[105.86135093481211,-5.963959171332184],[105.86162196377913,-5.9639587473661368]]]},"properties": {"OBJECTID": 59,"Id": 59,"gridcode": 2,"Shape_Length": 239.99999999813735,"Shape_Area": 2699.9999999441206}},
+        {"type": "Feature","id": 60,"geometry": {"type": "Polygon","coordinates": [[[105.86135432250884,-5.9661300441937577],[105.86135389897812,-5.965858685095518],[105.86108286905908,-5.9658591090641551],[105.86108244568118,-5.9655877499437819],[105.86081141587573,-5.9655881737596204],[105.86081099265066,-5.9653168146171032],[105.86108202232289,-5.9653163908206785],[105.86108075236561,-5.964502313435311],[105.86135178161864,-5.9645018895637678],[105.8613526285036,-5.9650446077845629],[105.86162365800338,-5.9650441837408161],[105.86162408160848,-5.9653155428277076],[105.86189511122187,-5.965315118631163],[105.86189553497979,-5.9655864776959922],[105.86270862410183,-5.9655852042477902],[105.86270904827903,-5.9658565632515579],[105.86298007808033,-5.9658561384826108],[105.86297838095646,-5.9647707025291723],[105.86352043943438,-5.9647698527468398],[105.86352001493614,-5.9644984937906642],[105.86324898584022,-5.9644989187290438],[105.86324856149483,-5.9642275597506691],[105.86351959045757,-5.9642271348317575],[105.86351916599864,-5.9639557758702209],[105.86162196377913,-5.9639587473661368],[105.86135093481211,-5.963959171332184],[105.86135051143826,-5.9636878122123456],[105.86107948258481,-5.9636882360256314],[105.86080845371174,-5.9636886597055803],[105.86080803062384,-5.9634173005442142],[105.86107905936373,-5.9634168768836773],[105.86162111678469,-5.9634160291626124],[105.86162069331689,-5.9631446700567876],[105.86270480739071,-5.9631429730924568],[105.86297583586008,-5.9631425485180634],[105.86297541174612,-5.9628711895067905],[105.86297498765181,-5.9625998304928043],[105.86324601583522,-5.9625994058240108],[105.8632455916274,-5.9623280468267552],[105.8621614793085,-5.9623297446242498],[105.86216190298371,-5.9626011036993152],[105.86189087472175,-5.9626015278348623],[105.86189129828347,-5.9628728869266325],[105.86162026986872,-5.9628733109482983],[105.86161942303123,-5.9623305927231645],[105.86189045117966,-5.96233016874036],[105.86188960415437,-5.9617874505433672],[105.86107652044905,-5.9617887219753145],[105.86107609736521,-5.9615173628144813],[105.86080506955734,-5.9615177863391313],[105.86080464662622,-5.9612464271561567],[105.86053361893188,-5.9612468505281129],[105.86053277339468,-5.960704132115362],[105.86026174594697,-5.9607045553152354],[105.86026090075433,-5.9601618368528531],[105.85998987355325,-5.9601622598806685],[105.85998945111939,-5.9598909006260641],[105.86053150523581,-5.9598900544759701],[105.86053108255535,-5.959618695257447],[105.85944697477655,-5.9596203869470665],[105.85944655264802,-5.9593490276482859],[105.85809141814967,-5.9593511391654772],[105.85809183961283,-5.9596224985610773],[105.85836286668467,-5.9596220765047647],[105.85836328830044,-5.9598934358783175],[105.8586343154858,-5.9598930136694035],[105.85863473725421,-5.9601643730208869],[105.85836370993574,-5.9601647952491579],[105.85836328830044,-5.9598934358783175],[105.85755020662704,-5.9598947017055526],[105.85755315568926,-5.9617942176511907],[105.85728212749399,-5.9617946394624308],[105.85728254873355,-5.9620659988917684],[105.85701152038561,-5.962066420589041],[105.85701194151156,-5.9623377800350097],[105.85646988449086,-5.9623386230682884],[105.85647072626867,-5.9628813420294744],[105.85674175505507,-5.9628809205408588],[105.85674217610639,-5.9631522799980594],[105.85674259717722,-5.9634236394525963],[105.85701362621043,-5.9634232177920206],[105.85701404743394,-5.9636945772245227],[105.85674301826754,-5.9636949989044208],[105.85674259717722,-5.9634236394525963],[105.85620053905228,-5.9634244823737559],[105.85592950996059,-5.9634249036343396],[105.85592908928925,-5.9631535441218757],[105.85565806031121,-5.9631539652298313],[105.85565974258073,-5.9642394033406054],[105.85593077209147,-5.9642389821554636],[105.85593035136169,-5.9639676226511416],[105.85755652721751,-5.9639650928558616],[105.85755610570814,-5.9636937334647167],[105.85782713481598,-5.9636933113848078],[105.85782797812058,-5.9642360301256883],[105.85809900747525,-5.9642356078737517],[105.85809816390427,-5.9636928891715622],[105.85864022202226,-5.9636920443450601],[105.85864064406432,-5.9639634036588109],[105.85891167322718,-5.9639629810261914],[105.85891082889623,-5.9634202624347195],[105.85918185777318,-5.9634198397074965],[105.85918270237048,-5.9639625582602278],[105.85945373149423,-5.963962135360922],[105.85945330905261,-5.9636907761052802],[105.86053742481909,-5.963689083252194],[105.86054038605072,-5.9655885974420801],[105.8602693562061,-5.9655890209911604],[105.86026977918435,-5.9658603801697518],[105.86054080916217,-5.965859956601272],[105.86054123229323,-5.9661313157577496],[105.86135432250884,-5.9661300441937577]],[[105.85945035250926,-5.9617912612402764],[105.85917932445075,-5.9617916839845755],[105.8591780580536,-5.960977606086713],[105.85944908571274,-5.9609771834005425],[105.85945035250926,-5.9617912612402764]]]},"properties": {"OBJECTID": 60,"Id": 60,"gridcode": 0,"Shape_Length": 5699.9999999906868,"Shape_Area": 268200.00000019558}},
+        {"type": "Feature","id": 61,"geometry": {"type": "Polygon","coordinates": [[[105.85376589347477,-5.9664132250741604],[105.85376505385459,-5.9658705057975405],[105.85403608430079,-5.9658700854303239],[105.85403482461663,-5.9650560065528735],[105.85430585464375,-5.9650555861100498],[105.85430543465472,-5.9647842264980966],[105.85484749438417,-5.9647833852508851],[105.85484707414821,-5.9645120256747743],[105.85457604442639,-5.9645124463457897],[105.8545752042792,-5.9639697271469316],[105.85403314530998,-5.9639705680118427],[105.85403230577333,-5.9634278487251446],[105.85376127652589,-5.9634282689190767],[105.8537621157962,-5.9639709882442817],[105.85349108626298,-5.9639714083433777],[105.85349150579411,-5.9642427680211494],[105.85322047610828,-5.9642431880061419],[105.85322005671033,-5.9639718283091296],[105.85267799754676,-5.9639726678406015],[105.85267883582932,-5.9645153873089276],[105.85294986568721,-5.9645149675714046],[105.8529502849908,-5.9647863272822921],[105.85267925499973,-5.9647867470390441],[105.85267967418953,-5.9650581067664659],[105.85295070431381,-5.965057686990483],[105.85295112365624,-5.9653290466959437],[105.85322215389432,-5.9653286267673584],[105.85322383199114,-5.966414065485413],[105.85376589347477,-5.9664132250741604]]]},"properties": {"OBJECTID": 61,"Id": 61,"gridcode": 0,"Shape_Length": 1259.9999999944121,"Shape_Area": 37799.999999916181}},
+        {"type": "Feature","id": 62,"geometry": {"type": "Polygon","coordinates": [[[105.86135432250884,-5.9661300441937577],[105.86135474605919,-5.9664014032892982],[105.86162577622507,-5.9664009791484265],[105.86162535254149,-5.9661296200723113],[105.86135432250884,-5.9661300441937577]]]},"properties": {"OBJECTID": 62,"Id": 62,"gridcode": 0,"Shape_Length": 119.99999999813735,"Shape_Area": 899.99999997206032}},
+        {"type": "Feature","id": 63,"geometry": {"type": "Polygon","coordinates": [[[105.85837679032325,-5.9685769344081629],[105.85837763486413,-5.9691196529745438],[105.85864866657806,-5.9691192301074683],[105.85864951146372,-5.969661948624335],[105.85919157536617,-5.9696611024123376],[105.85919115264694,-5.969389743193954],[105.8589201208388,-5.9693901663473188],[105.8589188531984,-5.9685760886179962],[105.85837679032325,-5.9685769344081629]]]},"properties": {"OBJECTID": 63,"Id": 63,"gridcode": 2,"Shape_Length": 419.99999999813735,"Shape_Area": 6299.9999999720603}},
+        {"type": "Feature","id": 64,"geometry": {"type": "Polygon","coordinates": [[[105.85702331928742,-5.9696644840570183],[105.85675228718969,-5.9696649061619818],[105.85675313028713,-5.970207624938789],[105.8570241626515,-5.9702072027951827],[105.85702458436279,-5.9704785621602419],[105.85756664929959,-5.9704777174339165],[105.85756622732163,-5.970206358107518],[105.85810829191369,-5.9702055128859195],[105.85810871415831,-5.9704768721736317],[105.85837974655836,-5.9704764493432538],[105.85838016895583,-5.9707478086088956],[105.85892223396394,-5.9707469625089509],[105.85892181129979,-5.9704756032820319],[105.85946387596304,-5.9704747566868512],[105.85946345305182,-5.9702033974959603],[105.85973448522074,-5.9702029740175178],[105.85973363919035,-5.9696602556664544],[105.85946260728805,-5.9696606791061306],[105.85946218443551,-5.9693893199071244],[105.85919115264694,-5.969389743193954],[105.85919157536617,-5.9696611024123376],[105.85864951146372,-5.969661948624335],[105.85864866657806,-5.9691192301074683],[105.85837763486413,-5.9691196529745438],[105.85837679032325,-5.9685769344081629],[105.85837636808213,-5.9683055751208913],[105.85864739939618,-5.9683051523118884],[105.85864655470601,-5.967762433768061],[105.85837552365849,-5.9677628565383474],[105.85837594586054,-5.9680342158309845],[105.85810491466019,-5.9680346384871941],[105.85810575885634,-5.9685773571030767],[105.85756369586393,-5.9685782020925631],[105.85756453960506,-5.9691209207750182],[105.857293507813,-5.9691213431082577],[105.85729392957954,-5.9693927024647371],[105.85702289763466,-5.9693931246838448],[105.85702331928742,-5.9696644840570183],[105.85729435136562,-5.969664061818583],[105.85729477317122,-5.969935421169696],[105.8570237409597,-5.969935843427459],[105.85702331928742,-5.9696644840570183]]]},"properties": {"OBJECTID": 64,"Id": 64,"gridcode": 0,"Shape_Length": 1620.0000000037253,"Shape_Area": 46799.999999804422}}
+      ]
+    };
+
+    // ==================== MODULARIZED CODE STRUCTURE ====================
+    
+    // Main Application Controller
+    const MangroveApp = {
+      // Configuration
+      config: {
+        mapCenter: [-5.944, 105.848], // Koordinat tengah untuk Savi Sangiang
+        mapZoom: 14,
+        data: savisangiang20
+      },
+      
+      // State Management
+      state: {
+        currentBasemap: 'satellite',
+        currentFilter: 'all',
+        geoJSONLayer: null,
+        densityChart: null,
+        drawControl: null,
+        measureControl: null
+      },
+      
+      // Initialize the application
+      init: function() {
+        this.initMap();
+        this.initUI();
+        this.initEvents();
+        this.loadGeoJSONData();
+        this.renderClasses();
+        this.updateLegend();
+        
+        console.log('Mangrove Guardian App initialized - Savi Sangiang 20');
+      },
+      
+      // Initialize the map
+      initMap: function() {
+        // Create map instance
+        this.map = L.map('map').setView(this.config.mapCenter, this.config.mapZoom);
+        
+        // Initialize basemaps
+        this.basemaps = {
+          'osm': L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+          }),
+          'satellite': L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: '© Esri'
+          }),
+          'terrain': L.tileLayer('https://stamen-tiles.a.ssl.fastly.net/terrain/{z}/{x}/{y}.jpg', {
+            attribution: '© Stamen Design'
+          })
+        };
+        
+        // Add default basemap
+        this.basemaps[this.state.currentBasemap].addTo(this.map);
+        
+        // Initialize scale control
+        this.map.on('zoomend', () => {
+          const zoom = this.map.getZoom();
+          const scale = Math.round(591657550 / Math.pow(2, zoom - 1));
+          document.getElementById('scaleBox').textContent = `Skala: 1:${scale.toLocaleString()}`;
+        });
+        this.map.fire('zoomend');
+      },
+      
+      // Initialize UI components
+      initUI: function() {
+        // Show loading state for statistics
+        document.getElementById('statsLoading').style.display = 'block';
+      },
+      
+      // Initialize event listeners
+      initEvents: function() {
+        // Toggle Panel Kanan
+        document.getElementById('togglePanelBtn').addEventListener('click', () => {
+          const rightPanel = document.getElementById('rightPanel');
+          rightPanel.style.display = rightPanel.style.display === 'none' ? 'block' : 'none';
+        });
+
+        // Toggle Statistics Panel
+        document.getElementById('statsToggle').addEventListener('click', () => {
+          const statsPanel = document.getElementById('statsPanel');
+          statsPanel.style.display = statsPanel.style.display === 'none' ? 'block' : 'none';
+        });
+
+        // Close Statistics Panel
+        document.getElementById('statsClose').addEventListener('click', () => {
+          document.getElementById('statsPanel').style.display = 'none';
+        });
+
+        // Collapsible Sections
+        document.querySelectorAll('.collapsible-header').forEach(header => {
+          header.addEventListener('click', function() {
+            const collapsible = this.parentElement;
+            collapsible.classList.toggle('hidden');
+            const arrow = this.querySelector('span:last-child');
+            arrow.textContent = collapsible.classList.contains('hidden') ? '▶' : '▼';
+          });
+        });
+
+        // Toggle Basemap Panel
+        document.getElementById('basemapFlipBtn').addEventListener('click', () => {
+          const basemapCard = document.getElementById('basemapCard');
+          basemapCard.classList.toggle('hidden');
+        });
+
+        // Tutup Panel Kanan
+        document.getElementById('closePanel').addEventListener('click', () => {
+          document.getElementById('rightPanel').style.display = 'none';
+        });
+
+        // Pilih Basemap
+        document.querySelectorAll('.basemap-item').forEach(item => {
+          item.addEventListener('click', () => {
+            const basemap = item.getAttribute('data-basemap');
+            
+            document.querySelectorAll('.basemap-item').forEach(el => {
+              el.classList.remove('active');
+            });
+            
+            item.classList.add('active');
+            
+            if (this.basemaps[this.state.currentBasemap]) {
+              this.map.removeLayer(this.basemaps[this.state.currentBasemap]);
+            }
+            
+            this.basemaps[basemap].addTo(this.map);
+            this.state.currentBasemap = basemap;
+            
+            document.getElementById('basemapCard').classList.add('hidden');
+          });
+        });
+
+        // Toolbar Controls
+        document.getElementById('zoomIn').addEventListener('click', () => {
+          this.map.zoomIn();
+        });
+
+        document.getElementById('zoomOut').addEventListener('click', () => {
+          this.map.zoomOut();
+        });
+
+        // Chatbox Toggle
+        document.getElementById('chatHeader').addEventListener('click', () => {
+          const chatContent = document.getElementById('chatContent');
+          const chatInputRow = document.querySelector('.chat-input-row');
+          
+          if (chatContent.style.display === 'none') {
+            chatContent.style.display = 'flex';
+            chatInputRow.style.display = 'flex';
+            document.querySelector('#chatHeader span:last-child').textContent = '−';
+          } else {
+            chatContent.style.display = 'none';
+            chatInputRow.style.display = 'none';
+            document.querySelector('#chatHeader span:last-child').textContent = '+';
+          }
+        });
+
+        // Search Functionality
+        document.getElementById('doSearch').addEventListener('click', () => {
+          this.performSearch();
+        });
+
+        document.getElementById('searchInput').addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            this.performSearch();
+          }
+        });
+
+        // Chat functionality
+        document.getElementById('sendChat').addEventListener('click', () => {
+          this.sendChatMessage();
+        });
+
+        document.getElementById('chatInput').addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            this.sendChatMessage();
+          }
+        });
+
+        // Filter functionality
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            // Update active button
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            // Update current filter
+            this.state.currentFilter = btn.getAttribute('data-density');
+            
+            // Reload GeoJSON data with filter
+            this.loadGeoJSONData();
+          });
+        });
+
+        // Download Data GeoJSON
+        document.getElementById('downloadData').addEventListener('click', () => {
+          this.downloadGeoJSON();
+        });
+
+        // Screenshot functionality
+        document.getElementById('screenshot').addEventListener('click', () => {
+          this.takeScreenshot();
+        });
+
+        // Export Report
+        document.getElementById('exportReport').addEventListener('click', () => {
+          this.exportReport();
+        });
+
+        // File upload
+        document.getElementById('fileUploadArea').addEventListener('click', () => {
+          document.getElementById('fileInput').click();
+        });
+
+        document.getElementById('fileInput').addEventListener('change', (e) => {
+          this.handleFileUpload(e);
+        });
+      },
+      
+      // Perform search based on input
+      performSearch: function() {
+        const query = document.getElementById('searchInput').value.trim();
+        
+        if (!query) {
+          this.showNotification('Masukkan kata kunci atau koordinat untuk pencarian', 'error');
+          return;
+        }
+        
+        // Check if query is coordinates
+        const coordMatch = query.match(/^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/);
+        
+        if (coordMatch) {
+          const lat = parseFloat(coordMatch[1]);
+          const lng = parseFloat(coordMatch[2]);
+          
+          if (!isNaN(lat) && !isNaN(lng)) {
+            this.map.setView([lat, lng], 16);
+            L.marker([lat, lng]).addTo(this.map)
+              .bindPopup(`Lokasi: ${lat}, ${lng}`)
+              .openPopup();
+            this.showNotification(`Berhasil menuju ke koordinat: ${lat}, ${lng}`, 'success');
+            return;
+          }
+        }
+        
+        // If not coordinates, show error
+        this.showNotification('Silakan gunakan format koordinat: latitude,longitude (contoh: -5.944,105.848)', 'error');
+      },
+      
+      // Send chat message
+      sendChatMessage: function() {
+        const input = document.getElementById('chatInput');
+        const message = input.value.trim();
+        
+        if (!message) return;
+        
+        // Add user message
+        this.addChatMessage(message, 'user');
+        input.value = '';
+        
+        // Simulate bot response
+        setTimeout(() => {
+          const responses = [
+            "Data Savi Sangiang 20 menunjukkan kerapatan vegetasi yang bervariasi dari tidak ada data hingga rendah.",
+            "Total terdapat 64 poligon dalam dataset ini dengan luasan total akan dihitung otomatis.",
+            "Anda dapat menggunakan filter untuk melihat poligon berdasarkan tingkat kerapatan vegetasi.",
+            "Grafik distribusi menunjukkan sebaran kerapatan vegetasi di area studi.",
+            "Untuk informasi lebih lanjut, silakan hubungi tim Mangrove Guardian."
+          ];
+          
+          const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+          this.addChatMessage(randomResponse, 'bot');
+        }, 1000);
+      },
+      
+      // Add chat message to the chat content
+      addChatMessage: function(message, sender) {
+        const chatContent = document.getElementById('chatContent');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `chat-message chat-${sender}`;
+        messageDiv.textContent = message;
+        chatContent.appendChild(messageDiv);
+        chatContent.scrollTop = chatContent.scrollHeight;
+      },
+      
+      // Load and display GeoJSON data
+      loadGeoJSONData: function() {
+        // Show loading state
+        document.getElementById('statsLoading').style.display = 'block';
+        
+        // Remove previous layer if exists
+        if (this.state.geoJSONLayer) {
+          this.map.removeLayer(this.state.geoJSONLayer);
+        }
+        
+        // Use the provided data
+        const data = this.config.data;
+        
+        // Calculate statistics
+        this.calculateStatistics(data);
+        
+        // Style based on gridcode (vegetation density)
+        const getStyleByGridcode = (feature) => {
+          const gridcode = feature.properties.gridcode;
+          let color, opacity, weight;
+          
+          switch(gridcode) {
+            case 0: // Tidak Ada Data
+              color = '#d9d9d9';
+              opacity = 0.5;
+              weight = 1;
+              break;
+            case 1: // Sangat Rendah
+              color = '#ffffcc';
+              opacity = 0.7;
+              weight = 1;
+              break;
+            case 2: // Rendah
+              color = '#c2e699';
+              opacity = 0.7;
+              weight = 1.5;
+              break;
+            default:
+              color = '#808080';
+              opacity = 0.5;
+              weight = 1;
+          }
+          
+          return {
+            fillColor: color,
+            color: color,
+            weight: weight,
+            opacity: 0.8,
+            fillOpacity: opacity
+          };
+        };
+        
+        // Filter function
+        const filterByDensity = (feature) => {
+          if (this.state.currentFilter === 'all') return true;
+          return feature.properties.gridcode.toString() === this.state.currentFilter;
+        };
+        
+        // Add GeoJSON layer to map
+        this.state.geoJSONLayer = L.geoJSON(data, {
+          style: getStyleByGridcode,
+          filter: filterByDensity,
+          onEachFeature: (feature, layer) => {
+            const props = feature.properties;
+            
+            let popupContent = `
+              <div style="max-width: 280px;">
+                <h4 style="margin:0 0 8px 0; color: #0a5c36; border-bottom: 2px solid #0a5c36; padding-bottom: 4px;">
+                  Savi Sangiang 20 - Poligon ${props.Id}
+                </h4>
+                <div style="font-size: 12px; color: #333; line-height: 1.4;">
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                    <strong>Kerapatan:</strong> 
+                    <span style="color: ${this.getColorByGridcode(props.gridcode)}; font-weight: bold;">
+                      ${this.getKerapatanLabel(props.gridcode)}
+                    </span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                    <strong>Gridcode:</strong> <span>${props.gridcode || 'N/A'}</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                    <strong>Luasan:</strong> <span>${props.Shape_Area ? (props.Shape_Area / 10000).toFixed(4) + ' ha' : 'N/A'}</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                    <strong>Shape Length:</strong> <span>${props.Shape_Length ? props.Shape_Length.toFixed(2) + ' m' : 'N/A'}</span>
+                  </div>
+                </div>
+            `;
+            
+            // Add additional info based on gridcode
+            popupContent += `
+              <div style="margin-top: 8px; padding: 6px; background: #f8f9fa; border-radius: 4px; font-size: 11px; border-left: 3px solid ${this.getColorByGridcode(props.gridcode)};">
+                <strong>Indeks Vegetasi:</strong> ${this.getKerapatanLabel(props.gridcode)}<br>
+                <div style="width: 100%; height: 8px; background: linear-gradient(90deg, #d9d9d9, #c2e699); margin: 4px 0; border-radius: 4px; position: relative;">
+                  <div style="position: absolute; left: ${(props.gridcode / 2) * 100}%; width: 50%; height: 100%; background: ${this.getColorByGridcode(props.gridcode)}; border-radius: 4px;"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 9px; color: #666;">
+                  <span>Tidak Ada Data</span>
+                  <span>Rendah</span>
+                </div>
+              </div>
+            `;
+            
+            popupContent += `</div>`;
+            layer.bindPopup(popupContent);
+            
+            // Tooltip
+            layer.bindTooltip(`Savi Sangiang 20 - ${this.getKerapatanLabel(props.gridcode)} (${(props.Shape_Area / 10000).toFixed(4)} ha)`, {
+              permanent: false,
+              direction: 'auto',
+              className: 'custom-tooltip'
+            });
+          }
+        }).addTo(this.map);
+        
+        // Fit bounds to data
+        this.map.fitBounds(this.state.geoJSONLayer.getBounds());
+        
+        // Hide loading state
+        document.getElementById('statsLoading').style.display = 'none';
+        
+        console.log(`Data Savi Sangiang 20 berhasil dimuat - ${data.features.length} fitur`);
+      },
+      
+      // Calculate statistics from GeoJSON data
+      calculateStatistics: function(data) {
+        let totalLuasan = 0;
+        let jumlahPoligon = data.features.length;
+        let luasanMax = 0;
+        let luasanMin = Infinity;
+        let kerapatanRata = 0;
+        
+        const densityCount = {
+          0: 0, 1: 0, 2: 0
+        };
+        
+        data.features.forEach(feature => {
+          const luasan = feature.properties.Shape_Area / 10000; // Convert from m² to hectares
+          const gridcode = feature.properties.gridcode || 0;
+          
+          totalLuasan += luasan;
+          densityCount[gridcode]++;
+          
+          if (luasan > luasanMax) luasanMax = luasan;
+          if (luasan < luasanMin) luasanMin = luasan;
+          kerapatanRata += gridcode;
+        });
+        
+        kerapatanRata = (kerapatanRata / jumlahPoligon).toFixed(1);
+        
+        // Update statistics panel
+        document.getElementById('totalLuas').textContent = totalLuasan.toFixed(4) + ' ha';
+        document.getElementById('jumlahPoligon').textContent = jumlahPoligon;
+        document.getElementById('kerapatanRata').textContent = kerapatanRata;
+        document.getElementById('luasMax').textContent = luasanMax.toFixed(4) + ' ha';
+        document.getElementById('luasMin').textContent = luasanMin.toFixed(4) + ' ha';
+        
+        // Update detail density
+        document.getElementById('detailNoData').textContent = densityCount[0] + ' poligon';
+        document.getElementById('detailSangatRendah').textContent = densityCount[1] + ' poligon';
+        document.getElementById('detailRendah').textContent = densityCount[2] + ' poligon';
+        
+        // Update data display
+        document.getElementById('dataNoData').textContent = densityCount[0] + ' poligon';
+        document.getElementById('dataSangatRendah').textContent = densityCount[1] + ' poligon';
+        document.getElementById('dataRendah').textContent = densityCount[2] + ' poligon';
+        document.getElementById('dataEVI').textContent = kerapatanRata;
+        
+        // Update chart
+        this.updateDensityChart(densityCount);
+      },
+      
+      // Update density chart
+      updateDensityChart: function(densityCount) {
+        const ctx = document.getElementById('densityChart').getContext('2d');
+        
+        if (this.state.densityChart) {
+          this.state.densityChart.destroy();
+        }
+        
+        this.state.densityChart = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: ['Tidak Ada Data', 'Sangat Rendah', 'Rendah'],
+            datasets: [{
+              label: 'Distribusi Kerapatan',
+              data: [
+                densityCount[0],
+                densityCount[1],
+                densityCount[2]
+              ],
+              backgroundColor: [
+                '#d9d9d9',
+                '#ffffcc',
+                '#c2e699'
+              ],
+              borderColor: [
+                '#b3b3b3',
+                '#d9d9a3',
+                '#a8c97f'
+              ],
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: {
+                  boxWidth: 12,
+                  font: {
+                    size: 10
+                  }
+                }
+              },
+              title: {
+                display: true,
+                text: 'Distribusi Kerapatan Savi',
+                font: {
+                  size: 12
+                }
+              }
+            }
+          }
+        });
+      },
+      
+      // Get density label based on gridcode
+      getKerapatanLabel: function(gridcode) {
+        switch(gridcode) {
+          case 0: return "Tidak Ada Data";
+          case 1: return "Sangat Rendah";
+          case 2: return "Rendah";
+          default: return "Tidak Diketahui";
+        }
+      },
+      
+      // Get color based on gridcode
+      getColorByGridcode: function(gridcode) {
+        switch(gridcode) {
+          case 0: return '#d9d9d9';
+          case 1: return '#ffffcc';
+          case 2: return '#c2e699';
+          default: return '#808080';
+        }
+      },
+      
+      // Download GeoJSON data
+      downloadGeoJSON: function() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.config.data, null, 2));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", "savi_sangiang_20.geojson");
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+        
+        this.showNotification('Data GeoJSON Savi Sangiang 20 berhasil diunduh!', 'success');
+      },
+      
+      // Take screenshot of the map
+      takeScreenshot: function() {
+        this.showNotification('Mengambil screenshot peta...', 'success');
+        
+        // Use html2canvas to capture the map
+        html2canvas(document.getElementById('map')).then(canvas => {
+          const link = document.createElement('a');
+          link.download = 'savi_sangiang_20_screenshot.png';
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+          this.showNotification('Screenshot berhasil diunduh!', 'success');
+        }).catch(err => {
+          console.error('Error taking screenshot:', err);
+          this.showNotification('Gagal mengambil screenshot', 'error');
+        });
+      },
+      
+      // Export report (placeholder)
+      exportReport: function() {
+        this.showNotification('Fitur export laporan PDF akan segera tersedia!', 'success');
+        // In a real implementation, you would generate a PDF report here
+      },
+      
+      // Handle file upload
+      handleFileUpload: function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const geojsonData = JSON.parse(e.target.result);
+            this.showNotification('File GeoJSON berhasil diupload!', 'success');
+            // In a real implementation, you would process the uploaded GeoJSON here
+          } catch (error) {
+            console.error('Error parsing GeoJSON:', error);
+            this.showNotification('Format file tidak valid. Pastikan file adalah GeoJSON yang valid.', 'error');
+          }
+        };
+        reader.readAsText(file);
+      },
+      
+      // Show notification
+      showNotification: function(message, type = 'success') {
+        const notification = document.getElementById('notification');
+        notification.textContent = message;
+        notification.className = `notification ${type}`;
+        notification.style.display = 'block';
+        
+        setTimeout(() => {
+          notification.style.display = 'none';
+        }, 5000);
+      },
+      
+      // Render density classes
+      renderClasses: function() {
+        const CLASSES = [
+          { id: 'low', label: 'Rendah', color: '#c2e699' },
+          { id: 'very-low', label: 'Sangat Rendah', color: '#ffffcc' },
+          { id: 'no-data', label: 'Tidak Ada Data', color: '#d9d9d9' }
+        ];
+
+        const classesList = document.getElementById('classesList');
+        classesList.innerHTML = '';
+        
+        CLASSES.forEach(cls => {
+          const item = document.createElement('div');
+          item.className = 'class-item';
+          item.innerHTML = `
+            <div class="class-color" style="background:${cls.color}"></div>
+            <div class="class-label">${cls.label}</div>
+            <div class="switch"><div class="knob"></div></div>
+          `;
+          classesList.appendChild(item);
+          
+          // Switch event
+          const switchEl = item.querySelector('.switch');
+          switchEl.addEventListener('click', function() {
+            this.classList.toggle('on');
+          });
+          switchEl.classList.add('on');
+        });
+      },
+      
+      // Update legend
+      updateLegend: function() {
+        const legend = L.control({ position: 'bottomright' });
+        
+        legend.onAdd = (map) => {
+          const div = L.DomUtil.create('div', 'info legend');
+          div.style.background = 'white';
+          div.style.padding = '10px';
+          div.style.borderRadius = '5px';
+          div.style.boxShadow = '0 0 10px rgba(0,0,0,0.2)';
+          
+          const grades = [0, 1, 2];
+          const labels = [
+            'Tidak Ada Data (0)',
+            'Sangat Rendah (1)', 
+            'Rendah (2)'
+          ];
+          const colors = [
+            '#d9d9d9', '#ffffcc', '#c2e699'
+          ];
+          
+          let legendHTML = '<h4 style="margin:0 0 8px 0;">Kerapatan Savi Sangiang 20</h4>';
+          
+          for (let i = 0; i < grades.length; i++) {
+            legendHTML += `
+              <div style="display: flex; align-items: center; margin: 4px 0;">
+                <div style="width: 20px; height: 15px; background: ${colors[i]}; margin-right: 8px; border: 1px solid #666;"></div>
+                <span style="font-size: 12px;">${labels[i]}</span>
+              </div>
+            `;
+          }
+          
+          div.innerHTML = legendHTML;
+          return div;
+        };
+        
+        legend.addTo(this.map);
+      }
+    };
+
+    // Initialize the application when DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      MangroveApp.init();
+    });
+  </script>
+
+</body>
+</html>
