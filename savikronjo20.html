@@ -1,0 +1,1764 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mangrove Guardian - Savikronjo20</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+  <!-- Leaflet JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+
+  <style>
+    /* VARIABLES */
+    :root{
+      --mg-green:#0a5c36;
+      --mg-green-light:#1a7d4e;
+      --mg-green-dark:#064527;
+      --panel:rgba(255,255,255,0.95);
+      --muted:#51606a;
+      --navbar-height: 60px; 
+    }
+    
+    *{box-sizing:border-box; margin:0; padding:0;}
+    
+    html,body{height:100%; margin:0; font-family:'Segoe UI', system-ui, sans-serif; color:#15302a;}
+    body{background:#f8f9fa;}
+    #map{flex:1; z-index:1;}
+
+    .topbar{
+      height: var(--navbar-height);
+      padding:0 20px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      background:var(--mg-green);
+      color:#fff;
+      position:sticky;
+      top:0;
+      z-index:1500;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      border-bottom: 1px solid var(--mg-green-dark);
+    }
+    
+    .brand{
+      font-weight:600;
+      font-size:20px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    
+    .nav-right-container{display:flex; align-items:center; gap:25px;}
+    .nav-menu{display:flex; gap:25px}
+    .nav-menu a{
+      color:#fff;
+      text-decoration:none;
+      font-size:14px;
+      font-weight:500;
+      padding:8px 0;
+      transition:opacity 0.2s;
+    }
+    .nav-menu a:hover{opacity:0.8;}
+    .lang-switch{
+      font-size:13px;
+      cursor:pointer;
+      background:rgba(255,255,255,0.15);
+      padding:6px 12px;
+      border-radius:4px;
+      font-weight:500;
+    }
+
+    .chat-box-container{
+      position:fixed;
+      bottom:20px;
+      right:20px;
+      z-index:1600;
+      width:350px;
+      background:var(--panel);
+      border-radius:8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      border:1px solid #e1e5e9;
+      display:flex;
+      flex-direction:column;
+      max-height:500px;
+    }
+    
+    .chat-header{
+      background: var(--mg-green);
+      color: #fff;
+      padding: 12px 16px;
+      font-weight: 600;
+      cursor:pointer;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      border-radius:8px 8px 0 0;
+    }
+    
+    .chat-content{
+      padding: 16px;
+      flex:1;
+      overflow-y: auto;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      max-height:300px;
+    }
+    
+    .chat-input-row{
+      display:flex;
+      gap:8px;
+      padding:12px 16px;
+      border-top:1px solid #e1e5e9;
+      background:#f8f9fa;
+    }
+    
+    .chat-input-row input{
+      flex:1;
+      padding:10px 12px;
+      border-radius:6px;
+      border:1px solid #ddd;
+      outline:none;
+      font-size:14px;
+      background:#fff;
+    }
+    
+    .chat-input-row button{
+      background:var(--mg-green);
+      border:0;
+      color:#fff;
+      padding:10px 16px;
+      border-radius:6px;
+      cursor:pointer;
+      font-weight:600;
+      font-size:14px;
+    }
+
+    .chat-message{
+      padding:10px 14px;
+      border-radius:8px;
+      max-width:85%;
+      font-size:14px;
+      line-height:1.4;
+    }
+    
+    .chat-user{
+      background:#e3f2fd;
+      align-self:flex-end;
+      border-bottom-right-radius:2px;
+    }
+    
+    .chat-bot{
+      background:#f5f5f5;
+      align-self:flex-start;
+      border-bottom-left-radius:2px;
+    }
+
+    .app{
+      height:calc(100vh - var(--navbar-height));
+      position:relative;
+      display:flex;
+    }
+
+    .search-row-container{
+      position:absolute;
+      top:20px;
+      left:50%;
+      transform:translateX(-50%);
+      z-index:1300;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:8px;
+      width:90%;
+      max-width:700px;
+    }
+    
+    .search-row{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      width:100%;
+    }
+    
+    .search-box{
+      display:flex;
+      align-items:center;
+      background:var(--panel);
+      padding:8px 16px;
+      border-radius:8px;
+      box-shadow:0 2px 8px rgba(0,0,0,0.1);
+      width:100%;
+      border:1px solid #e1e5e9;
+      flex:1;
+    }
+    
+    .search-box input{
+      border:0;
+      outline:none;
+      padding:8px;
+      font-size:14px;
+      background:transparent;
+      flex:1;
+    }
+    
+    .search-box button{
+      background:var(--mg-green);
+      border:0;
+      color:#fff;
+      padding:8px 16px;
+      border-radius:6px;
+      cursor:pointer;
+      font-weight:600;
+      font-size:14px;
+    }
+    
+    .action-btn{
+      background:var(--mg-green);
+      color:#fff;
+      border-radius:8px;
+      padding:10px 16px;
+      border:none;
+      cursor:pointer;
+      font-weight:600;
+      font-size:14px;
+      white-space:nowrap;
+    }
+    
+    .mapFlipBtn{
+      background:var(--mg-green);
+      border:none;
+      padding:10px;
+      border-radius:6px;
+      color:white;
+      cursor:pointer;
+      font-size:16px;
+    }
+
+    .stats-toggle-btn {
+      background:var(--mg-green);
+      border:none;
+      padding:10px 14px;
+      border-radius:6px;
+      color:white;
+      cursor:pointer;
+      font-size:16px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      box-shadow:0 2px 6px rgba(0,0,0,0.1);
+      transition:all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .stats-toggle-btn:hover {
+      background:var(--mg-green-light);
+      transform: translateY(-1px);
+    }
+
+    .vtoolbar{
+      position:absolute;
+      left:20px;
+      top:120px;
+      z-index:1300;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      padding:8px;
+      border-radius:8px;
+      background:transparent;
+    }
+    
+    .vt-btn{
+      width:44px;
+      height:44px;
+      border-radius:6px;
+      background:var(--panel);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border:1px solid #e1e5e9;
+      box-shadow:0 2px 6px rgba(0,0,0,0.08);
+      cursor:pointer;
+      font-size:16px;
+      transition:all 0.2s;
+    }
+    
+    .vt-btn:hover{
+      background:#f8f9fa;
+    }
+
+    .right-panel{
+      position:absolute;
+      right:20px;
+      top:20px;
+      width:320px;
+      z-index:1300;
+      background:var(--panel);
+      border-radius:8px;
+      box-shadow:0 4px 20px rgba(0,0,0,0.15);
+      border:1px solid #e1e5e9;
+      max-height:calc(100vh - 100px);
+      overflow-y:auto;
+    }
+    
+    .panel-inner{
+      padding:16px;
+    }
+    
+    .panel-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:16px;
+      padding-bottom:12px;
+      border-bottom:1px solid #e1e5e9;
+    }
+    
+    .panel-header h3{
+      margin:0;
+      color:var(--mg-green);
+      font-size:16px;
+      font-weight:600;
+    }
+
+    .switch-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:12px 0;
+      border-bottom:1px solid #f0f0f0;
+    }
+    
+    .switch-label{
+      font-size:14px;
+      color:#333;
+    }
+    
+    .switch{
+      position:relative;
+      width:44px;
+      height:24px;
+      border-radius:12px;
+      background:#ddd;
+      cursor:pointer;
+    }
+    
+    .switch .knob{
+      position:absolute;
+      top:2px;
+      left:2px;
+      width:20px;
+      height:20px;
+      border-radius:50%;
+      background:white;
+      box-shadow:0 1px 3px rgba(0,0,0,0.2);
+      transition:left 0.2s;
+    }
+    
+    .switch.on{
+      background:var(--mg-green);
+    }
+    
+    .switch.on .knob{
+      left:22px;
+    }
+
+    .basemap-toggle{
+      position:absolute;
+      right:20px;
+      top:70px;
+      z-index:1350;
+    }
+    
+    .basemap-card{
+      width:250px;
+      background:var(--panel);
+      border-radius:8px;
+      padding:12px;
+      box-shadow:0 4px 20px rgba(0,0,0,0.15);
+      border:1px solid #e1e5e9;
+    }
+    
+    .basemap-card.hidden{
+      display:none;
+    }
+    
+    .basemap-item{
+      padding:10px;
+      border-radius:6px;
+      margin-bottom:6px;
+      cursor:pointer;
+      font-size:14px;
+      border:1px solid transparent;
+    }
+    
+    .basemap-item:hover{
+      background:#f8f9fa;
+    }
+    
+    .basemap-item.active{
+      background:#e8f5e8;
+      border-color:var(--mg-green);
+    }
+
+    .scale-box{
+      position:absolute;
+      left:20px;
+      bottom:20px;
+      background:var(--panel);
+      padding:8px 12px;
+      border-radius:6px;
+      font-size:12px;
+      border:1px solid #e1e5e9;
+      z-index:1300;
+      box-shadow:0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .class-item{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 0;
+      border-bottom:1px solid #f0f0f0;
+    }
+    
+    .class-color{
+      width:16px;
+      height:16px;
+      border-radius:3px;
+    }
+    
+    .class-label{
+      flex:1;
+      font-size:13px;
+    }
+
+    .file-upload{
+      margin-top:16px;
+      padding:12px;
+      border:2px dashed #ddd;
+      border-radius:6px;
+      text-align:center;
+      cursor:pointer;
+      transition:border-color 0.2s;
+    }
+    
+    .file-upload:hover{
+      border-color:var(--mg-green);
+    }
+    
+    .file-hint{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:8px;
+      text-align:center;
+    }
+
+    .vt-btn.active-draw{
+      background:var(--mg-green);
+      color:#fff;
+    }
+    
+    .vt-btn.delete-active{
+      background:#dc3545;
+      color:#fff;
+    }
+
+    @media (max-width:768px){
+      .nav-menu{display:none}
+      .search-row{flex-wrap:wrap;}
+      .right-panel{width:95%; right:2.5%;}
+      .chat-box-container{width:95%; right:2.5%;}
+      .stats-panel{width:95%; left:2.5%;}
+      .stats-toggle-btn{display:none;}
+    }
+
+    .analysis-section {
+      margin: 16px 0;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 6px;
+    }
+    
+    .pulau-selector {
+      margin-bottom: 12px;
+    }
+    
+    .pulau-selector select {
+      width: 100%;
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+    }
+    
+    .data-display {
+      background: white;
+      padding: 12px;
+      border-radius: 4px;
+      margin-top: 8px;
+    }
+    
+    .data-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+    
+    .data-value {
+      font-weight: 600;
+      color: var(--mg-green);
+    }
+
+    .custom-tooltip {
+      background: rgba(255, 255, 255, 0.95) !important;
+      border: 1px solid #0a5c36 !important;
+      border-radius: 4px !important;
+      padding: 4px 8px !important;
+      font-size: 12px !important;
+      font-weight: 500 !important;
+    }
+
+    .legend {
+      background: white;
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    
+    .legend h4 {
+      margin: 0 0 8px 0;
+    }
+
+    .stats-panel {
+      position: absolute;
+      left: 80px;
+      top: 120px;
+      z-index: 1300;
+      background: var(--panel);
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      border: 1px solid #e1e5e9;
+      width: 300px;
+      max-height: 75vh;
+      overflow-y: auto;
+      transition: all 0.3s ease;
+    }
+
+    .stats-header {
+      font-weight: 600;
+      color: var(--mg-green);
+      margin-bottom: 12px;
+      font-size: 16px;
+      border-bottom: 2px solid var(--mg-green);
+      padding-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .stats-close {
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      color: var(--muted);
+      padding: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .stats-close:hover {
+      color: var(--mg-green);
+    }
+
+    .stat-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 13px;
+      padding: 6px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .stat-item:last-child {
+      border-bottom: none;
+    }
+
+    .stat-value {
+      font-weight: 600;
+      color: var(--mg-green);
+    }
+
+    .chart-container {
+      margin-top: 15px;
+      height: 200px;
+      position: relative;
+    }
+
+    .download-btn {
+      background: var(--mg-green);
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      margin-top: 15px;
+      width: 100%;
+      transition: background 0.3s ease;
+    }
+
+    .download-btn:hover {
+      background: var(--mg-green-light);
+    }
+
+    .collapsible {
+      margin-top: 10px;
+    }
+
+    .collapsible-header {
+      background: #f8f9fa;
+      padding: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--mg-green);
+    }
+
+    .collapsible-content {
+      padding: 10px;
+      background: white;
+      border-radius: 0 0 6px 6px;
+      margin-top: 2px;
+    }
+
+    .collapsible.hidden .collapsible-content {
+      display: none;
+    }
+
+    /* Progress Bar untuk Loading */
+    .progress-bar {
+      width: 100%;
+      height: 4px;
+      background: #f0f0f0;
+      border-radius: 2px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--mg-green);
+      transition: width 0.3s ease;
+    }
+
+    /* Filter Controls */
+    .filter-controls {
+      margin: 15px 0;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 6px;
+    }
+
+    .filter-title {
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: var(--mg-green);
+    }
+
+    .filter-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .filter-btn {
+      padding: 6px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: white;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s;
+    }
+
+    .filter-btn.active {
+      background: var(--mg-green);
+      color: white;
+      border-color: var(--mg-green);
+    }
+
+    .filter-btn:hover {
+      background: #e9ecef;
+    }
+
+    .filter-btn.active:hover {
+      background: var(--mg-green-light);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="topbar">
+    <div class="brand">
+      <span>🌿 MangroveGuardian - Savikronjo20</span>
+    </div>
+    <div class="nav-right-container">
+      <div class="nav-menu" id="navMenu">
+        <a href="indeks.html" data-key="home">Beranda</a>
+        <a href="indeks.html" data-key="about">Tentang</a>
+        <a href="indeks.html" data-key="team">Tim</a>
+        <a href="indeks.html" data-key="contact">Kontak</a>
+      </div>
+      <div class="lang-switch" id="langSwitch">ID / EN</div>
+    </div>
+  </div>
+
+  <!-- Chat Box -->
+  <div class="chat-box-container" id="chatBoxContainer">
+    <div class="chat-header" id="chatHeader">
+      <span>💬 Asisten Mangrove</span>
+      <span>−</span>
+    </div>
+    <div class="chat-content" id="chatContent">
+      <div class="chat-message chat-bot">Halo! Saya asisten virtual Mangrove Guardian. Data Savikronjo20 memiliki 3 poligon dengan total luasan 14.40 ha.</div>
+    </div>
+    <div class="chat-input-row">
+      <input type="text" id="chatInput" placeholder="Ketik pertanyaan Anda..." />
+      <button id="sendChat">Kirim</button>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div class="app">
+    <div id="map"></div>
+
+    <!-- Search Bar dengan Tombol Statistik di Kiri -->
+    <div class="search-row-container">
+      <div class="search-row">
+        <!-- Tombol Statistik di sebelah kiri search box -->
+        <button class="stats-toggle-btn" id="statsToggle" title="Toggle Panel Statistik">
+          📊 Statistik
+        </button>
+
+        <!-- Search Box di tengah -->
+        <div class="search-box">
+          <input id="searchInput" placeholder="Cari lokasi atau koordinat (contoh: -6.046,106.480)..." />
+          <button id="doSearch">Cari</button>
+        </div>
+
+        <!-- Tombol-tombol lainnya di sebelah kanan -->
+        <button class="action-btn" id="addPointBtn">+ Titik Baru</button>
+        <button id="basemapFlipBtn" class="mapFlipBtn" title="Peta Dasar">🗺️</button>
+        <button id="togglePanelBtn" class="mapFlipBtn" title="Panel Layer">☰</button>
+      </div>
+    </div>
+
+    <!-- Statistics Panel -->
+    <div class="stats-panel" id="statsPanel">
+      <div class="stats-header">
+        <span>📊 Statistik Savikronjo20</span>
+        <button class="stats-close" id="statsClose" title="Tutup">✕</button>
+      </div>
+      
+      <div class="progress-bar">
+        <div class="progress-fill" id="dataProgress" style="width: 100%"></div>
+      </div>
+      
+      <div class="stat-item">
+        <span>Total Luasan:</span>
+        <span class="stat-value" id="totalLuas">14.40 ha</span>
+      </div>
+      <div class="stat-item">
+        <span>Jumlah Poligon:</span>
+        <span class="stat-value" id="jumlahPoligon">3</span>
+      </div>
+      <div class="stat-item">
+        <span>Kerapatan Rata-rata:</span>
+        <span class="stat-value" id="kerapatanRata">2.0</span>
+      </div>
+      <div class="stat-item">
+        <span>Luasan Tertinggi:</span>
+        <span class="stat-value" id="luasMax">13.05 ha</span>
+      </div>
+      <div class="stat-item">
+        <span>Luasan Terendah:</span>
+        <span class="stat-value" id="luasMin">0.18 ha</span>
+      </div>
+
+      <!-- Filter Controls -->
+      <div class="filter-controls">
+        <div class="filter-title">Filter Kerapatan:</div>
+        <div class="filter-buttons">
+          <button class="filter-btn active" data-density="all">Semua</button>
+          <button class="filter-btn" data-density="1">Sangat Rendah</button>
+          <button class="filter-btn" data-density="2">Rendah</button>
+          <button class="filter-btn" data-density="3">Sedang-Rendah</button>
+        </div>
+      </div>
+
+      <!-- Collapsible Chart Section -->
+      <div class="collapsible" id="chartCollapsible">
+        <div class="collapsible-header" id="chartHeader">
+          <span>📈 Grafik Distribusi</span>
+          <span>▼</span>
+        </div>
+        <div class="collapsible-content">
+          <div class="chart-container">
+            <canvas id="densityChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Collapsible Detail Section -->
+      <div class="collapsible" id="detailCollapsible">
+        <div class="collapsible-header" id="detailHeader">
+          <span>🔍 Detail Kerapatan</span>
+          <span>▼</span>
+        </div>
+        <div class="collapsible-content">
+          <div class="stat-item">
+            <span>Sangat Rendah (1):</span>
+            <span class="stat-value" id="detailSangatRendah">1 poligon</span>
+          </div>
+          <div class="stat-item">
+            <span>Rendah (2):</span>
+            <span class="stat-value" id="detailRendah">1 poligon</span>
+          </div>
+          <div class="stat-item">
+            <span>Sedang-Rendah (3):</span>
+            <span class="stat-value" id="detailSedangRendah">1 poligon</span>
+          </div>
+        </div>
+      </div>
+
+      <button class="download-btn" id="downloadData">
+        📥 Download Data GeoJSON
+      </button>
+
+      <button class="download-btn" id="screenshot" style="background: #6c757d; margin-top: 8px;">
+        📷 Screenshot Peta
+      </button>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="vtoolbar">
+      <div class="vt-btn" id="zoomIn" title="Zoom In">+</div>
+      <div class="vt-btn" id="zoomOut" title="Zoom Out">−</div>
+      <div class="vt-btn" id="measureBtn" title="Ukur Jarak">📏</div>
+      <div style="border-top:1px solid #eee; margin:6px 0"></div>
+      <div class="vt-btn" id="drawPt" title="Titik">•</div>
+      <div class="vt-btn" id="drawPoly" title="Poligon">△</div>
+      <div class="vt-btn" id="drawRect" title="Persegi">□</div>
+      <div style="border-top:1px solid #eee; margin:6px 0"></div>
+      <div class="vt-btn" id="deleteBtn" title="Hapus">🗑️</div>
+      <div class="vt-btn" id="printBtn" title="Cetak">🖨️</div>
+    </div>
+
+    <!-- Scale -->
+    <div class="scale-box" id="scaleBox">Skala: 1:100,000</div>
+    <div class="scale-box" id="measureBox" style="left:120px; display:none; background:#fff3cd; color:#856404;"></div>
+
+    <!-- Right Panel -->
+    <div class="right-panel" id="rightPanel">
+      <div class="panel-inner">
+        <div class="panel-header">
+          <h3>Layer & Pengaturan</h3>
+          <button id="closePanel" class="vt-btn" style="width:auto; padding:6px 10px;">✕</button>
+        </div>
+
+        <!-- Analisis Vegetasi Section -->
+        <div class="analysis-section">
+          <div style="font-weight:600; color:var(--mg-green); margin-bottom:12px;">📊 Data Savikronjo20</div>
+          
+          <div class="pulau-selector">
+            <label for="pulauSelect">Pilih Lokasi:</label>
+            <select id="pulauSelect">
+              <option value="savikronjo20" selected>Savikronjo20</option>
+            </select>
+          </div>
+
+          <div class="pulau-selector">
+            <label for="tahunSelect">Pilih Tahun:</label>
+            <select id="tahunSelect">
+              <option value="2020" selected>2020</option>
+            </select>
+          </div>
+
+          <div class="data-display">
+            <div class="data-item">
+              <span>Vegetasi Sangat Rendah:</span>
+              <span class="data-value" id="dataSangatRendah">1 poligon</span>
+            </div>
+            <div class="data-item">
+              <span>Vegetasi Rendah:</span>
+              <span class="data-value" id="dataRendah">1 poligon</span>
+            </div>
+            <div class="data-item">
+              <span>Vegetasi Sedang-Rendah:</span>
+              <span class="data-value" id="dataSedangRendah">1 poligon</span>
+            </div>
+            <div class="data-item">
+              <span>EVI Rata-rata:</span>
+              <span class="data-value" id="dataEVI">0.42</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="switch-row">
+          <div class="switch-label">Layer EVI</div>
+          <div class="switch on" id="rasterSwitch"><div class="knob"></div></div>
+        </div>
+
+        <div style="margin:16px 0;">
+          <div style="font-weight:600; color:var(--mg-green); margin-bottom:12px;">Kelas Kerapatan EVI</div>
+          <div id="classesList"></div>
+        </div>
+
+        <hr style="margin:16px 0; border:none; border-top:1px solid #e1e5e9;">
+
+        <div style="font-weight:600; color:var(--mg-green); margin-bottom:12px;">Ekspor Data</div>
+        <div class="file-upload" id="fileUploadArea">
+          <div>📁 Upload File GeoJSON</div>
+          <input type="file" id="fileInput" accept=".json,.geojson" style="display:none" />
+        </div>
+        <div class="file-hint">Format yang didukung: GeoJSON, JSON</div>
+
+        <button class="download-btn" id="exportReport">
+          📄 Export Laporan PDF
+        </button>
+      </div>
+    </div>
+
+    <!-- Basemap Panel -->
+    <div class="basemap-toggle">
+      <div class="basemap-card hidden" id="basemapCard">
+        <div style="font-weight:600; margin-bottom:12px;">Peta Dasar</div>
+        <div class="basemap-item active" data-basemap="osm">OpenStreetMap</div>
+        <div class="basemap-item" data-basemap="satellite">Satelit</div>
+        <div class="basemap-item" data-basemap="terrain">Topografi</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==================== INISIALISASI PETA ====================
+    const map = L.map('map').setView([-6.046, 106.480], 14);
+
+    // Layer Dasar
+    const basemaps = {
+      'osm': L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }),
+      'satellite': L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: '© Esri'
+      }),
+      'terrain': L.tileLayer('https://stamen-tiles.a.ssl.fastly.net/terrain/{z}/{x}/{y}.jpg', {
+        attribution: '© Stamen Design'
+      })
+    };
+
+    let currentBasemap = 'satellite';
+    basemaps[currentBasemap].addTo(map);
+
+    // ==================== DATA GEOJSON SAVIKRONJO20 ====================
+    const savikronjo20 = {
+      "type":"FeatureCollection",
+      "features":[
+        {
+          "type":"Feature",
+          "id":1,
+          "geometry":{
+            "type":"MultiPolygon",
+            "coordinates":[
+              [
+                [
+                  [106.48054410016212,-6.0464745010150809],
+                  [106.47973107150041,-6.0464767162467332],
+                  [106.47973180894024,-6.0467480143175596],
+                  [106.47946079918401,-6.0467487524913057],
+                  [106.47946153652261,-6.047020050592729],
+                  [106.4802745660951,-6.0470178355661419],
+                  [106.48027530387225,-6.0472891335646688],
+                  [106.48108833354618,-6.0472869172220927],
+                  [106.48108907176193,-6.0475582151176823],
+                  [106.48136008172075,-6.0475574760332309],
+                  [106.48136082010519,-6.0478287738925998],
+                  [106.48163183016524,-6.0478280346396414],
+                  [106.48163478458028,-6.0489132259157232],
+                  [106.48190579514652,-6.0489124863940296],
+                  [106.48190136291656,-6.0472846996636171],
+                  [106.48163035316018,-6.0472854389848756],
+                  [106.48162887629009,-6.0467428433188877],
+                  [106.48054483800679,-6.0467457989857998],
+                  [106.48054410016212,-6.0464745010150809]
+                ]
+              ],
+              [
+                [
+                  [106.4794600618791,-6.0464774543871211],
+                  [106.47945932460789,-6.0462061562801273],
+                  [106.47918831508782,-6.0462068942520828],
+                  [106.4791890522241,-6.046478192392426],
+                  [106.4794600618791,-6.0464774543871211]
+                ]
+              ],
+              [
+                [
+                  [106.47105288316968,-6.0443298765556683],
+                  [106.47078187355257,-6.0443306101080987],
+                  [106.47078333902368,-6.0448732084867185],
+                  [106.4715963685839,-6.0448710072253178],
+                  [106.47159710177439,-6.0451423063109919],
+                  [106.47241013143767,-6.0451401037346049],
+                  [106.47241086506644,-6.0454114027178942],
+                  [106.47349490468766,-6.0454084639257966],
+                  [106.47349563888962,-6.0456797627734522],
+                  [106.47457967851359,-6.0456768216874783],
+                  [106.47458041328881,-6.0459481203994141],
+                  [106.47566445291513,-6.0459451770193731],
+                  [106.47566518826366,-6.0462164755955445],
+                  [106.4775622572602,-6.0462113192472104],
+                  [106.47756299358689,-6.0464826175875315],
+                  [106.47810501326727,-6.0464811430628265],
+                  [106.47810427667072,-6.0462098447891401],
+                  [106.47810354010785,-6.0459385465126312],
+                  [106.47701950169193,-6.0459414947552208],
+                  [106.47701876570235,-6.0456701963427255],
+                  [106.47566371760021,-6.0456738784404589],
+                  [106.47566298231891,-6.0454025798587558],
+                  [106.47430793405124,-6.0454062584135997],
+                  [106.47430719947809,-6.0451349596628221],
+                  [106.47322316079917,-6.0451378999427314],
+                  [106.47322242679923,-6.0448666010562278],
+                  [106.47186737837025,-6.0448702732014219],
+                  [106.47186664507834,-6.0445989741462078],
+                  [106.47105361602337,-6.0446011757132316],
+                  [106.47105288316968,-6.0443298765556683]
+                ]
+              ],
+              [
+                [
+                  [106.46779199334273,-6.0410830753937494],
+                  [106.46724997650854,-6.0410845383286667],
+                  [106.46725143767038,-6.0416271376353432],
+                  [106.46752244637385,-6.041626406169204],
+                  [106.46752317713971,-6.0418977057852432],
+                  [106.468065194716,-6.0418962423818554],
+                  [106.46806446368046,-6.0416249428319961],
+                  [106.46779345504386,-6.0416256745680874],
+                  [106.46779199334273,-6.0410830753937494]
+                ]
+              ],
+              [
+                [
+                  [106.46697896804132,-6.0410852695936796],
+                  [106.46697823764535,-6.0408139699030503],
+                  [106.46643622088034,-6.0408154319620531],
+                  [106.4664369510067,-6.0410867317188144],
+                  [106.46697896804132,-6.0410852695936796]
+                ]
+              ],
+              [
+                [
+                  [106.46616521244772,-6.0408161627891168],
+                  [106.4661644824896,-6.0405448629965779],
+                  [106.46589347415839,-6.0405455936556347],
+                  [106.46589420398172,-6.0408168934812236],
+                  [106.46616521244772,-6.0408161627891168]
+                ]
+              ],
+              [
+                [
+                  [106.45911462327834,-6.0392073129810866],
+                  [106.45884361475514,-6.0392080399669066],
+                  [106.45884434090735,-6.0394793406636476],
+                  [106.45911534956527,-6.0394786136449365],
+                  [106.45911462327834,-6.0392073129810866]
+                ]
+              ],
+              [
+                [
+                  [106.45911462327834,-6.0392073129810866],
+                  [106.45938563176827,-6.0392065858603425],
+                  [106.4593834527025,-6.0383926839507733],
+                  [106.45911244461685,-6.0383934109728221],
+                  [106.45911462327834,-6.0392073129810866]
+                ]
+              ],
+              [
+                [
+                  [106.46209207649065,-6.0378428056821409],
+                  [106.46209134892089,-6.0375715053638235],
+                  [106.46182034157211,-6.037572233636042],
+                  [106.46182106900712,-6.0378435339873207],
+                  [106.46209207649065,-6.0378428056821409]
+                ]
+              ],
+              [
+                [
+                  [106.46344711340869,-6.0378391621328769],
+                  [106.46344638516523,-6.0375678619794462],
+                  [106.46236235623638,-6.0375707769567208],
+                  [106.46236308394089,-6.0378420772420736],
+                  [106.46236381167866,-6.0381133775247084],
+                  [106.46127978113901,-6.038116290607455],
+                  [106.4612805083711,-6.0383875910190934],
+                  [106.4615515161907,-6.0383868629178084],
+                  [106.46155224359079,-6.0386581632936949],
+                  [106.46182325151186,-6.0386574350245503],
+                  [106.46182397908004,-6.0389287353647001],
+                  [106.46263700304779,-6.0389265496489104],
+                  [106.46263554713617,-6.0383839491636166],
+                  [106.46399058506854,-6.0383803039355399],
+                  [106.46399131368153,-6.038651604014631],
+                  [106.46615937371743,-6.0386457643704912],
+                  [106.46615864402639,-6.0383744645556341],
+                  [106.46534562216748,-6.038376655334873],
+                  [106.46534489291406,-6.0381053554180797],
+                  [106.46453187115902,-6.0381075448841113],
+                  [106.46453114234325,-6.0378362448654181],
+                  [106.46344711340869,-6.0378391621328769],
+                  [106.46344784168548,-6.0381104622835897],
+                  [106.46317683423374,-6.038111191296216],
+                  [106.46317610609169,-6.0378398911125135],
+                  [106.46344711340869,-6.0378391621328769]
+                ]
+              ],
+              [
+                [
+                  [106.46127978113901,-6.038116290607455],
+                  [106.4612783267747,-6.0375736897758205],
+                  [106.46154933419004,-6.0375729617733738],
+                  [106.46154860692307,-6.0373016613863237],
+                  [106.45965155526017,-6.0373067543403369],
+                  [106.45965300794104,-6.0378493555726171],
+                  [106.45938200015817,-6.0378500826637644],
+                  [106.4593834527025,-6.0383926839507733],
+                  [106.45965446075489,-6.03839195679382],
+                  [106.45965373433137,-6.0381206561846295],
+                  [106.46019575006694,-6.0381192015318312],
+                  [106.46019502340714,-6.0378479009856481],
+                  [106.46100804635685,-6.0378457180934992],
+                  [106.4610087734209,-6.0381170185408974],
+                  [106.46127978113901,-6.038116290607455]
+                ]
+              ]
+            ]
+          },
+          "properties":{
+            "OBJECTID":1,
+            "Id":1,
+            "gridcode":1,
+            "Shape_Length":6779.9999999720603,
+            "Shape_Area":130499.99999902211,
+            "LUASAN":13.051890999626588
+          }
+        },
+        {
+          "type":"Feature",
+          "id":2,
+          "geometry":{
+            "type":"MultiPolygon",
+            "coordinates":[
+              [
+                [
+                  [106.47973180894024,-6.0467480143175596],
+                  [106.47973107150041,-6.0464767162467332],
+                  [106.4794600618791,-6.0464774543871211],
+                  [106.47946079918401,-6.0467487524913057],
+                  [106.47973180894024,-6.0467480143175596]
+                ]
+              ],
+              [
+                [
+                  [106.46236308394089,-6.0378420772420736],
+                  [106.46236235623638,-6.0375707769567208],
+                  [106.46209134892089,-6.0375715053638235],
+                  [106.46209207649065,-6.0378428056821409],
+                  [106.46236308394089,-6.0378420772420736]
+                ]
+              ]
+            ]
+          },
+          "properties":{
+            "OBJECTID":2,
+            "Id":2,
+            "gridcode":2,
+            "Shape_Length":239.99999998789281,
+            "Shape_Area":1799.9999998183921,
+            "LUASAN":0.18002591468824655
+          }
+        },
+        {
+          "type":"Feature",
+          "id":3,
+          "geometry":{
+            "type":"MultiPolygon",
+            "coordinates":[
+              [
+                [
+                  [106.47918831508782,-6.0462068942520828],
+                  [106.47810427667072,-6.0462098447891401],
+                  [106.47810501326727,-6.0464811430628265],
+                  [106.4789180425354,-6.0464789302626496],
+                  [106.47891877957042,-6.0467502284335302],
+                  [106.47946079918401,-6.0467487524913057],
+                  [106.4794600618791,-6.0464774543871211],
+                  [106.4791890522241,-6.046478192392426],
+                  [106.47918831508782,-6.0462068942520828]
+                ]
+              ],
+              [
+                [
+                  [106.46344784168548,-6.0381104622835897],
+                  [106.46344711340869,-6.0378391621328769],
+                  [106.46317610609169,-6.0378398911125135],
+                  [106.46317683423374,-6.038111191296216],
+                  [106.46344784168548,-6.0381104622835897]
+                ]
+              ],
+              [
+                [
+                  [106.46182034157211,-6.037572233636042],
+                  [106.46154933419004,-6.0375729617733738],
+                  [106.4612783267747,-6.0375736897758205],
+                  [106.46127978113901,-6.038116290607455],
+                  [106.46236381167866,-6.0381133775247084],
+                  [106.46236308394089,-6.0378420772420736],
+                  [106.46209207649065,-6.0378428056821409],
+                  [106.46182106900712,-6.0378435339873207],
+                  [106.46182034157211,-6.037572233636042]
+                ]
+              ]
+            ]
+          },
+          "properties":{
+            "OBJECTID":3,
+            "Id":3,
+            "gridcode":3,
+            "Shape_Length":900.00000001396984,
+            "Shape_Area":11700.000000377186,
+            "LUASAN":1.1701695482935506
+          }
+        }
+      ]
+    };
+
+    // ==================== TOGGLE CONTROLS ====================
+    // Toggle Panel Kanan
+    document.getElementById('togglePanelBtn').addEventListener('click', function() {
+        const rightPanel = document.getElementById('rightPanel');
+        rightPanel.style.display = rightPanel.style.display === 'none' ? 'block' : 'none';
+    });
+
+    // Toggle Statistics Panel
+    document.getElementById('statsToggle').addEventListener('click', function() {
+        const statsPanel = document.getElementById('statsPanel');
+        statsPanel.style.display = statsPanel.style.display === 'none' ? 'block' : 'none';
+    });
+
+    // Close Statistics Panel
+    document.getElementById('statsClose').addEventListener('click', function() {
+        document.getElementById('statsPanel').style.display = 'none';
+    });
+
+    // Collapsible Sections
+    document.querySelectorAll('.collapsible-header').forEach(header => {
+        header.addEventListener('click', function() {
+            const collapsible = this.parentElement;
+            collapsible.classList.toggle('hidden');
+            const arrow = this.querySelector('span:last-child');
+            arrow.textContent = collapsible.classList.contains('hidden') ? '▶' : '▼';
+        });
+    });
+
+    // Toggle Basemap Panel
+    document.getElementById('basemapFlipBtn').addEventListener('click', function() {
+        const basemapCard = document.getElementById('basemapCard');
+        basemapCard.classList.toggle('hidden');
+    });
+
+    // Tutup Panel Kanan
+    document.getElementById('closePanel').addEventListener('click', function() {
+        document.getElementById('rightPanel').style.display = 'none';
+    });
+
+    // Pilih Basemap
+    document.querySelectorAll('.basemap-item').forEach(item => {
+        item.addEventListener('click', function() {
+            const basemap = this.getAttribute('data-basemap');
+            
+            document.querySelectorAll('.basemap-item').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            this.classList.add('active');
+            
+            if (basemaps[currentBasemap]) {
+                map.removeLayer(basemaps[currentBasemap]);
+            }
+            
+            basemaps[basemap].addTo(map);
+            currentBasemap = basemap;
+            
+            document.getElementById('basemapCard').classList.add('hidden');
+        });
+    });
+
+    // Toolbar Controls
+    document.getElementById('zoomIn').addEventListener('click', function() {
+        map.zoomIn();
+    });
+
+    document.getElementById('zoomOut').addEventListener('click', function() {
+        map.zoomOut();
+    });
+
+    // Chatbox Toggle
+    document.getElementById('chatHeader').addEventListener('click', function() {
+        const chatContent = document.getElementById('chatContent');
+        const chatInputRow = document.querySelector('.chat-input-row');
+        
+        if (chatContent.style.display === 'none') {
+            chatContent.style.display = 'flex';
+            chatInputRow.style.display = 'flex';
+            this.querySelector('span:last-child').textContent = '−';
+        } else {
+            chatContent.style.display = 'none';
+            chatInputRow.style.display = 'none';
+            this.querySelector('span:last-child').textContent = '+';
+        }
+    });
+
+    // Search Functionality
+    document.getElementById('doSearch').addEventListener('click', function() {
+        performSearch();
+    });
+
+    document.getElementById('searchInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            performSearch();
+        }
+    });
+
+    function performSearch() {
+        const query = document.getElementById('searchInput').value.trim();
+        
+        if (!query) return;
+        
+        // Cek jika query adalah koordinat
+        const coordMatch = query.match(/^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/);
+        
+        if (coordMatch) {
+            const lat = parseFloat(coordMatch[1]);
+            const lng = parseFloat(coordMatch[2]);
+            
+            if (!isNaN(lat) && !isNaN(lng)) {
+                map.setView([lat, lng], 16);
+                L.marker([lat, lng]).addTo(map)
+                    .bindPopup(`Lokasi: ${lat}, ${lng}`)
+                    .openPopup();
+                return;
+            }
+        }
+        
+        alert('Silakan gunakan format koordinat: latitude,longitude (contoh: -6.046,106.480)');
+    }
+
+    // ==================== SISTEM INTEGRASI GEOJSON ====================
+    let geoJSONLayer = null;
+    let densityChart = null;
+    let currentFilter = 'all';
+
+    // Fungsi untuk memuat dan menampilkan data GeoJSON
+    function loadGeoJSONData() {
+        // Hapus layer sebelumnya jika ada
+        if (geoJSONLayer) {
+            map.removeLayer(geoJSONLayer);
+        }
+        
+        const data = savikronjo20;
+        
+        // Hitung statistik
+        calculateStatistics(data);
+        
+        // Style berdasarkan gridcode (kerapatan vegetasi)
+        function getStyleByGridcode(feature) {
+            const gridcode = feature.properties.gridcode;
+            let color, opacity, weight;
+            
+            switch(gridcode) {
+                case 1: // Sangat Rendah
+                    color = '#ffffcc';
+                    opacity = 0.7;
+                    weight = 1;
+                    break;
+                case 2: // Rendah
+                    color = '#c2e699';
+                    opacity = 0.7;
+                    weight = 1;
+                    break;
+                case 3: // Sedang-Rendah
+                    color = '#78c679';
+                    opacity = 0.7;
+                    weight = 1.5;
+                    break;
+                default:
+                    color = '#808080';
+                    opacity = 0.5;
+                    weight = 1;
+            }
+            
+            return {
+                fillColor: color,
+                color: color,
+                weight: weight,
+                opacity: 0.8,
+                fillOpacity: opacity
+            };
+        }
+        
+        // Filter function
+        function filterByDensity(feature) {
+            if (currentFilter === 'all') return true;
+            return feature.properties.gridcode.toString() === currentFilter;
+        }
+        
+        // Tambah layer GeoJSON ke peta
+        geoJSONLayer = L.geoJSON(data, {
+            style: getStyleByGridcode,
+            filter: filterByDensity,
+            onEachFeature: function(feature, layer) {
+                const props = feature.properties;
+                
+                let popupContent = `
+                    <div style="max-width: 280px;">
+                        <h4 style="margin:0 0 8px 0; color: #0a5c36; border-bottom: 2px solid #0a5c36; padding-bottom: 4px;">
+                            Savikronjo20 - Poligon ${props.Id}
+                        </h4>
+                        <div style="font-size: 12px; color: #333; line-height: 1.4;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <strong>Kerapatan:</strong> 
+                                <span style="color: ${getColorByGridcode(props.gridcode)}; font-weight: bold;">
+                                    ${getKerapatanLabel(props.gridcode)}
+                                </span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <strong>Gridcode:</strong> <span>${props.gridcode || 'N/A'}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <strong>Luasan:</strong> <span>${props.LUASAN ? props.LUASAN.toFixed(2) + ' ha' : 'N/A'}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <strong>Shape Length:</strong> <span>${props.Shape_Length ? props.Shape_Length.toFixed(2) + ' m' : 'N/A'}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <strong>Shape Area:</strong> <span>${props.Shape_Area ? (props.Shape_Area / 10000).toFixed(2) + ' ha' : 'N/A'}</span>
+                            </div>
+                        </div>
+                `;
+                
+                // Tambahkan info tambahan berdasarkan gridcode
+                popupContent += `
+                    <div style="margin-top: 8px; padding: 6px; background: #f8f9fa; border-radius: 4px; font-size: 11px; border-left: 3px solid ${getColorByGridcode(props.gridcode)};">
+                        <strong>Indeks Vegetasi:</strong> ${getKerapatanLabel(props.gridcode)}<br>
+                        <div style="width: 100%; height: 8px; background: linear-gradient(90deg, #ffffcc, #78c679); margin: 4px 0; border-radius: 4px; position: relative;">
+                            <div style="position: absolute; left: ${((props.gridcode - 1) / 2) * 100}%; width: 33%; height: 100%; background: ${getColorByGridcode(props.gridcode)}; border-radius: 4px;"></div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 9px; color: #666;">
+                            <span>Sangat Rendah</span>
+                            <span>Sedang-Rendah</span>
+                        </div>
+                    </div>
+                `;
+                
+                popupContent += `</div>`;
+                layer.bindPopup(popupContent);
+                
+                // Tooltip
+                layer.bindTooltip(`Savikronjo20 - ${getKerapatanLabel(props.gridcode)} (${props.LUASAN} ha)`, {
+                    permanent: false,
+                    direction: 'auto',
+                    className: 'custom-tooltip'
+                });
+            }
+        }).addTo(map);
+        
+        // Fit bounds ke data
+        map.fitBounds(geoJSONLayer.getBounds());
+        
+        console.log(`Data Savikronjo20 berhasil dimuat - ${data.features.length} fitur`);
+    }
+
+    // Fungsi untuk mendapatkan label kerapatan
+    function getKerapatanLabel(gridcode) {
+        switch(gridcode) {
+            case 1: return "Sangat Rendah";
+            case 2: return "Rendah";
+            case 3: return "Sedang-Rendah";
+            default: return "Tidak Diketahui";
+        }
+    }
+
+    // Fungsi untuk menghitung statistik
+    function calculateStatistics(data) {
+        let totalLuasan = 0;
+        let jumlahPoligon = data.features.length;
+        let luasanMax = 0;
+        let luasanMin = Infinity;
+        let kerapatanRata = 0;
+        
+        const densityCount = {
+            1: 0, 2: 0, 3: 0
+        };
+        
+        data.features.forEach(feature => {
+            const luasan = feature.properties.LUASAN || 0;
+            const gridcode = feature.properties.gridcode || 1;
+            
+            totalLuasan += luasan;
+            densityCount[gridcode]++;
+            
+            if (luasan > luasanMax) luasanMax = luasan;
+            if (luasan < luasanMin) luasanMin = luasan;
+            kerapatanRata += gridcode;
+        });
+        
+        kerapatanRata = (kerapatanRata / jumlahPoligon).toFixed(1);
+        
+        // Update statistik panel
+        document.getElementById('totalLuas').textContent = totalLuasan.toFixed(2) + ' ha';
+        document.getElementById('jumlahPoligon').textContent = jumlahPoligon;
+        document.getElementById('kerapatanRata').textContent = kerapatanRata;
+        document.getElementById('luasMax').textContent = luasanMax.toFixed(2) + ' ha';
+        document.getElementById('luasMin').textContent = luasanMin.toFixed(2) + ' ha';
+        
+        // Update detail kerapatan
+        document.getElementById('detailSangatRendah').textContent = densityCount[1] + ' poligon';
+        document.getElementById('detailRendah').textContent = densityCount[2] + ' poligon';
+        document.getElementById('detailSedangRendah').textContent = densityCount[3] + ' poligon';
+        
+        // Update data display
+        document.getElementById('dataSangatRendah').textContent = densityCount[1] + ' poligon';
+        document.getElementById('dataRendah').textContent = densityCount[2] + ' poligon';
+        document.getElementById('dataSedangRendah').textContent = densityCount[3] + ' poligon';
+        
+        // Update chart
+        updateDensityChart(densityCount);
+    }
+
+    // Fungsi untuk update chart kerapatan
+    function updateDensityChart(densityCount) {
+        const ctx = document.getElementById('densityChart').getContext('2d');
+        
+        if (densityChart) {
+            densityChart.destroy();
+        }
+        
+        densityChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Sangat Rendah', 'Rendah', 'Sedang-Rendah'],
+                datasets: [{
+                    label: 'Distribusi Kerapatan',
+                    data: [
+                        densityCount[1],
+                        densityCount[2],
+                        densityCount[3]
+                    ],
+                    backgroundColor: [
+                        '#ffffcc',
+                        '#c2e699',
+                        '#78c679'
+                    ],
+                    borderColor: [
+                        '#d9d9a3',
+                        '#a8c97f',
+                        '#5fa85a'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 12,
+                            font: {
+                                size: 10
+                            }
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Distribusi Kerapatan EVI',
+                        font: {
+                            size: 12
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Fungsi untuk mendapatkan warna berdasarkan gridcode
+    function getColorByGridcode(gridcode) {
+        switch(gridcode) {
+            case 1: return '#ffffcc';
+            case 2: return '#c2e699';
+            case 3: return '#78c679';
+            default: return '#808080';
+        }
+    }
+
+    // Filter functionality
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Update active button
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Update current filter
+            currentFilter = this.getAttribute('data-density');
+            
+            // Reload GeoJSON data with filter
+            loadGeoJSONData();
+        });
+    });
+
+    // Download Data GeoJSON
+    document.getElementById('downloadData').addEventListener('click', function() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(savikronjo20, null, 2));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", "savikronjo20.geojson");
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+        
+        alert('Data GeoJSON Savikronjo20 berhasil diunduh!');
+    });
+
+    // Screenshot functionality
+    document.getElementById('screenshot').addEventListener('click', function() {
+        alert('Fitur screenshot akan segera tersedia!');
+    });
+
+    // Export Report
+    document.getElementById('exportReport').addEventListener('click', function() {
+        alert('Fitur export laporan PDF akan segera tersedia!');
+    });
+
+    // ==================== LEGENDA DINAMIS ====================
+    function updateLegend() {
+        const legend = L.control({ position: 'bottomright' });
+        
+        legend.onAdd = function(map) {
+            const div = L.DomUtil.create('div', 'info legend');
+            div.style.background = 'white';
+            div.style.padding = '10px';
+            div.style.borderRadius = '5px';
+            div.style.boxShadow = '0 0 10px rgba(0,0,0,0.2)';
+            
+            const grades = [1, 2, 3];
+            const labels = [
+                'Sangat Rendah (1)',
+                'Rendah (2)', 
+                'Sedang-Rendah (3)'
+            ];
+            const colors = [
+                '#ffffcc', '#c2e699', '#78c679'
+            ];
+            
+            let legendHTML = '<h4 style="margin:0 0 8px 0;">Kerapatan Savikronjo20</h4>';
+            
+            for (let i = 0; i < grades.length; i++) {
+                legendHTML += `
+                    <div style="display: flex; align-items: center; margin: 4px 0;">
+                        <div style="width: 20px; height: 15px; background: ${colors[i]}; margin-right: 8px; border: 1px solid #666;"></div>
+                        <span style="font-size: 12px;">${labels[i]}</span>
+                    </div>
+                `;
+            }
+            
+            div.innerHTML = legendHTML;
+            return div;
+        };
+        
+        legend.addTo(map);
+    }
+
+    // ==================== KELAS KERAPATAN ====================
+    const CLASSES = [
+      { id: 'low-medium', label: 'Sedang-Rendah', color: '#78c679' },
+      { id: 'low', label: 'Rendah', color: '#c2e699' },
+      { id: 'very-low', label: 'Sangat Rendah', color: '#ffffcc' }
+    ];
+
+    // Render Kelas
+    function renderClasses() {
+      const classesList = document.getElementById('classesList');
+      classesList.innerHTML = '';
+      
+      CLASSES.forEach(cls => {
+        const item = document.createElement('div');
+        item.className = 'class-item';
+        item.innerHTML = `
+          <div class="class-color" style="background:${cls.color}"></div>
+          <div class="class-label">${cls.label}</div>
+          <div class="switch"><div class="knob"></div></div>
+        `;
+        classesList.appendChild(item);
+        
+        // Switch event
+        const switchEl = item.querySelector('.switch');
+        switchEl.addEventListener('click', function() {
+          this.classList.toggle('on');
+        });
+        switchEl.classList.add('on');
+      });
+    }
+
+    // ==================== INISIALISASI ====================
+    document.addEventListener('DOMContentLoaded', function() {
+        renderClasses();
+        updateLegend();
+        
+        // Load data Savikronjo20
+        setTimeout(() => {
+            loadGeoJSONData();
+        }, 1000);
+        
+        // Scale update
+        map.on('zoomend', function() {
+            const zoom = map.getZoom();
+            const scale = Math.round(591657550 / Math.pow(2, zoom - 1));
+            document.getElementById('scaleBox').textContent = `Skala: 1:${scale.toLocaleString()}`;
+        });
+        map.fire('zoomend');
+    });
+
+  </script>
+
+</body>
+</html>
