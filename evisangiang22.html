@@ -1,0 +1,2737 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mangrove Guardian - Evisangiang22</title>
+
+  <!-- External Libraries -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/leaflet.draw/1.0.4/leaflet.draw-src.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/leaflet.draw/1.0.4/leaflet.draw-src.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+
+  <!-- Custom Styles -->
+  <style>
+    /* VARIABLES */
+    :root{
+      --mg-green:#0a5c36;
+      --mg-green-light:#1a7d4e;
+      --mg-green-dark:#064527;
+      --panel:rgba(255,255,255,0.95);
+      --muted:#51606a;
+      --navbar-height: 60px; 
+    }
+    
+    *{box-sizing:border-box; margin:0; padding:0;}
+    
+    html,body{height:100%; margin:0; font-family:'Segoe UI', system-ui, sans-serif; color:#15302a;}
+    body{background:#f8f9fa;}
+    #map{flex:1; z-index:1;}
+
+    .topbar{
+      height: var(--navbar-height);
+      padding:0 20px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      background:var(--mg-green);
+      color:#fff;
+      position:sticky;
+      top:0;
+      z-index:1500;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      border-bottom: 1px solid var(--mg-green-dark);
+    }
+    
+    .brand{
+      font-weight:600;
+      font-size:20px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    
+    .nav-right-container{display:flex; align-items:center; gap:25px;}
+    .nav-menu{display:flex; gap:25px}
+    .nav-menu a{
+      color:#fff;
+      text-decoration:none;
+      font-size:14px;
+      font-weight:500;
+      padding:8px 0;
+      transition:opacity 0.2s;
+    }
+    .nav-menu a:hover{opacity:0.8;}
+    .lang-switch{
+      font-size:13px;
+      cursor:pointer;
+      background:rgba(255,255,255,0.15);
+      padding:6px 12px;
+      border-radius:4px;
+      font-weight:500;
+    }
+
+    .chat-box-container{
+      position:fixed;
+      bottom:20px;
+      right:20px;
+      z-index:1600;
+      width:350px;
+      background:var(--panel);
+      border-radius:8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      border:1px solid #e1e5e9;
+      display:flex;
+      flex-direction:column;
+      max-height:500px;
+    }
+    
+    .chat-header{
+      background: var(--mg-green);
+      color: #fff;
+      padding: 12px 16px;
+      font-weight: 600;
+      cursor:pointer;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      border-radius:8px 8px 0 0;
+    }
+    
+    .chat-content{
+      padding: 16px;
+      flex:1;
+      overflow-y: auto;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      max-height:300px;
+    }
+    
+    .chat-input-row{
+      display:flex;
+      gap:8px;
+      padding:12px 16px;
+      border-top:1px solid #e1e5e9;
+      background:#f8f9fa;
+    }
+    
+    .chat-input-row input{
+      flex:1;
+      padding:10px 12px;
+      border-radius:6px;
+      border:1px solid #ddd;
+      outline:none;
+      font-size:14px;
+      background:#fff;
+    }
+    
+    .chat-input-row button{
+      background:var(--mg-green);
+      border:0;
+      color:#fff;
+      padding:10px 16px;
+      border-radius:6px;
+      cursor:pointer;
+      font-weight:600;
+      font-size:14px;
+    }
+
+    .chat-message{
+      padding:10px 14px;
+      border-radius:8px;
+      max-width:85%;
+      font-size:14px;
+      line-height:1.4;
+    }
+    
+    .chat-user{
+      background:#e3f2fd;
+      align-self:flex-end;
+      border-bottom-right-radius:2px;
+    }
+    
+    .chat-bot{
+      background:#f5f5f5;
+      align-self:flex-start;
+      border-bottom-left-radius:2px;
+    }
+
+    .app{
+      height:calc(100vh - var(--navbar-height));
+      position:relative;
+      display:flex;
+    }
+
+    .search-row-container{
+      position:absolute;
+      top:20px;
+      left:50%;
+      transform:translateX(-50%);
+      z-index:1300;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:8px;
+      width:90%;
+      max-width:700px;
+    }
+    
+    .search-row{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      width:100%;
+    }
+    
+    .search-box{
+      display:flex;
+      align-items:center;
+      background:var(--panel);
+      padding:8px 16px;
+      border-radius:8px;
+      box-shadow:0 2px 8px rgba(0,0,0,0.1);
+      width:100%;
+      border:1px solid #e1e5e9;
+      flex:1;
+    }
+    
+    .search-box input{
+      border:0;
+      outline:none;
+      padding:8px;
+      font-size:14px;
+      background:transparent;
+      flex:1;
+    }
+    
+    .search-box button{
+      background:var(--mg-green);
+      border:0;
+      color:#fff;
+      padding:8px 16px;
+      border-radius:6px;
+      cursor:pointer;
+      font-weight:600;
+      font-size:14px;
+    }
+    
+    .action-btn{
+      background:var(--mg-green);
+      color:#fff;
+      border-radius:8px;
+      padding:10px 16px;
+      border:none;
+      cursor:pointer;
+      font-weight:600;
+      font-size:14px;
+      white-space:nowrap;
+    }
+    
+    .mapFlipBtn{
+      background:var(--mg-green);
+      border:none;
+      padding:10px;
+      border-radius:6px;
+      color:white;
+      cursor:pointer;
+      font-size:16px;
+    }
+
+    .stats-toggle-btn {
+      background:var(--mg-green);
+      border:none;
+      padding:10px 14px;
+      border-radius:6px;
+      color:white;
+      cursor:pointer;
+      font-size:16px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      box-shadow:0 2px 6px rgba(0,0,0,0.1);
+      transition:all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .stats-toggle-btn:hover {
+      background:var(--mg-green-light);
+      transform: translateY(-1px);
+    }
+
+    .vtoolbar{
+      position:absolute;
+      left:20px;
+      top:120px;
+      z-index:1300;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      padding:8px;
+      border-radius:8px;
+      background:transparent;
+    }
+    
+    .vt-btn{
+      width:44px;
+      height:44px;
+      border-radius:6px;
+      background:var(--panel);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border:1px solid #e1e5e9;
+      box-shadow:0 2px 6px rgba(0,0,0,0.08);
+      cursor:pointer;
+      font-size:16px;
+      transition:all 0.2s;
+    }
+    
+    .vt-btn:hover{
+      background:#f8f9fa;
+    }
+
+    .right-panel{
+      position:absolute;
+      right:20px;
+      top:20px;
+      width:320px;
+      z-index:1300;
+      background:var(--panel);
+      border-radius:8px;
+      box-shadow:0 4px 20px rgba(0,0,0,0.15);
+      border:1px solid #e1e5e9;
+      max-height:calc(100vh - 100px);
+      overflow-y:auto;
+    }
+    
+    .panel-inner{
+      padding:16px;
+    }
+    
+    .panel-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:16px;
+      padding-bottom:12px;
+      border-bottom:1px solid #e1e5e9;
+    }
+    
+    .panel-header h3{
+      margin:0;
+      color:var(--mg-green);
+      font-size:16px;
+      font-weight:600;
+    }
+
+    .switch-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:12px 0;
+      border-bottom:1px solid #f0f0f0;
+    }
+    
+    .switch-label{
+      font-size:14px;
+      color:#333;
+    }
+    
+    .switch{
+      position:relative;
+      width:44px;
+      height:24px;
+      border-radius:12px;
+      background:#ddd;
+      cursor:pointer;
+    }
+    
+    .switch .knob{
+      position:absolute;
+      top:2px;
+      left:2px;
+      width:20px;
+      height:20px;
+      border-radius:50%;
+      background:white;
+      box-shadow:0 1px 3px rgba(0,0,0,0.2);
+      transition:left 0.2s;
+    }
+    
+    .switch.on{
+      background:var(--mg-green);
+    }
+    
+    .switch.on .knob{
+      left:22px;
+    }
+
+    .basemap-toggle{
+      position:absolute;
+      right:20px;
+      top:70px;
+      z-index:1350;
+    }
+    
+    .basemap-card{
+      width:250px;
+      background:var(--panel);
+      border-radius:8px;
+      padding:12px;
+      box-shadow:0 4px 20px rgba(0,0,0,0.15);
+      border:1px solid #e1e5e9;
+    }
+    
+    .basemap-card.hidden{
+      display:none;
+    }
+    
+    .basemap-item{
+      padding:10px;
+      border-radius:6px;
+      margin-bottom:6px;
+      cursor:pointer;
+      font-size:14px;
+      border:1px solid transparent;
+    }
+    
+    .basemap-item:hover{
+      background:#f8f9fa;
+    }
+    
+    .basemap-item.active{
+      background:#e8f5e8;
+      border-color:var(--mg-green);
+    }
+
+    .scale-box{
+      position:absolute;
+      left:20px;
+      bottom:20px;
+      background:var(--panel);
+      padding:8px 12px;
+      border-radius:6px;
+      font-size:12px;
+      border:1px solid #e1e5e9;
+      z-index:1300;
+      box-shadow:0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .class-item{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 0;
+      border-bottom:1px solid #f0f0f0;
+    }
+    
+    .class-color{
+      width:16px;
+      height:16px;
+      border-radius:3px;
+    }
+    
+    .class-label{
+      flex:1;
+      font-size:13px;
+    }
+
+    .file-upload{
+      margin-top:16px;
+      padding:12px;
+      border:2px dashed #ddd;
+      border-radius:6px;
+      text-align:center;
+      cursor:pointer;
+      transition:border-color 0.2s;
+    }
+    
+    .file-upload:hover{
+      border-color:var(--mg-green);
+    }
+    
+    .file-hint{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:8px;
+      text-align:center;
+    }
+
+    .vt-btn.active-draw{
+      background:var(--mg-green);
+      color:#fff;
+    }
+    
+    .vt-btn.delete-active{
+      background:#dc3545;
+      color:#fff;
+    }
+
+    @media (max-width:768px){
+      .nav-menu{display:none}
+      .search-row{flex-wrap:wrap;}
+      .right-panel{width:95%; right:2.5%;}
+      .chat-box-container{width:95%; right:2.5%;}
+      .stats-panel{width:95%; left:2.5%;}
+      .stats-toggle-btn{display:none;}
+    }
+
+    .analysis-section {
+      margin: 16px 0;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 6px;
+    }
+    
+    .pulau-selector {
+      margin-bottom: 12px;
+    }
+    
+    .pulau-selector select {
+      width: 100%;
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+    }
+    
+    .data-display {
+      background: white;
+      padding: 12px;
+      border-radius: 4px;
+      margin-top: 8px;
+    }
+    
+    .data-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+    
+    .data-value {
+      font-weight: 600;
+      color: var(--mg-green);
+    }
+
+    .custom-tooltip {
+      background: rgba(255, 255, 255, 0.95) !important;
+      border: 1px solid #0a5c36 !important;
+      border-radius: 4px !important;
+      padding: 4px 8px !important;
+      font-size: 12px !important;
+      font-weight: 500 !important;
+    }
+
+    .legend {
+      background: white;
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    
+    .legend h4 {
+      margin: 0 0 8px 0;
+    }
+
+    .stats-panel {
+      position: absolute;
+      left: 80px;
+      top: 120px;
+      z-index: 1300;
+      background: var(--panel);
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      border: 1px solid #e1e5e9;
+      width: 300px;
+      max-height: 75vh;
+      overflow-y: auto;
+      transition: all 0.3s ease;
+    }
+
+    .stats-header {
+      font-weight: 600;
+      color: var(--mg-green);
+      margin-bottom: 12px;
+      font-size: 16px;
+      border-bottom: 2px solid var(--mg-green);
+      padding-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .stats-close {
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      color: var(--muted);
+      padding: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .stats-close:hover {
+      color: var(--mg-green);
+    }
+
+    .stat-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 13px;
+      padding: 6px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .stat-item:last-child {
+      border-bottom: none;
+    }
+
+    .stat-value {
+      font-weight: 600;
+      color: var(--mg-green);
+    }
+
+    .chart-container {
+      margin-top: 15px;
+      height: 200px;
+      position: relative;
+    }
+
+    .download-btn {
+      background: var(--mg-green);
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      margin-top: 15px;
+      width: 100%;
+      transition: background 0.3s ease;
+    }
+
+    .download-btn:hover {
+      background: var(--mg-green-light);
+    }
+
+    .collapsible {
+      margin-top: 10px;
+    }
+
+    .collapsible-header {
+      background: #f8f9fa;
+      padding: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--mg-green);
+    }
+
+    .collapsible-content {
+      padding: 10px;
+      background: white;
+      border-radius: 0 0 6px 6px;
+      margin-top: 2px;
+    }
+
+    .collapsible.hidden .collapsible-content {
+      display: none;
+    }
+
+    /* Progress Bar untuk Loading */
+    .progress-bar {
+      width: 100%;
+      height: 4px;
+      background: #f0f0f0;
+      border-radius: 2px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--mg-green);
+      transition: width 0.3s ease;
+    }
+
+    /* Filter Controls */
+    .filter-controls {
+      margin: 15px 0;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 6px;
+    }
+
+    .filter-title {
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: var(--mg-green);
+    }
+
+    .filter-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .filter-btn {
+      padding: 6px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: white;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s;
+    }
+
+    .filter-btn.active {
+      background: var(--mg-green);
+      color: white;
+      border-color: var(--mg-green);
+    }
+
+    .filter-btn:hover {
+      background: #e9ecef;
+    }
+
+    .filter-btn.active:hover {
+      background: var(--mg-green-light);
+    }
+
+    .loading-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255,255,255,0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid var(--mg-green);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="topbar">
+    <div class="brand">
+      <span>🌿 MangroveGuardian - Evisangiang22</span>
+    </div>
+    <div class="nav-right-container">
+      <div class="nav-menu" id="navMenu">
+        <a href="indeks.html" data-key="home">Beranda</a>
+        <a href="indeks.html" data-key="about">Tentang</a>
+        <a href="indeks.html" data-key="team">Tim</a>
+        <a href="indeks.html" data-key="contact">Kontak</a>
+      </div>
+      <div class="lang-switch" id="langSwitch">ID / EN</div>
+    </div>
+  </div>
+
+  <!-- Chat Box -->
+  <div class="chat-box-container" id="chatBoxContainer">
+    <div class="chat-header" id="chatHeader">
+      <span>💬 Asisten Mangrove</span>
+      <span>−</span>
+    </div>
+    <div class="chat-content" id="chatContent">
+      <div class="chat-message chat-bot">Halo! Saya asisten virtual Mangrove Guardian. Data Evisangiang22 sedang dimuat...</div>
+    </div>
+    <div class="chat-input-row">
+      <input type="text" id="chatInput" placeholder="Ketik pertanyaan Anda..." />
+      <button id="sendChat">Kirim</button>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div class="app">
+    <div id="map">
+      <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div>Memuat data Evisangiang22...</div>
+      </div>
+    </div>
+
+    <!-- Search Bar dengan Tombol Statistik di Kiri -->
+    <div class="search-row-container">
+      <div class="search-row">
+        <!-- Tombol Statistik di sebelah kiri search box -->
+        <button class="stats-toggle-btn" id="statsToggle" title="Toggle Panel Statistik">
+          📊 Statistik
+        </button>
+
+        <!-- Search Box di tengah -->
+        <div class="search-box">
+          <input id="searchInput" placeholder="Cari lokasi atau koordinat (contoh: -5.963,105.854)..." />
+          <button id="doSearch">Cari</button>
+        </div>
+
+        <!-- Tombol-tombol lainnya di sebelah kanan -->
+        <button class="action-btn" id="addPointBtn">+ Titik Baru</button>
+        <button id="basemapFlipBtn" class="mapFlipBtn" title="Peta Dasar">🗺️</button>
+        <button id="togglePanelBtn" class="mapFlipBtn" title="Panel Layer">☰</button>
+      </div>
+    </div>
+
+    <!-- Statistics Panel -->
+    <div class="stats-panel" id="statsPanel" style="display:none">
+      <div class="stats-header">
+        <span>📊 Statistik Evisangiang22</span>
+        <button class="stats-close" id="statsClose" title="Tutup">✕</button>
+      </div>
+      
+      <div class="progress-bar">
+        <div class="progress-fill" id="dataProgress" style="width: 0%"></div>
+      </div>
+      
+      <div class="stat-item">
+        <span>Total Luasan:</span>
+        <span class="stat-value" id="totalLuas">Menghitung...</span>
+      </div>
+      <div class="stat-item">
+        <span>Jumlah Poligon:</span>
+        <span class="stat-value" id="jumlahPoligon">Menghitung...</span>
+      </div>
+      <div class="stat-item">
+        <span>Kerapatan Rata-rata:</span>
+        <span class="stat-value" id="kerapatanRata">Menghitung...</span>
+      </div>
+      <div class="stat-item">
+        <span>Luasan Tertinggi:</span>
+        <span class="stat-value" id="luasMax">Menghitung...</span>
+      </div>
+      <div class="stat-item">
+        <span>Luasan Terendah:</span>
+        <span class="stat-value" id="luasMin">Menghitung...</span>
+      </div>
+
+      <!-- Filter Controls -->
+      <div class="filter-controls">
+        <div class="filter-title">Filter Kerapatan:</div>
+        <div class="filter-buttons">
+          <button class="filter-btn active" data-density="all">Semua</button>
+          <button class="filter-btn" data-density="1">Sangat Rendah</button>
+          <button class="filter-btn" data-density="2">Rendah</button>
+          <button class="filter-btn" data-density="3">Sedang-Rendah</button>
+          <button class="filter-btn" data-density="4">Sedang</button>
+          <button class="filter-btn" data-density="5">Tinggi</button>
+          <button class="filter-btn" data-density="6">Sangat Tinggi</button>
+        </div>
+      </div>
+
+      <!-- Collapsible Chart Section -->
+      <div class="collapsible" id="chartCollapsible">
+        <div class="collapsible-header" id="chartHeader">
+          <span>📈 Grafik Distribusi</span>
+          <span>▼</span>
+        </div>
+        <div class="collapsible-content">
+          <div class="chart-container">
+            <canvas id="densityChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Collapsible Detail Section -->
+      <div class="collapsible" id="detailCollapsible">
+        <div class="collapsible-header" id="detailHeader">
+          <span>🔍 Detail Kerapatan</span>
+          <span>▼</span>
+        </div>
+        <div class="collapsible-content">
+          <div class="stat-item">
+            <span>Sangat Rendah (1):</span>
+            <span class="stat-value" id="detailSangatRendah">Menghitung...</span>
+          </div>
+          <div class="stat-item">
+            <span>Rendah (2):</span>
+            <span class="stat-value" id="detailRendah">Menghitung...</span>
+          </div>
+          <div class="stat-item">
+            <span>Sedang-Rendah (3):</span>
+            <span class="stat-value" id="detailSedangRendah">Menghitung...</span>
+          </div>
+          <div class="stat-item">
+            <span>Sedang (4):</span>
+            <span class="stat-value" id="detailSedang">Menghitung...</span>
+          </div>
+          <div class="stat-item">
+            <span>Tinggi (5):</span>
+            <span class="stat-value" id="detailTinggi">Menghitung...</span>
+          </div>
+          <div class="stat-item">
+            <span>Sangat Tinggi (6):</span>
+            <span class="stat-value" id="detailSangatTinggi">Menghitung...</span>
+          </div>
+        </div>
+      </div>
+
+      <button class="download-btn" id="downloadData">
+        📥 Download Data GeoJSON
+      </button>
+
+      <button class="download-btn" id="screenshot" style="background: #6c757d; margin-top: 8px;">
+        📷 Screenshot Peta
+      </button>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="vtoolbar">
+      <div class="vt-btn" id="zoomIn" title="Zoom In">+</div>
+      <div class="vt-btn" id="zoomOut" title="Zoom Out">−</div>
+      <div class="vt-btn" id="measureBtn" title="Ukur Jarak">📏</div>
+      <div style="border-top:1px solid #eee; margin:6px 0"></div>
+      <div class="vt-btn" id="drawPt" title="Titik">•</div>
+      <div class="vt-btn" id="drawPoly" title="Poligon">△</div>
+      <div class="vt-btn" id="drawRect" title="Persegi">□</div>
+      <div style="border-top:1px solid #eee; margin:6px 0"></div>
+      <div class="vt-btn" id="deleteBtn" title="Hapus">🗑️</div>
+      <div class="vt-btn" id="printBtn" title="Cetak">🖨️</div>
+    </div>
+
+    <!-- Scale -->
+    <div class="scale-box" id="scaleBox">Skala: 1:100,000</div>
+    <div class="scale-box" id="measureBox" style="left:120px; display:none; background:#fff3cd; color:#856404;"></div>
+
+    <!-- Right Panel -->
+    <div class="right-panel" id="rightPanel">
+      <div class="panel-inner">
+        <div class="panel-header">
+          <h3>Layer & Pengaturan</h3>
+          <button id="closePanel" class="vt-btn" style="width:auto; padding:6px 10px;">✕</button>
+        </div>
+
+        <!-- Analisis Vegetasi Section -->
+        <div class="analysis-section">
+          <div style="font-weight:600; color:var(--mg-green); margin-bottom:12px;">📊 Data Evisangiang22</div>
+          
+          <div class="pulau-selector">
+            <label for="pulauSelect">Pilih Lokasi:</label>
+            <select id="pulauSelect">
+              <option value="evisangiang22" selected>Evisangiang22</option>
+            </select>
+          </div>
+
+          <div class="pulau-selector">
+            <label for="tahunSelect">Pilih Tahun:</label>
+            <select id="tahunSelect">
+              <option value="2022" selected>2022</option>
+            </select>
+          </div>
+
+          <div class="data-display">
+            <div class="data-item">
+              <span>Vegetasi Sangat Rendah:</span>
+              <span class="data-value" id="dataSangatRendah">Menghitung...</span>
+            </div>
+            <div class="data-item">
+              <span>Vegetasi Rendah:</span>
+              <span class="data-value" id="dataRendah">Menghitung...</span>
+            </div>
+            <div class="data-item">
+              <span>Vegetasi Sedang-Rendah:</span>
+              <span class="data-value" id="dataSedangRendah">Menghitung...</span>
+            </div>
+            <div class="data-item">
+              <span>Vegetasi Sedang:</span>
+              <span class="data-value" id="dataSedang">Menghitung...</span>
+            </div>
+            <div class="data-item">
+              <span>Vegetasi Tinggi:</span>
+              <span class="data-value" id="dataTinggi">Menghitung...</span>
+            </div>
+            <div class="data-item">
+              <span>Vegetasi Sangat Tinggi:</span>
+              <span class="data-value" id="dataSangatTinggi">Menghitung...</span>
+            </div>
+            <div class="data-item">
+              <span>Kerapatan Rata-rata:</span>
+              <span class="data-value" id="dataEVI">Menghitung...</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="switch-row">
+          <div class="switch-label">Layer EVI</div>
+          <div class="switch on" id="rasterSwitch"><div class="knob"></div></div>
+        </div>
+
+        <div style="margin:16px 0;">
+          <div style="font-weight:600; color:var(--mg-green); margin-bottom:12px;">Kelas Kerapatan EVI</div>
+          <div id="classesList"></div>
+        </div>
+
+        <hr style="margin:16px 0; border:none; border-top:1px solid #e1e5e9;">
+
+        <div style="font-weight:600; color:var(--mg-green); margin-bottom:12px;">Ekspor Data</div>
+        <div class="file-upload" id="fileUploadArea">
+          <div>📁 Upload File GeoJSON</div>
+          <input type="file" id="fileInput" accept=".json,.geojson" style="display:none" />
+        </div>
+        <div class="file-hint">Format yang didukung: GeoJSON, JSON</div>
+
+        <button class="download-btn" id="exportReport">
+          📄 Export Laporan PDF
+        </button>
+      </div>
+    </div>
+
+    <!-- Basemap Panel -->
+    <div class="basemap-toggle">
+      <div class="basemap-card hidden" id="basemapCard">
+        <div style="font-weight:600; margin-bottom:12px;">Peta Dasar</div>
+        <div class="basemap-item active" data-basemap="osm">OpenStreetMap</div>
+        <div class="basemap-item" data-basemap="satellite">Satelit</div>
+        <div class="basemap-item" data-basemap="terrain">Topografi</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==================== DATA EVISANGIANG22 ====================
+    const evisangiang22 = {
+      "type": "FeatureCollection",
+      "features": [
+        {
+          "type": "Feature",
+          "id": 1,
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [105.85403230577333, -5.9634278487251446],
+                  [105.85376127652589, -5.9634282689190767],
+                  [105.8537621157962, -5.9639709882442817],
+                  [105.8537625354605, -5.9642423479028057],
+                  [105.85457562434308, -5.9642410867476752],
+                  [105.8545752042792, -5.9639697271469316],
+                  [105.85403314530998, -5.9639705680118427],
+                  [105.85403230577333, -5.9634278487251446]
+                ]
+              ],
+              [
+                [
+                  [105.85592950996059, -5.9634249036343396],
+                  [105.8559299306514, -5.9636962631440893],
+                  [105.85565890140701, -5.963696684290638],
+                  [105.85565932198413, -5.9639680438169878],
+                  [105.85593035136169, -5.9639676226511416],
+                  [105.85647241005829, -5.9639667799194216],
+                  [105.85647156812449, -5.9634240609798423],
+                  [105.85620053905228, -5.9634244823737559],
+                  [105.85592950996059, -5.9634249036343396]
+                ]
+              ],
+              [
+                [
+                  [105.85592950996059, -5.9634249036343396],
+                  [105.85592908928925, -5.9631535441218757],
+                  [105.85565806031121, -5.9631539652298313],
+                  [105.85565848084937, -5.9634253247615918],
+                  [105.85592950996059, -5.9634249036343396]
+                ]
+              ],
+              [
+                [
+                  [105.85484497326027, -5.963155227753747],
+                  [105.85484455314106, -5.9628838681614695],
+                  [105.85457352421831, -5.9628842887168529],
+                  [105.85457394420435, -5.9631556483284003],
+                  [105.85484497326027, -5.963155227753747]
+                ]
+              ],
+              [
+                [
+                  [105.85728423388697, -5.9631514365822236],
+                  [105.85728381256934, -5.9628800771636712],
+                  [105.8575548412972, -5.9628796552750991],
+                  [105.85755441986593, -5.9626082958731672],
+                  [105.857012362657, -5.9626091394783325],
+                  [105.85701320500644, -5.9631518583568051],
+                  [105.85728423388697, -5.9631514365822236]
+                ]
+              ],
+              [
+                [
+                  [105.85674175505507, -5.9628809205408588],
+                  [105.85674091301095, -5.9623382016183024],
+                  [105.85646988449086, -5.9623386230682884],
+                  [105.85647072626867, -5.9628813420294744],
+                  [105.85674175505507, -5.9628809205408588]
+                ]
+              ],
+              [
+                [
+                  [105.85294525462929, -5.9615300105736546],
+                  [105.85294483555872, -5.9612586508303762],
+                  [105.85267380729871, -5.9612590703371469],
+                  [105.85267422623616, -5.9615304300996552],
+                  [105.85294525462929, -5.9615300105736546]
+                ]
+              ],
+              [
+                [
+                  [105.85700773113017, -5.9596241854538698],
+                  [105.85700731019934, -5.9593528259809263],
+                  [105.85619422903169, -5.9593540896935],
+                  [105.85619464956328, -5.9596254492243856],
+                  [105.85700773113017, -5.9596241854538698]
+                ]
+              ],
+              [
+                [
+                  [105.85917594778292, -5.959620809536359],
+                  [105.85917552578745, -5.9593494502182009],
+                  [105.85863347200765, -5.9593502949583179],
+                  [105.85863389373695, -5.9596216543152085],
+                  [105.85917594778292, -5.959620809536359]
+                ]
+              ],
+              [
+                [
+                  [105.85592362233533, -5.959625870214734],
+                  [105.85592320193682, -5.9593545106645447],
+                  [105.85592278155779, -5.9590831511116438],
+                  [105.8556517545765, -5.9590835719301536],
+                  [105.85565259508788, -5.9596262910718361],
+                  [105.85592362233533, -5.959625870214734]
+                ]
+              ],
+              [
+                [
+                  [105.84805258449155, -5.9523112971302305],
+                  [105.84805175247504, -5.9517685767675204],
+                  [105.84778072852198, -5.9517689932060307],
+                  [105.84778114438768, -5.952040353407833],
+                  [105.84778156027269, -5.952311713606977],
+                  [105.84805258449155, -5.9523112971302305]
+                ]
+              ],
+              [
+                [
+                  [105.84750970454965, -5.9517694095114706],
+                  [105.84750928883616, -5.9514980492878484],
+                  [105.84723826497745, -5.9514984654411132],
+                  [105.84723868055805, -5.9517698256838409],
+                  [105.84750970454965, -5.9517694095114706]
+                ]
+              ],
+              [
+                [
+                  [105.84750887314195, -5.9512266890615004],
+                  [105.84750845746704, -5.9509553288325137],
+                  [105.84723743387411, -5.9509557449475645],
+                  [105.84723784941615, -5.9512271051956578],
+                  [105.84750887314195, -5.9512266890615004]
+                ]
+              ],
+              [
+                [
+                  [105.84805092053573, -5.9512258563940126],
+                  [105.84805050459504, -5.9509544962032566],
+                  [105.84777948104067, -5.950954912584411],
+                  [105.84777989684848, -5.951226272794286],
+                  [105.84805092053573, -5.9512258563940126]
+                ]
+              ],
+              [
+                [
+                  [105.8458806563025, -5.9498723821259549],
+                  [105.84560963312542, -5.9498727973664165],
+                  [105.8456100477931, -5.9501441577397651],
+                  [105.84533902446391, -5.9501445728662627],
+                  [105.84533943901796, -5.9504159332560524],
+                  [105.84561046248004, -5.950415518110491],
+                  [105.84561087718622, -5.9506868784784919],
+                  [105.84533985359127, -5.9506872936431163],
+                  [105.84534026818382, -5.950958654027473],
+                  [105.84588231562024, -5.9509578235270446],
+                  [105.84588273049781, -5.951229183870578],
+                  [105.84642477812294, -5.9512283527997836],
+                  [105.84642519328557, -5.9514997131025202],
+                  [105.84669621720214, -5.9514992973484491],
+                  [105.84669580190663, -5.9512279370647994],
+                  [105.84669538663037, -5.9509565767785118],
+                  [105.84615333930955, -5.9509574080772518],
+                  [105.84615292431835, -5.9506860477501045],
+                  [105.84588190076191, -5.950686463180821],
+                  [105.8458806563025, -5.9498723821259549]
+                ]
+              ],
+              [
+                [
+                  [105.83558012327646, -5.9488026234192244],
+                  [105.83557971361992, -5.948531262331116],
+                  [105.83557930398241, -5.9482599012402684],
+                  [105.83530828087522, -5.9482603113126267],
+                  [105.83530909990364, -5.9488030335292583],
+                  [105.83558012327646, -5.9488026234192244]
+                ]
+              ],
+              [
+                [
+                  [105.84316752990041, -5.9479770046558693],
+                  [105.84235446252461, -5.9479782455882901],
+                  [105.84235487546368, -5.9482496062088224],
+                  [105.84262589807429, -5.9482491926786718],
+                  [105.84316794323794, -5.9482483652193956],
+                  [105.84316752990041, -5.9479770046558693]
+                ]
+              ],
+              [
+                [
+                  [105.83584991731925, -5.9479881299603079],
+                  [105.83584950758697, -5.9477167688829944],
+                  [105.83557848476444, -5.9477171790506587],
+                  [105.83557889436391, -5.9479885401468167],
+                  [105.83584991731925, -5.9479881299603079]
+                ]
+              ],
+              [
+                [
+                  [105.84316752990041, -5.9479770046558693],
+                  [105.84343855232062, -5.9479765907457587],
+                  [105.84370957472164, -5.9479761767026629],
+                  [105.84370916113767, -5.9477048161744657],
+                  [105.84398018338666, -5.9477044020174121],
+                  [105.8439797696891, -5.9474330415055352],
+                  [105.8437087475729, -5.9474334556435622],
+                  [105.84343772543751, -5.9474338696486173],
+                  [105.84343813886947, -5.9477052301985411],
+                  [105.84316711658207, -5.9477056440896368],
+                  [105.84316752990041, -5.9479770046558693]
+                ]
+              ],
+              [
+                [
+                  [105.84154015746937, -5.947165403275136],
+                  [105.8415405699525, -5.9474367639607548],
+                  [105.84181159222217, -5.9474363508865116],
+                  [105.84181117960624, -5.9471649902198704],
+                  [105.84154015746937, -5.947165403275136]
+                ]
+              ],
+              [
+                [
+                  [105.84154015746937, -5.947165403275136],
+                  [105.84153974500541, -5.9468940425868961],
+                  [105.84126872298219, -5.9468944554902219],
+                  [105.84126913531337, -5.9471658161974341],
+                  [105.84154015746937, -5.947165403275136]
+                ]
+              ],
+              [
+                [
+                  [105.8439797696891, -5.9474330415055352],
+                  [105.84425079178608, -5.9474326272345346],
+                  [105.8442503779749, -5.9471612667389682],
+                  [105.84424996418296, -5.9468899062407807],
+                  [105.84397894235158, -5.9468903204737158],
+                  [105.84397935601073, -5.947161680990936],
+                  [105.8439797696891, -5.9474330415055352]
+                ]
+              ],
+              [
+                [
+                  [105.84153974500541, -5.9468940425868961],
+                  [105.84181076700948, -5.9468936295506074],
+                  [105.84181035443187, -5.9466222688786239],
+                  [105.84153933256059, -5.9466226818959331],
+                  [105.84153974500541, -5.9468940425868961]
+                ]
+              ],
+              [
+                [
+                  [105.8483152893438, -5.9468836767915194],
+                  [105.84831487357923, -5.9466123165768341],
+                  [105.84804385216955, -5.9466127327850478],
+                  [105.84804426780134, -5.9468840930188573],
+                  [105.8483152893438, -5.9468836767915194]
+                ]
+              ],
+              [
+                [
+                  [105.85075489933506, -5.9471512848018566],
+                  [105.850754482356, -5.9468799247622872],
+                  [105.85102550370506, -5.9468795072053524],
+                  [105.85102508661255, -5.9466081471822472],
+                  [105.85075406539629, -5.9466085647199955],
+                  [105.85048304416065, -5.9466089821247916],
+                  [105.85048346098758, -5.9468803421862626],
+                  [105.85048387783385, -5.9471517022450113],
+                  [105.85075489933506, -5.9471512848018566]
+                ]
+              ],
+              [
+                [
+                  [105.83991320093087, -5.9466251572077384],
+                  [105.83991278930193, -5.9463537964003494],
+                  [105.83964176742947, -5.9463542084680387],
+                  [105.83964217892563, -5.9466255692943628],
+                  [105.83991320093087, -5.9466251572077384]
+                ]
+              ],
+              [
+                [
+                  [105.84750097861777, -5.946070844250432],
+                  [105.84750056330941, -5.9457994839703598],
+                  [105.84722954224024, -5.9457998997223935],
+                  [105.84722995741581, -5.9460712600215722],
+                  [105.84750097861777, -5.946070844250432]
+                ]
+              ],
+              [
+                [
+                  [105.84614421395271, -5.9449874802583018],
+                  [105.8458731931854, -5.9449878952884312],
+                  [105.845874436605, -5.9458019764885295],
+                  [105.84668750004394, -5.9458007308276555],
+                  [105.84668708515319, -5.9455293704875611],
+                  [105.84614504314536, -5.945530201022911],
+                  [105.84614421395271, -5.9449874802583018]
+                ]
+              ],
+              [
+                [
+                  [105.84939646165614, -5.9449824895291981],
+                  [105.84939604549574, -5.9447111293722692],
+                  [105.84912502509275, -5.9447115459782562],
+                  [105.84912544112039, -5.9449829061543342],
+                  [105.84939646165614, -5.9449824895291981]
+                ]
+              ],
+              [
+                [
+                  [105.84804052781011, -5.9444418508177792],
+                  [105.84776950744326, -5.9444422667400945],
+                  [105.84776992278788, -5.9447136270145293],
+                  [105.84804094328749, -5.9447132110730969],
+                  [105.84804052781011, -5.9444418508177792]
+                ]
+              ],
+              [
+                [
+                  [105.84966623335114, -5.944167992349688],
+                  [105.84966664960561, -5.9444393524928909],
+                  [105.8499376698372, -5.9444389356402416],
+                  [105.84993725345001, -5.9441675755162011],
+                  [105.84966623335114, -5.944167992349688]
+                ]
+              ],
+              [
+                [
+                  [105.84804052781011, -5.9444418508177792],
+                  [105.84831154815768, -5.9444414347625605],
+                  [105.84831071699541, -5.9438987142820938],
+                  [105.8480396969133, -5.9438991302990649],
+                  [105.84804011235207, -5.944170490559741],
+                  [105.84804052781011, -5.9444418508177792]
+                ]
+              ],
+              [
+                [
+                  [105.84966623335114, -5.944167992349688],
+                  [105.84966540090024, -5.9436252720553231],
+                  [105.84912336117542, -5.9436261052469952],
+                  [105.84912377712575, -5.9438974654338255],
+                  [105.84939479713054, -5.943897048885284],
+                  [105.84939521323294, -5.9441684090502767],
+                  [105.84966623335114, -5.944167992349688]
+                ]
+              ]
+            ]
+          },
+          "properties": {
+            "OBJECTID": 1,
+            "Id": 1,
+            "gridcode": 2,
+            "Shape_Length": 6420.0000000083819,
+            "Shape_Area": 67499.999999650754,
+            "luasan": 6.7539261495839895
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 2,
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [105.85457604442639, -5.9645124463457897],
+                  [105.85457646452916, -5.9647838059411722],
+                  [105.85484749438417, -5.9647833852508851],
+                  [105.85484707414821, -5.9645120256747743],
+                  [105.85457604442639, -5.9645124463457897]
+                ]
+              ],
+              [
+                [
+                  [105.85457604442639, -5.9645124463457897],
+                  [105.85457562434308, -5.9642410867476752],
+                  [105.8537625354605, -5.9642423479028057],
+                  [105.85349150579411, -5.9642427680211494],
+                  [105.85322047610828, -5.9642431880061419],
+                  [105.85322089552565, -5.9645145477005252],
+                  [105.85349192534467, -5.9645141276962903],
+                  [105.85349234491466, -5.964785487368701],
+                  [105.85376337484745, -5.9647850672118619],
+                  [105.85376295514426, -5.9645137075586989],
+                  [105.85457604442639, -5.9645124463457897]
+                ]
+              ],
+              [
+                [
+                  [105.85322047610828, -5.9642431880061419],
+                  [105.85322005671033, -5.9639718283091296],
+                  [105.85267799754676, -5.9639726678406015],
+                  [105.85267841667833, -5.9642440275760791],
+                  [105.85322047610828, -5.9642431880061419]
+                ]
+              ],
+              [
+                [
+                  [105.8559299306514, -5.9636962631440893],
+                  [105.85592950996059, -5.9634249036343396],
+                  [105.85565848084937, -5.9634253247615918],
+                  [105.85565890140701, -5.963696684290638],
+                  [105.8559299306514, -5.9636962631440893]
+                ]
+              ],
+              [
+                [
+                  [105.85484497326027, -5.963155227753747],
+                  [105.85457394420435, -5.9631556483284003],
+                  [105.85457436420984, -5.9634270079372858],
+                  [105.85484539339893, -5.9634265873433598],
+                  [105.85484497326027, -5.963155227753747]
+                ]
+              ],
+              [
+                [
+                  [105.85484497326027, -5.963155227753747],
+                  [105.85511600229673, -5.9631548070457665],
+                  [105.85511516181147, -5.9626120878970577],
+                  [105.85484413304133, -5.9626125085664814],
+                  [105.85484455314106, -5.9628838681614695],
+                  [105.85484497326027, -5.963155227753747]
+                ]
+              ],
+              [
+                [
+                  [105.85321670222609, -5.9618009506356788],
+                  [105.85294567371928, -5.9618013703142037],
+                  [105.85294609282867, -5.9620727300520411],
+                  [105.85321712146865, -5.962072310354281],
+                  [105.85321670222609, -5.9618009506356788]
+                ]
+              ],
+              [
+                [
+                  [105.85321670222609, -5.9618009506356788],
+                  [105.85348773071348, -5.9618005308238589],
+                  [105.85348731135723, -5.9615291711217857],
+                  [105.85321628300298, -5.9615295909143642],
+                  [105.85321670222609, -5.9618009506356788]
+                ]
+              ],
+              [
+                [
+                  [105.85619422903169, -5.9593540896935],
+                  [105.85619380851959, -5.959082730159901],
+                  [105.85592278155779, -5.9590831511116438],
+                  [105.85592320193682, -5.9593545106645447],
+                  [105.85619422903169, -5.9593540896935]
+                ]
+              ],
+              [
+                [
+                  [105.84723992741557, -5.9525839063958816],
+                  [105.84723951177712, -5.9523125461612247],
+                  [105.84696848750038, -5.9523129622387261],
+                  [105.84696890300592, -5.9525843224924815],
+                  [105.84723992741557, -5.9525839063958816]
+                ]
+              ],
+              [
+                [
+                  [105.84751012028245, -5.9520407697323847],
+                  [105.84751053603453, -5.9523121299506423],
+                  [105.84778156027269, -5.952311713606977],
+                  [105.84778114438768, -5.952040353407833],
+                  [105.84751012028245, -5.9520407697323847]
+                ]
+              ],
+              [
+                [
+                  [105.84751012028245, -5.9520407697323847],
+                  [105.84750970454965, -5.9517694095114706],
+                  [105.84723868055805, -5.9517698256838409],
+                  [105.84723909615794, -5.9520411859238616],
+                  [105.84751012028245, -5.9520407697323847]
+                ]
+              ],
+              [
+                [
+                  [105.84642519328557, -5.9514997131025202],
+                  [105.84642477812294, -5.9512283527997836],
+                  [105.84588273049781, -5.951229183870578],
+                  [105.84588314539464, -5.9515005442114717],
+                  [105.84642519328557, -5.9514997131025202]
+                ]
+              ],
+              [
+                [
+                  [105.84750970454965, -5.9517694095114706],
+                  [105.84778072852198, -5.9517689932060307],
+                  [105.84805175247504, -5.9517685767675204],
+                  [105.84832277640876, -5.9517681601959405],
+                  [105.84832236029655, -5.9514968000296742],
+                  [105.84805133649571, -5.9514972165821298],
+                  [105.84805092053573, -5.9512258563940126],
+                  [105.84777989684848, -5.951226272794286],
+                  [105.84777948104067, -5.950954912584411],
+                  [105.84750845746704, -5.9509553288325137],
+                  [105.84750887314195, -5.9512266890615004],
+                  [105.84723784941615, -5.9512271051956578],
+                  [105.84669580190663, -5.9512279370647994],
+                  [105.84669621720214, -5.9514992973484491],
+                  [105.84696724109943, -5.9514988814613128],
+                  [105.84696765654712, -5.9517702417231408],
+                  [105.84723868055805, -5.9517698256838409],
+                  [105.84723826497745, -5.9514984654411132],
+                  [105.84750928883616, -5.9514980492878484],
+                  [105.84750970454965, -5.9517694095114706]
+                ]
+              ],
+              [
+                [
+                  [105.83612339984593, -5.9496158859352537],
+                  [105.83612298986662, -5.9493445248929042],
+                  [105.83585196626612, -5.9493449353066472],
+                  [105.83585237611258, -5.9496162963678465],
+                  [105.83612339984593, -5.9496158859352537]
+                ]
+              ],
+              [
+                [
+                  [105.84045936488144, -5.9493379401827537],
+                  [105.8404589527956, -5.9490665794401236],
+                  [105.84018792963326, -5.9490669919631847],
+                  [105.84018834158627, -5.9493383527247614],
+                  [105.84045936488144, -5.9493379401827537]
+                ]
+              ],
+              [
+                [
+                  [105.83557930398241, -5.9482599012402684],
+                  [105.83557889436391, -5.9479885401468167],
+                  [105.83530787138956, -5.9479889502003385],
+                  [105.83530828087522, -5.9482603113126267],
+                  [105.83557930398241, -5.9482599012402684]
+                ]
+              ],
+              [
+                [
+                  [105.84262507194968, -5.947706471472892],
+                  [105.84262465891617, -5.9474351108659436],
+                  [105.842353636704, -5.9474355243391059],
+                  [105.84235404960472, -5.9477068849650507],
+                  [105.84262507194968, -5.947706471472892]
+                ]
+              ],
+              [
+                [
+                  [105.84208261447267, -5.9474359376792947],
+                  [105.84208220172394, -5.9471645770316384],
+                  [105.84181117960624, -5.9471649902198704],
+                  [105.84181159222217, -5.9474363508865116],
+                  [105.84208261447267, -5.9474359376792947]
+                ]
+              ],
+              [
+                [
+                  [105.84452139991986, -5.9471608523540338],
+                  [105.84452098599509, -5.9468894918748854],
+                  [105.84424996418296, -5.9468899062407807],
+                  [105.8442503779749, -5.9471612667389682],
+                  [105.84452139991986, -5.9471608523540338]
+                ]
+              ],
+              [
+                [
+                  [105.84018381115527, -5.9463533841997105],
+                  [105.84018339941268, -5.9460820234085396],
+                  [105.8399123776921, -5.9460824355902382],
+                  [105.83991278930193, -5.9463537964003494],
+                  [105.84018381115527, -5.9463533841997105]
+                ]
+              ],
+              [
+                [
+                  [105.84804052781011, -5.9444418508177792],
+                  [105.84804011235207, -5.944170490559741],
+                  [105.84776909211793, -5.9441709064629373],
+                  [105.84776950744326, -5.9444422667400945],
+                  [105.84804052781011, -5.9444418508177792]
+                ]
+              ]
+            ]
+          },
+          "properties": {
+            "OBJECTID": 2,
+            "Id": 2,
+            "gridcode": 3,
+            "Shape_Length": 3600.0000000251457,
+            "Shape_Area": 35100.000001355074,
+            "luasan": 3.5120419292472622
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 10,
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [105.85702331928742, -5.9696644840570183],
+                  [105.85675228718969, -5.9696649061619818],
+                  [105.85675313028713, -5.970207624938789],
+                  [105.8570241626515, -5.9702072027951827],
+                  [105.85702458436279, -5.9704785621602419],
+                  [105.85756664929959, -5.9704777174339165],
+                  [105.85756622732163, -5.970206358107518],
+                  [105.85810829191369, -5.9702055128859195],
+                  [105.85810871415831, -5.9704768721736317],
+                  [105.85837974655836, -5.9704764493432538],
+                  [105.85838016895583, -5.9707478086088956],
+                  [105.85892223396394, -5.9707469625089509],
+                  [105.85892181129979, -5.9704756032820319],
+                  [105.85946387596304, -5.9704747566868512],
+                  [105.85946345305182, -5.9702033974959603],
+                  [105.85973448522074, -5.9702029740175178],
+                  [105.85973363919035, -5.9696602556664544],
+                  [105.85946260728805, -5.9696606791061306],
+                  [105.85946218443551, -5.9693893199071244],
+                  [105.8589201208388, -5.9693901663473188],
+                  [105.8589188531984, -5.9685760886179962],
+                  [105.85837679032325, -5.9685769344081629],
+                  [105.85837636808213, -5.9683055751208913],
+                  [105.85864739939618, -5.9683051523118884],
+                  [105.85864655470601, -5.967762433768061],
+                  [105.85837552365849, -5.9677628565383474],
+                  [105.85837594586054, -5.9680342158309845],
+                  [105.85810491466019, -5.9680346384871941],
+                  [105.85810575885634, -5.9685773571030767],
+                  [105.85756369586393, -5.9685782020925631],
+                  [105.85756453960506, -5.9691209207750182],
+                  [105.857293507813, -5.9691213431082577],
+                  [105.85729392957954, -5.9693927024647371],
+                  [105.85702289763466, -5.9693931246838448],
+                  [105.85702331928742, -5.9696644840570183],
+                  [105.85729435136562, -5.969664061818583],
+                  [105.85729477317122, -5.969935421169696],
+                  [105.8570237409597, -5.969935843427459],
+                  [105.85702331928742, -5.9696644840570183]
+                ]
+              ],
+              [
+                [
+                  [105.86135432250884, -5.9661300441937577],
+                  [105.86135474605919, -5.9664014032892982],
+                  [105.86162577622507, -5.9664009791484265],
+                  [105.86162535254149, -5.9661296200723113],
+                  [105.86135432250884, -5.9661300441937577]
+                ]
+              ],
+              [
+                [
+                  [105.8537625354605, -5.9642423479028057],
+                  [105.8537621157962, -5.9639709882442817],
+                  [105.85349108626298, -5.9639714083433777],
+                  [105.85349150579411, -5.9642427680211494],
+                  [105.8537625354605, -5.9642423479028057]
+                ]
+              ],
+              [
+                [
+                  [105.85593077209147, -5.9642389821554636],
+                  [105.85593035136169, -5.9639676226511416],
+                  [105.85565932198413, -5.9639680438169878],
+                  [105.85565974258073, -5.9642394033406054],
+                  [105.85593077209147, -5.9642389821554636]
+                ]
+              ],
+              [
+                [
+                  [105.85430207544267, -5.9626133495053883],
+                  [105.85376001776619, -5.9626141899110436],
+                  [105.85376085691989, -5.9631569092524117],
+                  [105.85457394420435, -5.9631556483284003],
+                  [105.85457352421831, -5.9628842887168529],
+                  [105.8543024952761, -5.9628847091389154],
+                  [105.85430207544267, -5.9626133495053883]
+                ]
+              ],
+              [
+                [
+                  [105.85294609282867, -5.9620727300520411],
+                  [105.85294567371928, -5.9618013703142037],
+                  [105.85294525462929, -5.9615300105736546],
+                  [105.85267422623616, -5.9615304300996552],
+                  [105.85267506416929, -5.9620731496164998],
+                  [105.85294609282867, -5.9620727300520411]
+                ]
+              ],
+              [
+                [
+                  [105.85565343567718, -5.960169010202705],
+                  [105.85484035301948, -5.9601702720902416],
+                  [105.85484119288812, -5.9607129913260657],
+                  [105.85538324854512, -5.9607121501238423],
+                  [105.85538282833488, -5.9604407905458485],
+                  [105.85565385600106, -5.9604403697641208],
+                  [105.85565343567718, -5.960169010202705]
+                ]
+              ],
+              [
+                [
+                  [105.85565343567718, -5.960169010202705],
+                  [105.85592446319082, -5.9601685893070107],
+                  [105.85592404275333, -5.9598972297622277],
+                  [105.85700815208051, -5.9598955449241178],
+                  [105.85700773113017, -5.9596241854538698],
+                  [105.85619464956328, -5.9596254492243856],
+                  [105.85619422903169, -5.9593540896935],
+                  [105.85592320193682, -5.9593545106645447],
+                  [105.85592362233533, -5.959625870214734],
+                  [105.85565259508788, -5.9596262910718361],
+                  [105.85565343567718, -5.960169010202705]
+                ]
+              ],
+              [
+                [
+                  [105.86135432250884, -5.9661300441937577],
+                  [105.86135389897812, -5.965858685095518],
+                  [105.86108286905909, -5.9658591090641551],
+                  [105.86108244568118, -5.9655877499437819],
+                  [105.86081141587573, -5.9655881737596204],
+                  [105.86081099265066, -5.9653168146171032],
+                  [105.86108202232289, -5.9653163908206785],
+                  [105.8610807523656, -5.964502313435311],
+                  [105.86135178161865, -5.9645018895637678],
+                  [105.8613526285036, -5.9650446077845629],
+                  [105.86162365800338, -5.9650441837408161],
+                  [105.86162408160848, -5.9653155428277076],
+                  [105.86189511122188, -5.965315118631163],
+                  [105.86189553497979, -5.9655864776959922],
+                  [105.86270862410183, -5.9655852042477902],
+                  [105.86270904827903, -5.9658565632515579],
+                  [105.86298007808033, -5.9658561384826108],
+                  [105.86297838095648, -5.9647707025291723],
+                  [105.86352043943438, -5.9647698527468398],
+                  [105.86352001493614, -5.9644984937906642],
+                  [105.86324898584022, -5.9644989187290438],
+                  [105.86324856149483, -5.9642275597506691],
+                  [105.86351959045757, -5.9642271348317575],
+                  [105.86351916599864, -5.9639557758702209],
+                  [105.86162196377913, -5.9639587473661368],
+                  [105.86162111678469, -5.9634160291626124],
+                  [105.86189214546575, -5.9634156051020843],
+                  [105.86189256908632, -5.963686964185765],
+                  [105.86243462665593, -5.9636861156258378],
+                  [105.86243420276901, -5.9634147565810389],
+                  [105.86270523139117, -5.9634143321205206],
+                  [105.86270480739071, -5.9631429730924568],
+                  [105.86297583586008, -5.9631425485180634],
+                  [105.86297541174612, -5.9628711895067905],
+                  [105.86324644006268, -5.9628707648185353],
+                  [105.8632455916274, -5.9623280468267552],
+                  [105.8621614793085, -5.9623297446242498],
+                  [105.86216190298371, -5.9626011036993152],
+                  [105.86189087472175, -5.9626015278348623],
+                  [105.86189129828348, -5.9628728869266325],
+                  [105.86162026986872, -5.9628733109482983],
+                  [105.86161942303123, -5.9623305927231645],
+                  [105.86189045117966, -5.96233016874036],
+                  [105.86188960415437, -5.9617874505433672],
+                  [105.86107652044905, -5.9617887219753145],
+                  [105.86107609736521, -5.9615173628144813],
+                  [105.86080506955736, -5.9615177863391313],
+                  [105.86080464662622, -5.9612464271561567],
+                  [105.86053361893188, -5.9612468505281129],
+                  [105.86053277339468, -5.960704132115362],
+                  [105.86026174594697, -5.9607045553152354],
+                  [105.86026090075433, -5.9601618368528531],
+                  [105.85998987355325, -5.9601622598806685],
+                  [105.85998945111939, -5.9598909006260641],
+                  [105.86053150523581, -5.9598900544759701],
+                  [105.86053108255535, -5.959618695257447],
+                  [105.85944697477655, -5.9596203869470665],
+                  [105.85944655264802, -5.9593490276482859],
+                  [105.85917552578745, -5.9593494502182009],
+                  [105.85917594778292, -5.959620809536359],
+                  [105.85863389373695, -5.9596216543152085],
+                  [105.85863347200765, -5.9593502949583179],
+                  [105.85809141814967, -5.9593511391654772],
+                  [105.85809183961283, -5.9596224985610773],
+                  [105.85836286668467, -5.9596220765047647],
+                  [105.85836328830044, -5.9598934358783175],
+                  [105.8586343154858, -5.9598930136694035],
+                  [105.85863473725421, -5.9601643730208869],
+                  [105.85836370993574, -5.9601647952491579],
+                  [105.85836328830044, -5.9598934358783175],
+                  [105.85755020662704, -5.9598947017055526],
+                  [105.85755315568926, -5.9617942176511907],
+                  [105.85728212749399, -5.9617946394624308],
+                  [105.85728254873355, -5.9620659988917684],
+                  [105.85701152038561, -5.962066420589041],
+                  [105.85701194151156, -5.9623377800350097],
+                  [105.85674091301095, -5.9623382016183024],
+                  [105.85674175505507, -5.9628809205408588],
+                  [105.85647072626867, -5.9628813420294744],
+                  [105.8561996974628, -5.9628817633847717],
+                  [105.8561992766973, -5.9626104038862344],
+                  [105.85592824800506, -5.9626108250889098],
+                  [105.85592782739219, -5.9623394655683404],
+                  [105.85565679881363, -5.9623398866184054],
+                  [105.85565763979254, -5.9628826056954081],
+                  [105.85538661092819, -5.962883026650748],
+                  [105.85538703131373, -5.9631543862044616],
+                  [105.85565806031121, -5.9631539652298313],
+                  [105.85592908928925, -5.9631535441218757],
+                  [105.85592950996059, -5.9634249036343396],
+                  [105.85620053905228, -5.9634244823737559],
+                  [105.8562001182478, -5.9631531228805965],
+                  [105.85674217610639, -5.9631522799980594],
+                  [105.85674259717722, -5.9634236394525963],
+                  [105.85701362621043, -5.9634232177920206],
+                  [105.85701404743394, -5.9636945772245227],
+                  [105.85674301826754, -5.9636949989044208],
+                  [105.85674259717722, -5.9634236394525963],
+                  [105.85647156812449, -5.9634240609798423],
+                  [105.85647241005829, -5.9639667799194216],
+                  [105.85755652721751, -5.9639650928558616],
+                  [105.85755610570814, -5.9636937334647167],
+                  [105.85782713481598, -5.9636933113848078],
+                  [105.85782797812058, -5.9642360301256883],
+                  [105.85809900747525, -5.9642356078737517],
+                  [105.85809816390427, -5.9636928891715622],
+                  [105.85864022202226, -5.9636920443450601],
+                  [105.85864064406432, -5.9639634036588109],
+                  [105.85891167322718, -5.9639629810261914],
+                  [105.85891082889623, -5.9634202624347195],
+                  [105.85918185777318, -5.9634198397074965],
+                  [105.85918270237048, -5.9639625582602278],
+                  [105.85945373149423, -5.963962135360922],
+                  [105.85945330905261, -5.9636907761052802],
+                  [105.86053742481909, -5.963689083252194],
+                  [105.86054038605072, -5.9655885974420801],
+                  [105.8602693562061, -5.9655890209911604],
+                  [105.86026977918435, -5.9658603801697518],
+                  [105.86054080916217, -5.965859956601272],
+                  [105.86054123229323, -5.9661313157577496],
+                  [105.86135432250884, -5.9661300441937577]
+                ]
+              ]
+            ]
+          },
+          "properties": {
+            "OBJECTID": 10,
+            "Id": 10,
+            "gridcode": 1,
+            "Shape_Length": 23339.999999948777,
+            "Shape_Area": 769499.99999945518,
+            "luasan": 76.99452205468107
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 11,
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [105.85430585464375, -5.9650555861100498],
+                  [105.85430543465472, -5.9647842264980966],
+                  [105.85403440476081, -5.964784646921661],
+                  [105.85403482461663, -5.9650560065528735],
+                  [105.85430585464375, -5.9650555861100498]
+                ]
+              ],
+              [
+                [
+                  [105.84073121265229, -5.9498802489469789],
+                  [105.84018916554963, -5.9498810742398121],
+                  [105.84019081370589, -5.9509665172376192],
+                  [105.83991978959436, -5.9509669297602583],
+                  [105.83992020154835, -5.9512382905219132],
+                  [105.84019122579278, -5.9512378779803328],
+                  [105.84019205002393, -5.9517805994577575],
+                  [105.840463074515, -5.9517801867452222],
+                  [105.84046389908849, -5.9523229081739553],
+                  [105.84100594854493, -5.9523220822738452],
+                  [105.8410055359828, -5.9520507215987202],
+                  [105.84127656054939, -5.9520503084680065],
+                  [105.84127573521674, -5.9515075871476677],
+                  [105.84100471091595, -5.9515080002404499],
+                  [105.84100429841125, -5.9512366395572363],
+                  [105.84127532257914, -5.9512362264834202],
+                  [105.84127449736141, -5.9506935051469556],
+                  [105.8410034734593, -5.9506939181828411],
+                  [105.84100264858391, -5.9501511967976164],
+                  [105.8407316249284, -5.9501516096625346],
+                  [105.84073121265229, -5.9498802489469789]
+                ]
+              ],
+              [
+                [
+                  [105.83530909990364, -5.9488030335292583],
+                  [105.83503807651178, -5.9488034435062866],
+                  [105.83503889535055, -5.9493461657497733],
+                  [105.83558094264662, -5.949345345587373],
+                  [105.83558053295204, -5.9490739845046257],
+                  [105.83530950944635, -5.949074394633497],
+                  [105.83530909990364, -5.9488030335292583]
+                ]
+              ],
+              [
+                [
+                  [105.84100017441725, -5.9485230325775236],
+                  [105.8410005867305, -5.948794393287602],
+                  [105.84127160970259, -5.9487939803844769],
+                  [105.8412711972565, -5.9485226196933647],
+                  [105.84100017441725, -5.9485230325775236]
+                ]
+              ],
+              [
+                [
+                  [105.84100017441725, -5.9485230325775236],
+                  [105.84099976212315, -5.948251671864706],
+                  [105.84072873939758, -5.9482520845969082],
+                  [105.84072915155883, -5.9485234453286857],
+                  [105.84100017441725, -5.9485230325775236]
+                ]
+              ],
+              [
+                [
+                  [105.84018669388904, -5.9482529096623367],
+                  [105.84018628201255, -5.9479815488900547],
+                  [105.8399152593624, -5.9479819612043396],
+                  [105.83991567110607, -5.9482533219955629],
+                  [105.84018669388904, -5.9482529096623367]
+                ]
+              ],
+              [
+                [
+                  [105.84072873939758, -5.9482520845969082],
+                  [105.84072832725543, -5.9479807238625266],
+                  [105.84045730464356, -5.9479811364427828],
+                  [105.84045771665286, -5.9482524971961181],
+                  [105.84072873939758, -5.9482520845969082]
+                ]
+              ],
+              [
+                [
+                  [105.83584868817947, -5.9471740467202334],
+                  [105.83557766562257, -5.9471744568502114],
+                  [105.83557807518399, -5.9474458179517962],
+                  [105.83584909787371, -5.9474454078029746],
+                  [105.83584868817947, -5.9471740467202334]
+                ]
+              ],
+              [
+                [
+                  [105.84262465891617, -5.9474351108659436],
+                  [105.84262424590183, -5.947163750256272],
+                  [105.84235322382246, -5.947164163710438],
+                  [105.842353636704, -5.9474355243391059],
+                  [105.84262465891617, -5.9474351108659436]
+                ]
+              ],
+              [
+                [
+                  [105.83584868817947, -5.9471740467202334],
+                  [105.83611971071734, -5.9471736364572871],
+                  [105.83611930090935, -5.9469022753907748],
+                  [105.83584827850426, -5.9469026856348703],
+                  [105.83584868817947, -5.9471740467202334]
+                ]
+              ],
+              [
+                [
+                  [105.83937115690127, -5.9466259812480322],
+                  [105.83937074553791, -5.9463546204027793],
+                  [105.83937033419363, -5.9460832595548041],
+                  [105.83882829061875, -5.9460840829875981],
+                  [105.83882870169745, -5.9463554438734123],
+                  [105.83855767974856, -5.9463558554093057],
+                  [105.83855809071358, -5.9466272163113088],
+                  [105.83937115690127, -5.9466259812480322]
+                ]
+              ]
+            ]
+          },
+          "properties": {
+            "OBJECTID": 11,
+            "Id": 11,
+            "gridcode": 5,
+            "Shape_Length": 2400.0000000270084,
+            "Shape_Area": 40500.000000321306,
+            "luasan": 4.0523737885519893
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 12,
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [105.85322047610828, -5.9642431880061419],
+                  [105.85267841667833, -5.9642440275760791],
+                  [105.85267883582932, -5.9645153873089276],
+                  [105.85294986568721, -5.9645149675714046],
+                  [105.8529502849908, -5.9647863272822921],
+                  [105.85267925499973, -5.9647867470390441],
+                  [105.85267967418953, -5.9650581067664659],
+                  [105.85295070431381, -5.965057686990483],
+                  [105.85295112365624, -5.9653290466959437],
+                  [105.85322215389432, -5.9653286267673584],
+                  [105.85322383199114, -5.966414065485413],
+                  [105.85376589347477, -5.9664132250741604],
+                  [105.85376505385459, -5.9658705057975405],
+                  [105.85403608430079, -5.9658700854303239],
+                  [105.85403482461663, -5.9650560065528735],
+                  [105.85403440476081, -5.964784646921661],
+                  [105.85430543465472, -5.9647842264980966],
+                  [105.85457646452916, -5.9647838059411722],
+                  [105.85457604442639, -5.9645124463457897],
+                  [105.85376295514426, -5.9645137075586989],
+                  [105.85376337484745, -5.9647850672118619],
+                  [105.85349234491466, -5.964785487368701],
+                  [105.85349192534467, -5.9645141276962903],
+                  [105.85322089552565, -5.9645145477005252],
+                  [105.85322047610828, -5.9642431880061419]
+                ]
+              ],
+              [
+                [
+                  [105.84751012028245, -5.9520407697323847],
+                  [105.84778114438768, -5.952040353407833],
+                  [105.84778072852198, -5.9517689932060307],
+                  [105.84750970454965, -5.9517694095114706],
+                  [105.84751012028245, -5.9520407697323847]
+                ]
+              ],
+              [
+                [
+                  [105.84751012028245, -5.9520407697323847],
+                  [105.84723909615794, -5.9520411859238616],
+                  [105.84723868055805, -5.9517698256838409],
+                  [105.84696765654712, -5.9517702417231408],
+                  [105.84696724109943, -5.9514988814613128],
+                  [105.84669621720214, -5.9514992973484491],
+                  [105.84642519328557, -5.9514997131025202],
+                  [105.84588314539464, -5.9515005442114717],
+                  [105.84588356031074, -5.9517719045496413],
+                  [105.84615458439873, -5.9517714890426214],
+                  [105.8461554145545, -5.9523142096727346],
+                  [105.84642643888905, -5.952313793994481],
+                  [105.84642685412875, -5.9525851542864192],
+                  [105.84615582966128, -5.9525855699837553],
+                  [105.84615624478732, -5.9528569302920831],
+                  [105.84669829396886, -5.9528560987261523],
+                  [105.84669870938002, -5.9531274589936034],
+                  [105.84696973407483, -5.9531270429919019],
+                  [105.84696890300592, -5.9525843224924815],
+                  [105.84696848750038, -5.9523129622387261],
+                  [105.84723951177712, -5.9523125461612247],
+                  [105.84751053603453, -5.9523121299506423],
+                  [105.84751012028245, -5.9520407697323847]
+                ]
+              ],
+              [
+                [
+                  [105.84832236029655, -5.9514968000296742],
+                  [105.84832194420366, -5.951225439860683],
+                  [105.84805092053573, -5.9512258563940126],
+                  [105.84805133649571, -5.9514972165821298],
+                  [105.84832236029655, -5.9514968000296742]
+                ]
+              ],
+              [
+                [
+                  [105.83666544725547, -5.9496150646709998],
+                  [105.83666503701045, -5.9493437036663686],
+                  [105.83639401344804, -5.949344114346145],
+                  [105.83639442356021, -5.9496154753696384],
+                  [105.83666544725547, -5.9496150646709998]
+                ]
+              ],
+              [
+                [
+                  [105.83747851822696, -5.9496138317769471],
+                  [105.83747810758337, -5.9493424708289391],
+                  [105.83720708407813, -5.9493428819077652],
+                  [105.83720749458887, -5.9496142428746541],
+                  [105.83747851822696, -5.9496138317769471]
+                ]
+              ],
+              [
+                [
+                  [105.83530909990364, -5.9488030335292583],
+                  [105.83530950944635, -5.949074394633497],
+                  [105.83558053295204, -5.9490739845046257],
+                  [105.83558012327646, -5.9488026234192244],
+                  [105.83530909990364, -5.9488030335292583]
+                ]
+              ],
+              [
+                [
+                  [105.8388324022651, -5.948797691724458],
+                  [105.83856137912093, -5.9487981034305459],
+                  [105.83856179025773, -5.9490694643083328],
+                  [105.83883281353475, -5.9490690525833338],
+                  [105.8388324022651, -5.948797691724458]
+                ]
+              ],
+              [
+                [
+                  [105.83530909990364, -5.9488030335292583],
+                  [105.83530828087522, -5.9482603113126267],
+                  [105.83449521143964, -5.9482615407317487],
+                  [105.83449562054584, -5.9485329018979094],
+                  [105.83395357389479, -5.9485337208833133],
+                  [105.83395439163283, -5.9490764432826886],
+                  [105.8342254152335, -5.9490760338188728],
+                  [105.83422582426385, -5.9493473949957458],
+                  [105.83476787167399, -5.9493465756314476],
+                  [105.83476828098902, -5.949617936767984],
+                  [105.83503930479844, -5.9496175268674838],
+                  [105.83503971426533, -5.949888887982504],
+                  [105.8353107381886, -5.9498884779301493],
+                  [105.83531032858885, -5.9496171168339611],
+                  [105.83585237611258, -5.9496162963678465],
+                  [105.83585196626612, -5.9493449353066472],
+                  [105.83558094264662, -5.949345345587373],
+                  [105.83503889535055, -5.9493461657497733],
+                  [105.83503807651178, -5.9488034435062866],
+                  [105.83530909990364, -5.9488030335292583]
+                ]
+              ],
+              [
+                [
+                  [105.84262631116535, -5.9485205532776035],
+                  [105.84262589807429, -5.9482491926786718],
+                  [105.84235487546368, -5.9482496062088224],
+                  [105.84235528842193, -5.9485209668267514],
+                  [105.84262631116535, -5.9485205532776035]
+                ]
+              ],
+              [
+                [
+                  [105.8388324022651, -5.948797691724458],
+                  [105.83937444849613, -5.9487968679132681],
+                  [105.83937486003147, -5.9490682287343049],
+                  [105.83991690645179, -5.9490674043532348],
+                  [105.83991731827193, -5.9493387651337528],
+                  [105.83964629493849, -5.949339177409728],
+                  [105.83964753011507, -5.9501532597918656],
+                  [105.8399185538471, -5.9501528474590843],
+                  [105.83991978959436, -5.9509669297602583],
+                  [105.84019081370589, -5.9509665172376192],
+                  [105.84018916554963, -5.9498810742398121],
+                  [105.84073121265229, -5.9498802489469789],
+                  [105.8407316249284, -5.9501516096625346],
+                  [105.84100264858391, -5.9501511967976164],
+                  [105.8410034734593, -5.9506939181828411],
+                  [105.84127449736141, -5.9506935051469556],
+                  [105.84127367222027, -5.9501507837996623],
+                  [105.84154469583746, -5.9501503706686742],
+                  [105.84154428316275, -5.9498790100100152],
+                  [105.84100223617493, -5.9498798361010188],
+                  [105.84100141141442, -5.9493371146996896],
+                  [105.84127243465221, -5.9493367017586332],
+                  [105.84127202216783, -5.949065341072882],
+                  [105.84181406832022, -5.9490645148296721],
+                  [105.84181324287755, -5.9485217935260533],
+                  [105.8412711972565, -5.9485226196933647],
+                  [105.84127160970259, -5.9487939803844769],
+                  [105.8410005867305, -5.948794393287602],
+                  [105.84100017441725, -5.9485230325775236],
+                  [105.84072915155883, -5.9485234453286857],
+                  [105.84072873939758, -5.9482520845969082],
+                  [105.84045771665286, -5.9482524971961181],
+                  [105.84045730464356, -5.9479811364427828],
+                  [105.84018628201255, -5.9479815488900547],
+                  [105.84018669388904, -5.9482529096623367],
+                  [105.83991567110607, -5.9482533219955629],
+                  [105.83964464830397, -5.9482537341957977],
+                  [105.83964505993393, -5.9485250950033528],
+                  [105.83883199101453, -5.9485263308628742],
+                  [105.8388324022651, -5.948797691724458]
+                ]
+              ],
+              [
+                [
+                  [105.83584868817947, -5.9471740467202334],
+                  [105.83584909787371, -5.9474454078029746],
+                  [105.83612012054438, -5.9474449975211794],
+                  [105.83611971071734, -5.9471736364572871],
+                  [105.83584868817947, -5.9471740467202334]
+                ]
+              ],
+              [
+                [
+                  [105.84208220172394, -5.9471645770316384],
+                  [105.84208261447267, -5.9474359376792947],
+                  [105.842353636704, -5.9474355243391059],
+                  [105.84235322382246, -5.947164163710438],
+                  [105.84208220172394, -5.9471645770316384]
+                ]
+              ],
+              [
+                [
+                  [105.84208220172394, -5.9471645770316384],
+                  [105.84208178899438, -5.9468932163813593],
+                  [105.84181076700948, -5.9468936295506074],
+                  [105.84153974500541, -5.9468940425868961],
+                  [105.84154015746937, -5.947165403275136],
+                  [105.84181117960624, -5.9471649902198704],
+                  [105.84208220172394, -5.9471645770316384]
+                ]
+              ],
+              [
+                [
+                  [105.83584868817947, -5.9471740467202334],
+                  [105.83584827850426, -5.9469026856348703],
+                  [105.83611930090935, -5.9469022753907748],
+                  [105.83611889112036, -5.9466309143215401],
+                  [105.83530582424643, -5.9466321445984143],
+                  [105.83530623363704, -5.9469035057241779],
+                  [105.8350352111749, -5.946903915569389],
+                  [105.8350348019171, -5.9466325544247933],
+                  [105.83476377956876, -5.9466329641182174],
+                  [105.83476500700078, -5.9474470476004155],
+                  [105.83503602974754, -5.9474466378505157],
+                  [105.83503643906236, -5.9477179989870477],
+                  [105.83530746192291, -5.9477175890853431],
+                  [105.83530787138956, -5.9479889502003385],
+                  [105.83557889436391, -5.9479885401468167],
+                  [105.83557848476444, -5.9477171790506587],
+                  [105.83557807518399, -5.9474458179517962],
+                  [105.83557766562257, -5.9471744568502114],
+                  [105.83584868817947, -5.9471740467202334]
+                ]
+              ],
+              [
+                [
+                  [105.83937115690127, -5.9466259812480322],
+                  [105.83855809071358, -5.9466272163113088],
+                  [105.83855850169768, -5.9468985772106224],
+                  [105.83937156828375, -5.9468973420905966],
+                  [105.83937115690127, -5.9466259812480322]
+                ]
+              ],
+              [
+                [
+                  [105.83937115690127, -5.9466259812480322],
+                  [105.83964217892563, -5.9466255692943628],
+                  [105.83964176742947, -5.9463542084680387],
+                  [105.83937074553791, -5.9463546204027793],
+                  [105.83937115690127, -5.9466259812480322]
+                ]
+              ]
+            ]
+          },
+          "properties": {
+            "OBJECTID": 12,
+            "Id": 12,
+            "gridcode": 4,
+            "Shape_Length": 6840.0000000204891,
+            "Shape_Area": 126900.00000048894,
+            "luasan": 12.69742469763877
+          }
+        }
+      ]
+    };
+
+    // ==================== INISIALISASI PETA ====================
+    const map = L.map('map').setView([-5.963, 105.854], 13);
+
+    // Layer Dasar
+    const basemaps = {
+      'osm': L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }),
+      'satellite': L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: '© Esri'
+      }),
+      'terrain': L.tileLayer('https://stamen-tiles.a.ssl.fastly.net/terrain/{z}/{x}/{y}.jpg', {
+        attribution: '© Stamen Design'
+      })
+    };
+
+    let currentBasemap = 'satellite';
+    basemaps[currentBasemap].addTo(map);
+
+    // Variabel global untuk fitur tambahan
+    let geoJSONLayer = null;
+    let densityChart = null;
+    let currentFilter = 'all';
+    let drawControl = null;
+    let drawnItems = new L.FeatureGroup();
+    map.addLayer(drawnItems);
+    let measureControl = null;
+
+    // ==================== FUNGSI UTAMA ====================
+    
+    // Fungsi untuk memuat dan menampilkan data GeoJSON
+    function loadGeoJSONData() {
+      try {
+        // Update progress bar
+        document.getElementById('dataProgress').style.width = '50%';
+        
+        // Hapus layer sebelumnya jika ada
+        if (geoJSONLayer) {
+          map.removeLayer(geoJSONLayer);
+        }
+        
+        const data = evisangiang22;
+        
+        // Validasi data
+        if (!data || !data.features || data.features.length === 0) {
+          throw new Error('Data GeoJSON tidak valid atau kosong');
+        }
+        
+        console.log(`Memuat ${data.features.length} fitur Evisangiang22`);
+        
+        // Hitung statistik
+        calculateStatistics(data);
+        
+        // Style berdasarkan gridcode (kerapatan vegetasi)
+        function getStyleByGridcode(feature) {
+          const gridcode = feature.properties.gridcode;
+          let color, opacity, weight;
+          
+          switch(gridcode) {
+            case 1: // Sangat Rendah
+              color = '#ffffcc';
+              opacity = 0.7;
+              weight = 1;
+              break;
+            case 2: // Rendah
+              color = '#c2e699';
+              opacity = 0.7;
+              weight = 1;
+              break;
+            case 3: // Sedang-Rendah
+              color = '#78c679';
+              opacity = 0.7;
+              weight = 1.5;
+              break;
+            case 4: // Sedang
+              color = '#31a354';
+              opacity = 0.8;
+              weight = 2;
+              break;
+            case 5: // Tinggi
+              color = '#006837';
+              opacity = 0.9;
+              weight = 2.5;
+              break;
+            case 6: // Sangat Tinggi
+              color = '#004529';
+              opacity = 1;
+              weight = 3;
+              break;
+            default:
+              color = '#808080';
+              opacity = 0.5;
+              weight = 1;
+          }
+          
+          return {
+            fillColor: color,
+            color: color,
+            weight: weight,
+            opacity: 0.8,
+            fillOpacity: opacity
+          };
+        }
+        
+        // Filter function
+        function filterByDensity(feature) {
+          if (currentFilter === 'all') return true;
+          return feature.properties.gridcode.toString() === currentFilter;
+        }
+        
+        // Tambah layer GeoJSON ke peta
+        geoJSONLayer = L.geoJSON(data, {
+          style: getStyleByGridcode,
+          filter: filterByDensity,
+          onEachFeature: function(feature, layer) {
+            const props = feature.properties;
+            
+            let popupContent = `
+              <div style="max-width: 280px;">
+                <h4 style="margin:0 0 8px 0; color: #0a5c36; border-bottom: 2px solid #0a5c36; padding-bottom: 4px;">
+                  Evisangiang22 - Poligon ${props.Id}
+                </h4>
+                <div style="font-size: 12px; color: #333; line-height: 1.4;">
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                    <strong>Kerapatan:</strong> 
+                    <span style="color: ${getColorByGridcode(props.gridcode)}; font-weight: bold;">
+                      ${getKerapatanLabel(props.gridcode)}
+                    </span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                    <strong>Gridcode:</strong> <span>${props.gridcode || 'N/A'}</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                    <strong>Luasan:</strong> <span>${props.luasan ? props.luasan.toFixed(4) + ' ha' : 'N/A'}</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                    <strong>Shape Length:</strong> <span>${props.Shape_Length ? props.Shape_Length.toFixed(2) + ' m' : 'N/A'}</span>
+                  </div>
+                </div>
+            `;
+            
+            // Tambahkan info tambahan berdasarkan gridcode
+            popupContent += `
+              <div style="margin-top: 8px; padding: 6px; background: #f8f9fa; border-radius: 4px; font-size: 11px; border-left: 3px solid ${getColorByGridcode(props.gridcode)};">
+                <strong>Indeks Vegetasi:</strong> ${getKerapatanLabel(props.gridcode)}<br>
+                <div style="width: 100%; height: 8px; background: linear-gradient(90deg, #ffffcc, #004529); margin: 4px 0; border-radius: 4px; position: relative;">
+                  <div style="position: absolute; left: ${((props.gridcode - 1) / 5) * 100}%; width: 20%; height: 100%; background: ${getColorByGridcode(props.gridcode)}; border-radius: 4px;"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 9px; color: #666;">
+                  <span>Sangat Rendah</span>
+                  <span>Sangat Tinggi</span>
+                </div>
+              </div>
+            `;
+            
+            popupContent += `</div>`;
+            layer.bindPopup(popupContent);
+            
+            // Tooltip
+            layer.bindTooltip(`Evisangiang22 - ${getKerapatanLabel(props.gridcode)} (${props.luasan ? props.luasan.toFixed(4) + ' ha' : 'N/A'})`, {
+              permanent: false,
+              direction: 'auto',
+              className: 'custom-tooltip'
+            });
+          }
+        }).addTo(map);
+        
+        // Fit bounds ke data
+        if (geoJSONLayer.getBounds().isValid()) {
+          map.fitBounds(geoJSONLayer.getBounds());
+        } else {
+          console.warn('Bounds data tidak valid, menggunakan view default');
+        }
+        
+        // Update progress bar
+        document.getElementById('dataProgress').style.width = '100%';
+        
+        // Sembunyikan loading overlay
+        document.getElementById('loadingOverlay').style.display = 'none';
+        
+        console.log(`Data Evisangiang22 berhasil dimuat - ${data.features.length} fitur`);
+        
+        // Update chat bot
+        const chatContent = document.getElementById('chatContent');
+        const botMessage = document.createElement('div');
+        botMessage.className = 'chat-message chat-bot';
+        botMessage.textContent = `Data Evisangiang22 berhasil dimuat! Terdapat ${data.features.length} poligon dengan total luasan ${document.getElementById('totalLuas').textContent}.`;
+        chatContent.appendChild(botMessage);
+        chatContent.scrollTop = chatContent.scrollHeight;
+        
+      } catch (error) {
+        console.error('Error loading GeoJSON data:', error);
+        document.getElementById('loadingOverlay').innerHTML = `
+          <div style="color: #dc3545; text-align: center;">
+            <div>❌ Error memuat data</div>
+            <div style="font-size: 12px; margin-top: 8px;">${error.message}</div>
+            <button onclick="location.reload()" style="margin-top: 12px; padding: 8px 16px; background: var(--mg-green); color: white; border: none; border-radius: 4px; cursor: pointer;">
+              Muat Ulang
+            </button>
+          </div>
+        `;
+      }
+    }
+
+    // Fungsi untuk mendapatkan label kerapatan
+    function getKerapatanLabel(gridcode) {
+      switch(gridcode) {
+        case 1: return "Sangat Rendah";
+        case 2: return "Rendah";
+        case 3: return "Sedang-Rendah";
+        case 4: return "Sedang";
+        case 5: return "Tinggi";
+        case 6: return "Sangat Tinggi";
+        default: return "Tidak Diketahui";
+      }
+    }
+
+    // Fungsi untuk menghitung statistik
+    function calculateStatistics(data) {
+      let totalLuasan = 0;
+      let jumlahPoligon = data.features.length;
+      let luasanMax = 0;
+      let luasanMin = Infinity;
+      let kerapatanRata = 0;
+      
+      const densityCount = {
+        1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0
+      };
+      
+      data.features.forEach(feature => {
+        const luasan = feature.properties.luasan || (feature.properties.Shape_Area / 10000); // Convert dari m² ke hektar
+        const gridcode = feature.properties.gridcode || 1;
+        
+        totalLuasan += luasan;
+        densityCount[gridcode]++;
+        
+        if (luasan > luasanMax) luasanMax = luasan;
+        if (luasan < luasanMin) luasanMin = luasan;
+        kerapatanRata += gridcode;
+      });
+      
+      kerapatanRata = (kerapatanRata / jumlahPoligon).toFixed(1);
+      
+      // Update statistik panel
+      document.getElementById('totalLuas').textContent = totalLuasan.toFixed(4) + ' ha';
+      document.getElementById('jumlahPoligon').textContent = jumlahPoligon;
+      document.getElementById('kerapatanRata').textContent = kerapatanRata;
+      document.getElementById('luasMax').textContent = luasanMax.toFixed(4) + ' ha';
+      document.getElementById('luasMin').textContent = luasanMin.toFixed(4) + ' ha';
+      
+      // Update detail kerapatan
+      document.getElementById('detailSangatRendah').textContent = densityCount[1] + ' poligon';
+      document.getElementById('detailRendah').textContent = densityCount[2] + ' poligon';
+      document.getElementById('detailSedangRendah').textContent = densityCount[3] + ' poligon';
+      document.getElementById('detailSedang').textContent = densityCount[4] + ' poligon';
+      document.getElementById('detailTinggi').textContent = densityCount[5] + ' poligon';
+      document.getElementById('detailSangatTinggi').textContent = densityCount[6] + ' poligon';
+      
+      // Update data display
+      document.getElementById('dataSangatRendah').textContent = densityCount[1] + ' poligon';
+      document.getElementById('dataRendah').textContent = densityCount[2] + ' poligon';
+      document.getElementById('dataSedangRendah').textContent = densityCount[3] + ' poligon';
+      document.getElementById('dataSedang').textContent = densityCount[4] + ' poligon';
+      document.getElementById('dataTinggi').textContent = densityCount[5] + ' poligon';
+      document.getElementById('dataSangatTinggi').textContent = densityCount[6] + ' poligon';
+      document.getElementById('dataEVI').textContent = kerapatanRata;
+      
+      // Update chart
+      updateDensityChart(densityCount);
+    }
+
+    // Fungsi untuk update chart kerapatan
+    function updateDensityChart(densityCount) {
+      const ctx = document.getElementById('densityChart').getContext('2d');
+      
+      if (densityChart) {
+        densityChart.destroy();
+      }
+      
+      densityChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Sangat Rendah', 'Rendah', 'Sedang-Rendah', 'Sedang', 'Tinggi', 'Sangat Tinggi'],
+          datasets: [{
+            label: 'Distribusi Kerapatan',
+            data: [
+              densityCount[1],
+              densityCount[2],
+              densityCount[3],
+              densityCount[4],
+              densityCount[5],
+              densityCount[6]
+            ],
+            backgroundColor: [
+              '#ffffcc',
+              '#c2e699',
+              '#78c679',
+              '#31a354',
+              '#006837',
+              '#004529'
+            ],
+            borderColor: [
+              '#d9d9a3',
+              '#a8c97f',
+              '#5fa85a',
+              '#298845',
+              '#005426',
+              '#003318'
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                boxWidth: 12,
+                font: {
+                  size: 10
+                }
+              }
+            },
+            title: {
+              display: true,
+              text: 'Distribusi Kerapatan EVI',
+              font: {
+                size: 12
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Fungsi untuk mendapatkan warna berdasarkan gridcode
+    function getColorByGridcode(gridcode) {
+      switch(gridcode) {
+        case 1: return '#ffffcc';
+        case 2: return '#c2e699';
+        case 3: return '#78c679';
+        case 4: return '#31a354';
+        case 5: return '#006837';
+        case 6: return '#004529';
+        default: return '#808080';
+      }
+    }
+
+    // ==================== EVENT HANDLERS ====================
+
+    // Filter functionality
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        // Update active button
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        
+        // Update current filter
+        currentFilter = this.getAttribute('data-density');
+        
+        // Reload GeoJSON data with filter
+        loadGeoJSONData();
+      });
+    });
+
+    // Download Data GeoJSON
+    document.getElementById('downloadData').addEventListener('click', function() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(evisangiang22, null, 2));
+      const downloadAnchorNode = document.createElement('a');
+      downloadAnchorNode.setAttribute("href", dataStr);
+      downloadAnchorNode.setAttribute("download", "evisangiang22.geojson");
+      document.body.appendChild(downloadAnchorNode);
+      downloadAnchorNode.click();
+      downloadAnchorNode.remove();
+      
+      alert('Data GeoJSON Evisangiang22 berhasil diunduh!');
+    });
+
+    // Screenshot functionality
+    document.getElementById('screenshot').addEventListener('click', function() {
+      // Implementasi screenshot sederhana
+      html2canvas(document.querySelector('#map')).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'evisangiang22_screenshot.png';
+        link.href = canvas.toDataURL();
+        link.click();
+      });
+    });
+
+    // Export Report
+    document.getElementById('exportReport').addEventListener('click', function() {
+      alert('Fitur export laporan PDF akan segera tersedia!');
+    });
+
+    // Upload File GeoJSON
+    document.getElementById('fileUploadArea').addEventListener('click', function() {
+      document.getElementById('fileInput').click();
+    });
+
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          try {
+            const geojsonData = JSON.parse(e.target.result);
+            alert('File GeoJSON berhasil diupload! Data akan diproses.');
+            // Di sini Anda dapat memproses data GeoJSON yang diupload
+            console.log('Data GeoJSON yang diupload:', geojsonData);
+          } catch (error) {
+            alert('Error: File tidak valid. Pastikan file berformat GeoJSON.');
+          }
+        };
+        reader.readAsText(file);
+      }
+    });
+
+    // ==================== INISIALISASI ====================
+    document.addEventListener('DOMContentLoaded', function() {
+      // Load data Evisangiang22
+      setTimeout(() => {
+        loadGeoJSONData();
+      }, 1000);
+      
+      // Scale update
+      map.on('zoomend', function() {
+        const zoom = map.getZoom();
+        const scale = Math.round(591657550 / Math.pow(2, zoom - 1));
+        document.getElementById('scaleBox').textContent = `Skala: 1:${scale.toLocaleString()}`;
+      });
+      map.fire('zoomend');
+    });
+
+    // Tambahkan event handlers lainnya yang diperlukan...
+    // (Kode event handlers lainnya tetap sama seperti sebelumnya)
+
+  </script>
+
+</body>
+</html>
