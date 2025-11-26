@@ -1,0 +1,1655 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mangrove Guardian - EVI Pontang23</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+  <!-- Leaflet JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <!-- Leaflet Draw -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/leaflet.draw/1.0.4/leaflet.draw-src.css" />
+  <script src="https://cdnjs.cloudflare.com/leaflet.draw/1.0.4/leaflet.draw-src.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+
+  <style>
+    /* VARIABLES */
+    :root{
+      --mg-green:#0a5c36;
+      --mg-green-light:#1a7d4e;
+      --mg-green-dark:#064527;
+      --panel:rgba(255,255,255,0.95);
+      --muted:#51606a;
+      --navbar-height: 60px; 
+    }
+    
+    *{box-sizing:border-box; margin:0; padding:0;}
+    
+    html,body{height:100%; margin:0; font-family:'Segoe UI', system-ui, sans-serif; color:#15302a;}
+    body{background:#f8f9fa;}
+    #map{flex:1; z-index:1;}
+
+    .topbar{
+      height: var(--navbar-height);
+      padding:0 20px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      background:var(--mg-green);
+      color:#fff;
+      position:sticky;
+      top:0;
+      z-index:1500;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      border-bottom: 1px solid var(--mg-green-dark);
+    }
+    
+    .brand{
+      font-weight:600;
+      font-size:20px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    
+    .nav-right-container{display:flex; align-items:center; gap:25px;}
+    .nav-menu{display:flex; gap:25px}
+    .nav-menu a{
+      color:#fff;
+      text-decoration:none;
+      font-size:14px;
+      font-weight:500;
+      padding:8px 0;
+      transition:opacity 0.2s;
+    }
+    .nav-menu a:hover{opacity:0.8;}
+    .lang-switch{
+      font-size:13px;
+      cursor:pointer;
+      background:rgba(255,255,255,0.15);
+      padding:6px 12px;
+      border-radius:4px;
+      font-weight:500;
+    }
+
+    .chat-box-container{
+      position:fixed;
+      bottom:20px;
+      right:20px;
+      z-index:1600;
+      width:350px;
+      background:var(--panel);
+      border-radius:8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      border:1px solid #e1e5e9;
+      display:flex;
+      flex-direction:column;
+      max-height:500px;
+    }
+    
+    .chat-header{
+      background: var(--mg-green);
+      color: #fff;
+      padding: 12px 16px;
+      font-weight: 600;
+      cursor:pointer;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      border-radius:8px 8px 0 0;
+    }
+    
+    .chat-content{
+      padding: 16px;
+      flex:1;
+      overflow-y: auto;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      max-height:300px;
+    }
+    
+    .chat-input-row{
+      display:flex;
+      gap:8px;
+      padding:12px 16px;
+      border-top:1px solid #e1e5e9;
+      background:#f8f9fa;
+    }
+    
+    .chat-input-row input{
+      flex:1;
+      padding:10px 12px;
+      border-radius:6px;
+      border:1px solid #ddd;
+      outline:none;
+      font-size:14px;
+      background:#fff;
+    }
+    
+    .chat-input-row button{
+      background:var(--mg-green);
+      border:0;
+      color:#fff;
+      padding:10px 16px;
+      border-radius:6px;
+      cursor:pointer;
+      font-weight:600;
+      font-size:14px;
+    }
+
+    .chat-message{
+      padding:10px 14px;
+      border-radius:8px;
+      max-width:85%;
+      font-size:14px;
+      line-height:1.4;
+    }
+    
+    .chat-user{
+      background:#e3f2fd;
+      align-self:flex-end;
+      border-bottom-right-radius:2px;
+    }
+    
+    .chat-bot{
+      background:#f5f5f5;
+      align-self:flex-start;
+      border-bottom-left-radius:2px;
+    }
+
+    .app{
+      height:calc(100vh - var(--navbar-height));
+      position:relative;
+      display:flex;
+    }
+
+    .search-row-container{
+      position:absolute;
+      top:20px;
+      left:50%;
+      transform:translateX(-50%);
+      z-index:1300;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:8px;
+      width:90%;
+      max-width:700px;
+    }
+    
+    .search-row{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      width:100%;
+    }
+    
+    .search-box{
+      display:flex;
+      align-items:center;
+      background:var(--panel);
+      padding:8px 16px;
+      border-radius:8px;
+      box-shadow:0 2px 8px rgba(0,0,0,0.1);
+      width:100%;
+      border:1px solid #e1e5e9;
+      flex:1;
+    }
+    
+    .search-box input{
+      border:0;
+      outline:none;
+      padding:8px;
+      font-size:14px;
+      background:transparent;
+      flex:1;
+    }
+    
+    .search-box button{
+      background:var(--mg-green);
+      border:0;
+      color:#fff;
+      padding:8px 16px;
+      border-radius:6px;
+      cursor:pointer;
+      font-weight:600;
+      font-size:14px;
+    }
+    
+    .action-btn{
+      background:var(--mg-green);
+      color:#fff;
+      border-radius:8px;
+      padding:10px 16px;
+      border:none;
+      cursor:pointer;
+      font-weight:600;
+      font-size:14px;
+      white-space:nowrap;
+    }
+    
+    .mapFlipBtn{
+      background:var(--mg-green);
+      border:none;
+      padding:10px;
+      border-radius:6px;
+      color:white;
+      cursor:pointer;
+      font-size:16px;
+    }
+
+    .stats-toggle-btn {
+      background:var(--mg-green);
+      border:none;
+      padding:10px 14px;
+      border-radius:6px;
+      color:white;
+      cursor:pointer;
+      font-size:16px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      box-shadow:0 2px 6px rgba(0,0,0,0.1);
+      transition:all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .stats-toggle-btn:hover {
+      background:var(--mg-green-light);
+      transform: translateY(-1px);
+    }
+
+    .vtoolbar{
+      position:absolute;
+      left:20px;
+      top:120px;
+      z-index:1300;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      padding:8px;
+      border-radius:8px;
+      background:transparent;
+    }
+    
+    .vt-btn{
+      width:44px;
+      height:44px;
+      border-radius:6px;
+      background:var(--panel);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border:1px solid #e1e5e9;
+      box-shadow:0 2px 6px rgba(0,0,0,0.08);
+      cursor:pointer;
+      font-size:16px;
+      transition:all 0.2s;
+    }
+    
+    .vt-btn:hover{
+      background:#f8f9fa;
+    }
+
+    .right-panel{
+      position:absolute;
+      right:20px;
+      top:20px;
+      width:320px;
+      z-index:1300;
+      background:var(--panel);
+      border-radius:8px;
+      box-shadow:0 4px 20px rgba(0,0,0,0.15);
+      border:1px solid #e1e5e9;
+      max-height:calc(100vh - 100px);
+      overflow-y:auto;
+    }
+    
+    .panel-inner{
+      padding:16px;
+    }
+    
+    .panel-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:16px;
+      padding-bottom:12px;
+      border-bottom:1px solid #e1e5e9;
+    }
+    
+    .panel-header h3{
+      margin:0;
+      color:var(--mg-green);
+      font-size:16px;
+      font-weight:600;
+    }
+
+    .switch-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:12px 0;
+      border-bottom:1px solid #f0f0f0;
+    }
+    
+    .switch-label{
+      font-size:14px;
+      color:#333;
+    }
+    
+    .switch{
+      position:relative;
+      width:44px;
+      height:24px;
+      border-radius:12px;
+      background:#ddd;
+      cursor:pointer;
+    }
+    
+    .switch .knob{
+      position:absolute;
+      top:2px;
+      left:2px;
+      width:20px;
+      height:20px;
+      border-radius:50%;
+      background:white;
+      box-shadow:0 1px 3px rgba(0,0,0,0.2);
+      transition:left 0.2s;
+    }
+    
+    .switch.on{
+      background:var(--mg-green);
+    }
+    
+    .switch.on .knob{
+      left:22px;
+    }
+
+    .basemap-toggle{
+      position:absolute;
+      right:20px;
+      top:70px;
+      z-index:1350;
+    }
+    
+    .basemap-card{
+      width:250px;
+      background:var(--panel);
+      border-radius:8px;
+      padding:12px;
+      box-shadow:0 4px 20px rgba(0,0,0,0.15);
+      border:1px solid #e1e5e9;
+    }
+    
+    .basemap-card.hidden{
+      display:none;
+    }
+    
+    .basemap-item{
+      padding:10px;
+      border-radius:6px;
+      margin-bottom:6px;
+      cursor:pointer;
+      font-size:14px;
+      border:1px solid transparent;
+    }
+    
+    .basemap-item:hover{
+      background:#f8f9fa;
+    }
+    
+    .basemap-item.active{
+      background:#e8f5e8;
+      border-color:var(--mg-green);
+    }
+
+    .scale-box{
+      position:absolute;
+      left:20px;
+      bottom:20px;
+      background:var(--panel);
+      padding:8px 12px;
+      border-radius:6px;
+      font-size:12px;
+      border:1px solid #e1e5e9;
+      z-index:1300;
+      box-shadow:0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .class-item{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 0;
+      border-bottom:1px solid #f0f0f0;
+    }
+    
+    .class-color{
+      width:16px;
+      height:16px;
+      border-radius:3px;
+    }
+    
+    .class-label{
+      flex:1;
+      font-size:13px;
+    }
+
+    .file-upload{
+      margin-top:16px;
+      padding:12px;
+      border:2px dashed #ddd;
+      border-radius:6px;
+      text-align:center;
+      cursor:pointer;
+      transition:border-color 0.2s;
+    }
+    
+    .file-upload:hover{
+      border-color:var(--mg-green);
+    }
+    
+    .file-hint{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:8px;
+      text-align:center;
+    }
+
+    .vt-btn.active-draw{
+      background:var(--mg-green);
+      color:#fff;
+    }
+    
+    .vt-btn.delete-active{
+      background:#dc3545;
+      color:#fff;
+    }
+
+    @media (max-width:768px){
+      .nav-menu{display:none}
+      .search-row{flex-wrap:wrap;}
+      .right-panel{width:95%; right:2.5%;}
+      .chat-box-container{width:95%; right:2.5%;}
+      .stats-panel{width:95%; left:2.5%;}
+      .stats-toggle-btn{display:none;}
+    }
+
+    .analysis-section {
+      margin: 16px 0;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 6px;
+    }
+    
+    .pulau-selector {
+      margin-bottom: 12px;
+    }
+    
+    .pulau-selector select {
+      width: 100%;
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+    }
+    
+    .data-display {
+      background: white;
+      padding: 12px;
+      border-radius: 4px;
+      margin-top: 8px;
+    }
+    
+    .data-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+    
+    .data-value {
+      font-weight: 600;
+      color: var(--mg-green);
+    }
+
+    .custom-tooltip {
+      background: rgba(255, 255, 255, 0.95) !important;
+      border: 1px solid #0a5c36 !important;
+      border-radius: 4px !important;
+      padding: 4px 8px !important;
+      font-size: 12px !important;
+      font-weight: 500 !important;
+    }
+
+    .legend {
+      background: white;
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    
+    .legend h4 {
+      margin: 0 0 8px 0;
+    }
+
+    .stats-panel {
+      position: absolute;
+      left: 80px;
+      top: 120px;
+      z-index: 1300;
+      background: var(--panel);
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      border: 1px solid #e1e5e9;
+      width: 300px;
+      max-height: 75vh;
+      overflow-y: auto;
+      transition: all 0.3s ease;
+    }
+
+    .stats-header {
+      font-weight: 600;
+      color: var(--mg-green);
+      margin-bottom: 12px;
+      font-size: 16px;
+      border-bottom: 2px solid var(--mg-green);
+      padding-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .stats-close {
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      color: var(--muted);
+      padding: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .stats-close:hover {
+      color: var(--mg-green);
+    }
+
+    .stat-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 13px;
+      padding: 6px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .stat-item:last-child {
+      border-bottom: none;
+    }
+
+    .stat-value {
+      font-weight: 600;
+      color: var(--mg-green);
+    }
+
+    .chart-container {
+      margin-top: 15px;
+      height: 200px;
+      position: relative;
+    }
+
+    .download-btn {
+      background: var(--mg-green);
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      margin-top: 15px;
+      width: 100%;
+      transition: background 0.3s ease;
+    }
+
+    .download-btn:hover {
+      background: var(--mg-green-light);
+    }
+
+    .collapsible {
+      margin-top: 10px;
+    }
+
+    .collapsible-header {
+      background: #f8f9fa;
+      padding: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--mg-green);
+    }
+
+    .collapsible-content {
+      padding: 10px;
+      background: white;
+      border-radius: 0 0 6px 6px;
+      margin-top: 2px;
+    }
+
+    .collapsible.hidden .collapsible-content {
+      display: none;
+    }
+
+    /* Progress Bar untuk Loading */
+    .progress-bar {
+      width: 100%;
+      height: 4px;
+      background: #f0f0f0;
+      border-radius: 2px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--mg-green);
+      transition: width 0.3s ease;
+    }
+
+    /* Filter Controls */
+    .filter-controls {
+      margin: 15px 0;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 6px;
+    }
+
+    .filter-title {
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: var(--mg-green);
+    }
+
+    .filter-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .filter-btn {
+      padding: 6px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: white;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s;
+    }
+
+    .filter-btn.active {
+      background: var(--mg-green);
+      color: white;
+      border-color: var(--mg-green);
+    }
+
+    .filter-btn:hover {
+      background: #e9ecef;
+    }
+
+    .filter-btn.active:hover {
+      background: var(--mg-green-light);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="topbar">
+    <div class="brand">
+      <span>🌿 MangroveGuardian - EVI Pontang23</span>
+    </div>
+    <div class="nav-right-container">
+      <div class="nav-menu" id="navMenu">
+        <a href="indeks.html" data-key="home">Beranda</a>
+        <a href="indeks.html" data-key="about">Tentang</a>
+        <a href="indeks.html" data-key="team">Tim</a>
+        <a href="indeks.html" data-key="contact">Kontak</a>
+      </div>
+      <div class="lang-switch" id="langSwitch">ID / EN</div>
+    </div>
+  </div>
+
+  <!-- Chat Box -->
+  <div class="chat-box-container" id="chatBoxContainer">
+    <div class="chat-header" id="chatHeader">
+      <span>💬 Asisten Mangrove</span>
+      <span>−</span>
+    </div>
+    <div class="chat-content" id="chatContent">
+      <div class="chat-message chat-bot">Halo! Saya asisten virtual Mangrove Guardian. Data EVI Pontang23 memiliki 6 poligon dengan total luasan 49.99 ha.</div>
+    </div>
+    <div class="chat-input-row">
+      <input type="text" id="chatInput" placeholder="Ketik pertanyaan Anda..." />
+      <button id="sendChat">Kirim</button>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div class="app">
+    <div id="map"></div>
+
+    <!-- Search Bar dengan Tombol Statistik di Kiri -->
+    <div class="search-row-container">
+      <div class="search-row">
+        <!-- Tombol Statistik di sebelah kiri search box -->
+        <button class="stats-toggle-btn" id="statsToggle" title="Toggle Panel Statistik">
+          📊 Statistik
+        </button>
+
+        <!-- Search Box di tengah -->
+        <div class="search-box">
+          <input id="searchInput" placeholder="Cari lokasi atau koordinat (contoh: -5.999,106.235)..." />
+          <button id="doSearch">Cari</button>
+        </div>
+
+        <!-- Tombol-tombol lainnya di sebelah kanan -->
+        <button class="action-btn" id="addPointBtn">+ Titik Baru</button>
+        <button id="basemapFlipBtn" class="mapFlipBtn" title="Peta Dasar">🗺️</button>
+        <button id="togglePanelBtn" class="mapFlipBtn" title="Panel Layer">☰</button>
+      </div>
+    </div>
+
+    <!-- Statistics Panel -->
+    <div class="stats-panel" id="statsPanel">
+      <div class="stats-header">
+        <span>📊 Statistik EVI Pontang23</span>
+        <button class="stats-close" id="statsClose" title="Tutup">✕</button>
+      </div>
+      
+      <div class="progress-bar">
+        <div class="progress-fill" id="dataProgress" style="width: 100%"></div>
+      </div>
+      
+      <div class="stat-item">
+        <span>Total Luasan:</span>
+        <span class="stat-value" id="totalLuas">49.99 ha</span>
+      </div>
+      <div class="stat-item">
+        <span>Jumlah Poligon:</span>
+        <span class="stat-value" id="jumlahPoligon">6</span>
+      </div>
+      <div class="stat-item">
+        <span>Kerapatan Rata-rata:</span>
+        <span class="stat-value" id="kerapatanRata">3.5</span>
+      </div>
+      <div class="stat-item">
+        <span>Luasan Tertinggi:</span>
+        <span class="stat-value" id="luasMax">10.17 ha</span>
+      </div>
+      <div class="stat-item">
+        <span>Luasan Terendah:</span>
+        <span class="stat-value" id="luasMin">4.32 ha</span>
+      </div>
+
+      <!-- Filter Controls -->
+      <div class="filter-controls">
+        <div class="filter-title">Filter Kerapatan:</div>
+        <div class="filter-buttons">
+          <button class="filter-btn active" data-density="all">Semua</button>
+          <button class="filter-btn" data-density="1">Sangat Rendah</button>
+          <button class="filter-btn" data-density="2">Rendah</button>
+          <button class="filter-btn" data-density="3">Sedang-Rendah</button>
+          <button class="filter-btn" data-density="4">Sedang</button>
+          <button class="filter-btn" data-density="5">Tinggi</button>
+          <button class="filter-btn" data-density="6">Sangat Tinggi</button>
+        </div>
+      </div>
+
+      <!-- Collapsible Chart Section -->
+      <div class="collapsible" id="chartCollapsible">
+        <div class="collapsible-header" id="chartHeader">
+          <span>📈 Grafik Distribusi</span>
+          <span>▼</span>
+        </div>
+        <div class="collapsible-content">
+          <div class="chart-container">
+            <canvas id="densityChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Collapsible Detail Section -->
+      <div class="collapsible" id="detailCollapsible">
+        <div class="collapsible-header" id="detailHeader">
+          <span>🔍 Detail Kerapatan</span>
+          <span>▼</span>
+        </div>
+        <div class="collapsible-content">
+          <div class="stat-item">
+            <span>Sangat Rendah (1):</span>
+            <span class="stat-value" id="detailSangatRendah">1 poligon</span>
+          </div>
+          <div class="stat-item">
+            <span>Rendah (2):</span>
+            <span class="stat-value" id="detailRendah">1 poligon</span>
+          </div>
+          <div class="stat-item">
+            <span>Sedang-Rendah (3):</span>
+            <span class="stat-value" id="detailSedangRendah">1 poligon</span>
+          </div>
+          <div class="stat-item">
+            <span>Sedang (4):</span>
+            <span class="stat-value" id="detailSedang">1 poligon</span>
+          </div>
+          <div class="stat-item">
+            <span>Tinggi (5):</span>
+            <span class="stat-value" id="detailTinggi">1 poligon</span>
+          </div>
+          <div class="stat-item">
+            <span>Sangat Tinggi (6):</span>
+            <span class="stat-value" id="detailSangatTinggi">1 poligon</span>
+          </div>
+        </div>
+      </div>
+
+      <button class="download-btn" id="downloadData">
+        📥 Download Data GeoJSON
+      </button>
+
+      <button class="download-btn" id="screenshot" style="background: #6c757d; margin-top: 8px;">
+        📷 Screenshot Peta
+      </button>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="vtoolbar">
+      <div class="vt-btn" id="zoomIn" title="Zoom In">+</div>
+      <div class="vt-btn" id="zoomOut" title="Zoom Out">−</div>
+      <div class="vt-btn" id="measureBtn" title="Ukur Jarak">📏</div>
+      <div style="border-top:1px solid #eee; margin:6px 0"></div>
+      <div class="vt-btn" id="drawPt" title="Titik">•</div>
+      <div class="vt-btn" id="drawPoly" title="Poligon">△</div>
+      <div class="vt-btn" id="drawRect" title="Persegi">□</div>
+      <div style="border-top:1px solid #eee; margin:6px 0"></div>
+      <div class="vt-btn" id="deleteBtn" title="Hapus">🗑️</div>
+      <div class="vt-btn" id="printBtn" title="Cetak">🖨️</div>
+    </div>
+
+    <!-- Scale -->
+    <div class="scale-box" id="scaleBox">Skala: 1:100,000</div>
+    <div class="scale-box" id="measureBox" style="left:120px; display:none; background:#fff3cd; color:#856404;"></div>
+
+    <!-- Right Panel -->
+    <div class="right-panel" id="rightPanel">
+      <div class="panel-inner">
+        <div class="panel-header">
+          <h3>Layer & Pengaturan</h3>
+          <button id="closePanel" class="vt-btn" style="width:auto; padding:6px 10px;">✕</button>
+        </div>
+
+        <!-- Analisis Vegetasi Section -->
+        <div class="analysis-section">
+          <div style="font-weight:600; color:var(--mg-green); margin-bottom:12px;">📊 Data EVI Pontang23</div>
+          
+          <div class="pulau-selector">
+            <label for="pulauSelect">Pilih Lokasi:</label>
+            <select id="pulauSelect">
+              <option value="pontang23" selected>Pontang23</option>
+            </select>
+          </div>
+
+          <div class="pulau-selector">
+            <label for="tahunSelect">Pilih Tahun:</label>
+            <select id="tahunSelect">
+              <option value="2024" selected>2024</option>
+            </select>
+          </div>
+
+          <div class="data-display">
+            <div class="data-item">
+              <span>Vegetasi Sangat Rendah:</span>
+              <span class="data-value" id="dataSangatRendah">1 poligon</span>
+            </div>
+            <div class="data-item">
+              <span>Vegetasi Rendah:</span>
+              <span class="data-value" id="dataRendah">1 poligon</span>
+            </div>
+            <div class="data-item">
+              <span>Vegetasi Sedang-Rendah:</span>
+              <span class="data-value" id="dataSedangRendah">1 poligon</span>
+            </div>
+            <div class="data-item">
+              <span>Vegetasi Sedang:</span>
+              <span class="data-value" id="dataSedang">1 poligon</span>
+            </div>
+            <div class="data-item">
+              <span>Vegetasi Tinggi:</span>
+              <span class="data-value" id="dataTinggi">1 poligon</span>
+            </div>
+            <div class="data-item">
+              <span>Vegetasi Sangat Tinggi:</span>
+              <span class="data-value" id="dataSangatTinggi">1 poligon</span>
+            </div>
+            <div class="data-item">
+              <span>EVI Rata-rata:</span>
+              <span class="data-value" id="dataEVI">0.58</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="switch-row">
+          <div class="switch-label">Layer EVI</div>
+          <div class="switch on" id="rasterSwitch"><div class="knob"></div></div>
+        </div>
+
+        <div style="margin:16px 0;">
+          <div style="font-weight:600; color:var(--mg-green); margin-bottom:12px;">Kelas Kerapatan EVI</div>
+          <div id="classesList"></div>
+        </div>
+
+        <hr style="margin:16px 0; border:none; border-top:1px solid #e1e5e9;">
+
+        <div style="font-weight:600; color:var(--mg-green); margin-bottom:12px;">Ekspor Data</div>
+        <div class="file-upload" id="fileUploadArea">
+          <div>📁 Upload File GeoJSON</div>
+          <input type="file" id="fileInput" accept=".json,.geojson" style="display:none" />
+        </div>
+        <div class="file-hint">Format yang didukung: GeoJSON, JSON</div>
+
+        <button class="download-btn" id="exportReport">
+          📄 Export Laporan PDF
+        </button>
+      </div>
+    </div>
+
+    <!-- Basemap Panel -->
+    <div class="basemap-toggle">
+      <div class="basemap-card hidden" id="basemapCard">
+        <div style="font-weight:600; margin-bottom:12px;">Peta Dasar</div>
+        <div class="basemap-item active" data-basemap="osm">OpenStreetMap</div>
+        <div class="basemap-item" data-basemap="satellite">Satelit</div>
+        <div class="basemap-item" data-basemap="terrain">Topografi</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==================== INISIALISASI PETA ====================
+    const map = L.map('map').setView([-5.999, 106.235], 14);
+
+    // Layer Dasar
+    const basemaps = {
+      'osm': L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }),
+      'satellite': L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: '© Esri'
+      }),
+      'terrain': L.tileLayer('https://stamen-tiles.a.ssl.fastly.net/terrain/{z}/{x}/{y}.jpg', {
+        attribution: '© Stamen Design'
+      })
+    };
+
+    let currentBasemap = 'satellite';
+    basemaps[currentBasemap].addTo(map);
+
+    // ==================== DATA GEOJSON EVI PONTANG23 ====================
+    const eviPontang23 = {
+      "type": "FeatureCollection",
+      "features": [
+        {
+          "type": "Feature",
+          "id": 1,
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [[[[106.23597257147436,-5.9993324213699726],[106.23597196035982,-5.9990610952880647],[106.2357009467373,-5.9990617070261285],[106.23570155771796,-5.9993330331358994],[106.23597257147436,-5.9993324213699726]]],[[[106.23759681775185,-5.9985147702069037],[106.23759620591829,-5.9982434442841024],[106.23732519286648,-5.9982440567428803],[106.23732580456613,-5.9985153826935802],[106.23759681775185,-5.9985147702069037]]],[[[106.23867964550281,-5.9979696672945719],[106.2386790331901,-5.9976983414779745],[106.23840802051878,-5.9976989544171051],[106.23840863269764,-5.997970280261625],[106.23867964550281,-5.9979696672945719]]],[[[106.24246706730885,-5.9949764918547199],[106.24246645343291,-5.9947051663995001],[106.24219544262934,-5.9947057809070516],[106.24219605637147,-5.9949771063902793],[106.24246706730885,-5.9949764918547199]]],[[[106.24436352826541,-5.9947008610954953],[106.2443629134811,-5.9944295358337678],[106.24409190300949,-5.9944301512510547],[106.24409251766001,-5.9947014765408335],[106.24436352826541,-5.9947008610954953]]],[[[106.2430078608399,-5.9944326115805637],[106.24300724675292,-5.9941612861758777],[106.24273623627359,-5.9941619008953273],[106.24273685022672,-5.9944332263280318],[106.2430078608399,-5.9944326115805637]]],[[[106.2449049343393,-5.9944283045973084],[106.24490431931571,-5.9941569793889427],[106.24463330903458,-5.994157595046091],[106.24463392392435,-5.9944289202825187],[106.2449049343393,-5.9944283045973084]]],[[[106.24110955968132,-5.9938942607954253],[106.24083854913782,-5.9938948745491922],[106.24083916212611,-5.9941662001806515],[106.24111017280343,-5.9941655863989087],[106.24110955968132,-5.9938942607954253]]],[[[106.24625998598869,-5.9944252241618088],[106.24625875463184,-5.9938825740231243],[106.24598774462629,-5.9938831903219594],[106.24598836015672,-5.9941545154207851],[106.24598897571555,-5.9944258405168336],[106.24625998598869,-5.9944252241618088]]],[[[106.24110955968132,-5.9938942607954253],[106.24138057019655,-5.9938936469077078],[106.24137995696894,-5.9936223213295348],[106.2411089465875,-5.9936229351892685],[106.24110955968132,-5.9938942607954253]]],[[[106.24436168399745,-5.9938868853020155],[106.24436106929814,-5.9936155600320777],[106.24409005922794,-5.9936161753652071],[106.24409067379347,-5.993887500663198],[106.24436168399745,-5.9938868853020155]]],[[[106.24137995696894,-5.9936223213295348],[106.24165096732217,-5.9936217073358549],[106.241650353989,-5.9933503817828973],[106.24137934376959,-5.9933509957485862],[106.24137995696894,-5.9936223213295348]]],[[[106.241650353989,-5.9933503817828973],[106.24192136418016,-5.9933497676832692],[106.2419207507415,-5.993078442155567],[106.24164974068414,-5.9930790562271969],[106.241650353989,-5.9933503817828973]]],[[[106.24164974068414,-5.9930790562271969],[106.24164912740758,-5.9928077306687388],[106.24110710747559,-5.9928089583542263],[106.24083609746722,-5.9928095719960801],[106.24056508743058,-5.9928101855040046],[106.24056570017211,-5.99308151117439],[106.24083671034249,-5.9930808976384915],[106.24137873059851,-5.993079670164895],[106.24164974068414,-5.9930790562271969]]],[[[106.2419207507415,-5.993078442155567],[106.24219176077058,-5.9930778279500014],[106.24219114722645,-5.992806502447543],[106.24246215709344,-5.9928058881360542],[106.24246154344382,-5.9925345626588937],[106.24191952394904,-5.9925357910919335],[106.24164851415927,-5.99253640510757],[106.24164912740758,-5.9928077306687388],[106.24192013733115,-5.9928071166251033],[106.2419207507415,-5.993078442155567]]],[[[106.24327211655319,-5.9914474174050589],[106.24327150264379,-5.9911760919982378],[106.24300049366418,-5.9911767065433432],[106.24300110743984,-5.9914480319781935],[106.24327211655319,-5.9914474174050589]]],[[[106.24327027490993,-5.9906334411763522],[106.24327088876271,-5.9909047665886401],[106.2435418975803,-5.9909041519376771],[106.2435412835938,-5.9906328265534219],[106.24327027490993,-5.9906334411763522]]],[[[106.24327027490993,-5.9906334411763522],[106.24326966108546,-5.9903621157613225],[106.24299865250701,-5.9903627302223486],[106.24299926619777,-5.9906340556654047],[106.24327027490993,-5.9906334411763522]]],[[[106.24408207245368,-5.9900889462413467],[106.2440814582847,-5.989817620904903],[106.24381045005859,-5.9898182357114527],[106.24381106409386,-5.9900895610759415],[106.24408207245368,-5.9900889462413467]]],[[[106.24326597873305,-5.9887341632134703],[106.24353698648103,-5.9887335487867714],[106.24353637272102,-5.9884622233805889],[106.24299435746418,-5.9884634520440923],[106.24299497095681,-5.9887347775063331],[106.24326597873305,-5.9887341632134703]]],[[[106.24380492501548,-5.9873763073080539],[106.24380431126342,-5.9871049819161941],[106.24353330434568,-5.9871055963084947],[106.24353391796413,-5.9873769217283943],[106.24380492501548,-5.9873763073080539]]],[[[106.24434509706008,-5.9865611020504534],[106.24434448312569,-5.98628977670647],[106.24407347666553,-5.9862903912822132],[106.2440740904663,-5.986561716654248],[106.24434509706008,-5.9865611020504534]]],[[[106.24434325534192,-5.9857471260102519],[106.24434264149254,-5.9854758006580866],[106.24407163543322,-5.9854764151496775],[106.24407224914899,-5.9857477405298951],[106.24434325534192,-5.9857471260102519]]],[[[106.24379940226612,-5.9849343786826985],[106.2437987887689,-5.9846630532661687],[106.24352778305371,-5.9846636674061209],[106.24352839641733,-5.9849349928506888],[106.24379940226612,-5.9849343786826985]]],[[[106.24786325562259,-5.9843825001198026],[106.24786264017835,-5.9841111751191249],[106.24704962502527,-5.9841130229874384],[106.2470502400688,-5.9843843480724885],[106.24786325562259,-5.9843825001198026]]],[[[106.2459656044237,-5.9841154849396316],[106.24596498994289,-5.9838441597393981],[106.24569398485511,-5.983844774865033],[106.24569459920237,-5.9841161000933534],[106.2459656044237,-5.9841154849396316]]],[[[106.24488096942171,-5.9838466194395883],[106.24488035550353,-5.9835752941243552],[106.24460935043591,-5.9835759086870279],[106.24460996422056,-5.9838472340303248],[106.24488096942171,-5.9838466194395883]]],[[[106.247320014956,-5.9838410821053589],[106.24731939983572,-5.9835697570429653],[106.24677739018274,-5.9835709884415245],[106.24677800503589,-5.9838423135601468],[106.247320014956,-5.9838410821053589]]],[[[106.24813241410222,-5.9835679089422431],[106.24813179860966,-5.9832965839615015],[106.24786079401613,-5.9832972001006581],[106.24786140937513,-5.9835685251095345],[106.24813241410222,-5.9835679089422431]]],[[[106.24975659307147,-5.9827502346867449],[106.24975597686294,-5.9824789098667512],[106.24948497284062,-5.982479526723659],[106.24948558891565,-5.9827508515718266],[106.24975659307147,-5.9827502346867449]]],[[[106.24541868103704,-5.981946112985729],[106.24541745309166,-5.9814034624264485],[106.24514644914905,-5.9814040770319581],[106.24514767682739,-5.9819467276473892],[106.24541868103704,-5.981946112985729]]],[[[106.24487421788015,-5.9808620408212798],[106.24487360427368,-5.9805907154758993],[106.24460260067485,-5.9805913297298812],[106.24460321414782,-5.9808626551033246],[106.24487421788015,-5.9808620408212798]]],[[[106.24514399413253,-5.9803187757682492],[106.24514338044928,-5.9800474504454799],[106.24487237714577,-5.9800480647769767],[106.24487299069557,-5.9803193901278142],[106.24514399413253,-5.9803187757682492]]],[[[106.24514153956957,-5.9792334744607523],[106.24514092599968,-5.9789621491270362],[106.24486992323007,-5.9789627633462583],[106.24487053666647,-5.9792340887080426],[106.24514153956957,-5.9792334744607523]]],[[[106.24812195459327,-5.9789553838970351],[106.2481207246027,-5.9784127338397104],[106.24784972241211,-5.9784133494724196],[106.24785033725976,-5.9786846745305526],[106.24785095213581,-5.9789559995860158],[106.24812195459327,-5.9789553838970351]]],[[[106.25001773914074,-5.9784084206698971],[106.25001712325401,-5.978137095834251],[106.2497461213959,-5.9781377123739929],[106.2497467371492,-5.9784090372378174],[106.25001773914074,-5.9784084206698971]]],[[[106.25083012865757,-5.9781352454134531],[106.25082951239898,-5.9778639206596438],[106.25055851075969,-5.9778645375719739],[106.25055912688484,-5.9781358623539811],[106.25083012865757,-5.9781352454134531]]],[[[106.25245428760364,-5.9773175672030803],[106.25245367063003,-5.9770462426103688],[106.25218266956195,-5.9770468602395326],[106.25218328640217,-5.9773181848604757],[106.25245428760364,-5.9773175672030803]]],[[[106.2464867292702,-5.9748891977992118],[106.24648611548706,-5.9746178725621322],[106.24621511499375,-5.9746184869998444],[106.24621572864352,-5.9748898122650242],[106.2464867292702,-5.9748891977992118]]],[[[106.24756397557294,-5.9719021620798687],[106.24756336156874,-5.9716308369251729],[106.24729236265549,-5.9716314515875988],[106.24729297652635,-5.9719027767704187],[106.24756397557294,-5.9719021620798687]]],[[[106.24864797147501,-5.9718997019831166],[106.24864735693768,-5.9716283769409735],[106.24837635813809,-5.9716289921371963],[106.2483769725421,-5.9719003172074876],[106.24864797147501,-5.9718997019831166]]],[[[106.24973012179619,-5.9710832649545038],[106.24973073680978,-5.9713545898894296],[106.25000173533394,-5.971353974054141],[106.25000112018709,-5.9710826491473901],[106.24973012179619,-5.9710832649545038]]],[[[106.24837451509649,-5.97081501691006],[106.24783251821167,-5.9708162467333308],[106.24783313226389,-5.9710875718680638],[106.24837512941525,-5.9710863419885163],[106.24837451509649,-5.97081501691006]]],[[[106.24973012179619,-5.9710832649545038],[106.24972950681105,-5.9708119400168442],[106.24918751021053,-5.9708131711744219],[106.24918812492913,-5.9710844961684186],[106.24973012179619,-5.9710832649545038]]],[[[106.25135611171444,-5.971079568110282],[106.25135549592963,-5.9708082433417804],[106.25108449781439,-5.9708088597878657],[106.25081349967066,-5.9708094761005226],[106.25081411518889,-5.9710808009254341],[106.25135611171444,-5.971079568110282]]],[[[106.24837451509649,-5.97081501691006],[106.24864551349624,-5.9708144017982772],[106.2486448990726,-5.9705430767452192],[106.2483739008061,-5.9705436918288548],[106.24837451509649,-5.97081501691006]]],[[[106.24620407414899,-5.9697346317598203],[106.24620346103823,-5.9694633064427283],[106.24593246304919,-5.9694639202131698],[106.2459330760267,-5.9697352455583532],[106.24620407414899,-5.9697346317598203]]],[[[106.24674668371408,-5.9700047290206717],[106.24674545693122,-5.9694620785016417],[106.2464744589989,-5.9694626925388841],[106.24647568551528,-5.9700053431141251],[106.24674668371408,-5.9700047290206717]]],[[[106.24565778856162,-5.9678365815533372],[106.24565717591585,-5.9675652561609285],[106.24538617880262,-5.9675658694680092],[106.24538679131521,-5.9678371948884976],[106.24565778856162,-5.9678365815533372]]],[[[106.24701093451823,-5.9670195371132202],[106.24701032129164,-5.966748211853143],[106.24673932471977,-5.9667488257426839],[106.2467399378132,-5.967020151030872],[106.24701093451823,-5.9670195371132202]]]]
+          },
+          "properties":{
+            "OBJECTID":1,
+            "Id":1,
+            "gridcode":2,
+            "Shape_Length":7020.0000000204891,
+            "Shape_Area":60300.000000307336,
+            "LUASAN":6.0319894167645174
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 2,
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [[[[106.23543054393342,-5.9993336447677503],[106.23515953012077,-5.9993342562655254],[106.23516014086172,-5.9996055824282273],[106.23543115480828,-5.9996049709025989],[106.23543054393342,-5.9993336447677503]]],[[[106.23543054393342,-5.9993336447677503],[106.23570155771796,-5.9993330331358994],[106.2357009467373,-5.9990617070261285],[106.23542993308668,-5.9990623186301226],[106.23543054393342,-5.9993336447677503]]],[[[106.2357009467373,-5.9990617070261285],[106.23597196035982,-5.9990610952880647],[106.23597134927334,-5.9987897692034631],[106.23570033578477,-5.9987903809136647],[106.2357009467373,-5.9990617070261285]]],[[[106.23488668462761,-5.9985208890411279],[106.23488607413306,-5.9982495628396055],[106.23434404743837,-5.9982507849420976],[106.23434465766513,-5.9985221111992892],[106.23488668462761,-5.9985208890411279]]],[[[106.23542871147757,-5.9985196663467359],[106.23542810071523,-5.9982483402009104],[106.2351570874382,-5.998248951587283],[106.23515769806666,-5.9985202777609601],[106.23542871147757,-5.9985196663467359]]],[[[106.23624175154156,-5.9985178312997256],[106.23624114037752,-5.9982465052374865],[106.2359701271849,-5.9982471170260121],[106.23597073821504,-5.9985184431161178],[106.23624175154156,-5.9985178312997256]]],[[[106.23759620591829,-5.9982434442841024],[106.23759681775185,-5.9985147702069037],[106.23786783090939,-5.9985141575861718],[106.23786721894196,-5.9982428316912753],[106.23759620591829,-5.9982434442841024]]],[[[106.23759620591829,-5.9982434442841024],[106.23759559411295,-5.9979721183585246],[106.23732458119501,-5.9979727307894013],[106.23732519286648,-5.9982440567428803],[106.23759620591829,-5.9982434442841024]]],[[[106.23840924490469,-5.9982416061034689],[106.23840863269764,-5.997970280261625],[106.2381376198643,-5.997970893094636],[106.23813823193743,-5.9982422189643971],[106.23840924490469,-5.9982416061034689]]],[[[106.23867842090557,-5.9974270156586007],[106.23840740836818,-5.9974276285698078],[106.23840802051878,-5.9976989544171051],[106.2386790331901,-5.9976983414779745],[106.23867842090557,-5.9974270156586007]]],[[[106.23867842090557,-5.9974270156586007],[106.2392204458958,-5.997425789434093],[106.23921983337173,-5.9971544636678402],[106.23867780864926,-5.9971556898364824],[106.23867842090557,-5.9974270156586007]]],[[[106.23840679624571,-5.9971563027197652],[106.23840618415146,-5.9968849768669461],[106.2381351718536,-5.9968855895882855],[106.23813578381399,-5.9971569154690219],[106.23840679624571,-5.9971563027197652]]],[[[106.23732274634962,-5.9971587529126387],[106.23732152326023,-5.9966161009810559],[106.23705051098351,-5.9966167131384225],[106.23705173380517,-5.9971593651257926],[106.23732274634962,-5.9971587529126387]]],[[[106.23921860840825,-5.9966118121271057],[106.23921922087591,-5.996883137898811],[106.23949023306092,-5.9968825246413946],[106.23948962045942,-5.9966111988976314],[106.23921860840825,-5.9966118121271057]]],[[[106.23921860840825,-5.9966118121271057],[106.23921799596883,-5.9963404863526222],[106.23894698402327,-5.9963410994201478],[106.23894759632884,-5.9966124252225672],[106.23921860840825,-5.9966118121271057]]],[[[106.24002980603888,-5.9957959949564792],[106.24002919328261,-5.9955246692576285],[106.24002858055458,-5.9952533435560165],[106.23975756922903,-5.9952539569137464],[106.23975818182325,-5.9955252826433121],[106.23975879444569,-5.9957966083701182],[106.24002980603888,-5.9957959949564792]]],[[[106.24138363675857,-5.9952502747576313],[106.24138302338964,-5.9949789491931051],[106.24111201233919,-5.9949795631927616],[106.24111262557427,-5.9952508887852725],[106.24138363675857,-5.9952502747576313]]],[[[106.238672911614,-5.9949850831607412],[106.23867229961151,-5.9947137573139511],[106.23840128841253,-5.9947143699459202],[106.23840190028122,-5.9949856958206347],[106.238672911614,-5.9949850831607412]]],[[[106.24165280749114,-5.9944356839782733],[106.24111078595377,-5.9944369119996121],[106.24111139913232,-5.9947082375975587],[106.24138241004897,-5.9947076236258869],[106.24165342093735,-5.994707009520245],[106.24165280749114,-5.9944356839782733]]],[[[106.24192381821746,-5.9944350697666584],[106.24192443179749,-5.994706395280633],[106.24219544262934,-5.9947057809070516],[106.24246645343291,-5.9947051663995001],[106.24246583958525,-5.9944338409415376],[106.24219482891552,-5.9944344554210796],[106.24192381821746,-5.9944350697666584]]],[[[106.24192381821746,-5.9944350697666584],[106.24192320466577,-5.994163744249926],[106.24165219407321,-5.9941643584335438],[106.24165280749114,-5.9944356839782733],[106.24192381821746,-5.9944350697666584]]],[[[106.24056815142058,-5.9941668138284392],[106.24083916212611,-5.9941662001806515],[106.24083854913782,-5.9938948745491922],[106.24029652796605,-5.9938961016548697],[106.24029714068674,-5.9941674273422691],[106.24056815142058,-5.9941668138284392]]],[[[106.24436229872511,-5.9941582105692799],[106.24436168399745,-5.9938868853020155],[106.24409067379347,-5.993887500663198],[106.24381966356114,-5.9938881158904289],[106.2438202780212,-5.9941594412137924],[106.24436229872511,-5.9941582105692799]]],[[[106.24490431931571,-5.9941569793889427],[106.24490370432046,-5.9938856541777996],[106.24517471443949,-5.9938850384147662],[106.24517409933877,-5.9936137132290188],[106.24463207934002,-5.9936149445650022],[106.24463269417318,-5.9938862698068842],[106.24463330903458,-5.994157595046091],[106.24490431931571,-5.9941569793889427]]],[[[106.2411089465875,-5.9936229351892685],[106.24110833352194,-5.9933516095803343],[106.24083732324601,-5.9933522232781451],[106.24083793617783,-5.9936235489150569],[106.2411089465875,-5.9936229351892685]]],[[[106.24598836015672,-5.9941545154207851],[106.24598774462629,-5.9938831903219594],[106.24598651365052,-5.993340540116181],[106.24571550388417,-5.9933411562248908],[106.24571734998901,-5.9941551316137591],[106.24598836015672,-5.9941545154207851]]],[[[106.241650353989,-5.9933503817828973],[106.24164974068414,-5.9930790562271969],[106.24137873059851,-5.993079670164895],[106.24137934376959,-5.9933509957485862],[106.241650353989,-5.9933503817828973]]],[[[106.24083609746722,-5.9928095719960801],[106.24083548462021,-5.992538246350958],[106.24056447471733,-5.9925388598309119],[106.24056508743058,-5.9928101855040046],[106.24083609746722,-5.9928095719960801]]],[[[106.24246092982249,-5.9922632371789772],[106.24246031622944,-5.9919919116963154],[106.2427313256669,-5.9919912973349447],[106.24273071196839,-5.9917199718775418],[106.2424597026647,-5.9917205862108975],[106.24218869333271,-5.9917212004103515],[106.24218992022301,-5.9922638514344477],[106.24246092982249,-5.9922632371789772]]],[[[106.24273009829817,-5.9914486464174299],[106.24300110743984,-5.9914480319781935],[106.24300049366418,-5.9911767065433432],[106.24272948465628,-5.9911773209545593],[106.24245847562003,-5.9911779352318861],[106.2424590891282,-5.9914492607227698],[106.24273009829817,-5.9914486464174299]]],[[[106.2435412835938,-5.9906328265534219],[106.24354005570574,-5.9900901757766718],[106.24353944180419,-5.9898188503841423],[106.24326843352144,-5.9898194649229737],[106.24326904728929,-5.9900907903435359],[106.24326966108546,-5.9903621157613225],[106.24327027490993,-5.9906334411763522],[106.2435412835938,-5.9906328265534219]]],[[[106.24353453161088,-5.9876482471455361],[106.24353391796413,-5.9873769217283943],[106.24272089664028,-5.9873787641865848],[106.24272150988605,-5.9876500896878078],[106.24299251715597,-5.9876494756408611],[106.24326352439758,-5.9876488614601033],[106.24326413793898,-5.9879201869025387],[106.24299313056372,-5.9879208011113221],[106.24299374399982,-5.9881921265790936],[106.24353575898934,-5.9881908979716512],[106.24353453161088,-5.9876482471455361]]],[[[106.24434202767145,-5.9852044753031466],[106.24434264149254,-5.9854758006580866],[106.24461364752352,-5.9854751860327333],[106.24461303356885,-5.9852038607058518],[106.24434202767145,-5.9852044753031466]]],[[[106.24461180574453,-5.9846612100438525],[106.24461241964252,-5.9849325353762302],[106.24488342537802,-5.9849319206732412],[106.24488281134641,-5.9846605953689274],[106.24461180574453,-5.9846612100438525]]],[[[106.24461180574453,-5.9846612100438525],[106.24461119187487,-5.9843898847087713],[106.24406918085327,-5.9843911136012844],[106.24407040808659,-5.9849337643809584],[106.24407102174573,-5.9852050897666871],[106.24434202767145,-5.9852044753031466],[106.2443408001143,-5.9846618245850349],[106.24461180574453,-5.9846612100438525]]],[[[106.24542359395269,-5.9841167151133448],[106.245422979739,-5.9838453898569428],[106.24542236555365,-5.9835740645978523],[106.24488035550353,-5.9835752941243552],[106.24488096942171,-5.9838466194395883],[106.24488158336827,-5.9841179447521347],[106.24542359395269,-5.9841167151133448]]],[[[106.24650638531367,-5.9835716039402262],[106.24677739018274,-5.9835709884415245],[106.24731939983572,-5.9835697570429653],[106.24731878474383,-5.9832984319778344],[106.24650577062245,-5.9833002787907601],[106.24623476585857,-5.9833008941276438],[106.24623538041624,-5.983572219305211],[106.24650638531367,-5.9835716039402262]]],[[[106.24596314667056,-5.9830301841224021],[106.24542113726804,-5.9830314140714416],[106.24542175139668,-5.9833027393360245],[106.24569275624566,-5.9833021244002769],[106.2456933705362,-5.9835734496340232],[106.24596437549042,-5.983572834536476],[106.24596376106631,-5.9833015093308166],[106.24596314667056,-5.9830301841224021]]],[[[106.24840218757707,-5.9830246427332794],[106.24786017868556,-5.9830258750890248],[106.24786079401613,-5.9832972001006581],[106.24813179860966,-5.9832965839615015],[106.24840280317477,-5.9832959676886333],[106.24840218757707,-5.9830246427332794]]],[[[106.24596314667056,-5.9830301841224021],[106.24623415132929,-5.9830295689473232],[106.24623353682838,-5.9827582437642306],[106.2459625323032,-5.9827588589112164],[106.24596314667056,-5.9830301841224021]]],[[[106.24840218757707,-5.9830246427332794],[106.24867319198023,-5.9830240263548484],[106.24867257627741,-5.9827527014248707],[106.24840157200782,-5.9827533177751535],[106.24840218757707,-5.9830246427332794]]],[[[106.24867257627741,-5.9827527014248707],[106.24894358051858,-5.9827520849408877],[106.24948558891565,-5.9827508515718266],[106.24948497284062,-5.982479526723659],[106.24975597686294,-5.9824789098667512],[106.24975536068287,-5.9822075850439855],[106.24921335287686,-5.9822088185677664],[106.2492139687899,-5.9824801434468728],[106.24867196060303,-5.9824813764922222],[106.24867257627741,-5.9827527014248707]]],[[[106.24541622525969,-5.9808608118562168],[106.2451452215841,-5.9808614264055775],[106.2451458353524,-5.9811327517201365],[106.24541683916149,-5.9811321371427013],[106.24541622525969,-5.9808608118562168]]],[[[106.24541622525969,-5.9808608118562168],[106.24568722890695,-5.9808601971731994],[106.24568661490001,-5.980588871912043],[106.24541561138624,-5.9805894865669798],[106.24541622525969,-5.9808608118562168]]],[[[106.24568415915581,-5.9795035708401318],[106.24568354529065,-5.9792322455653091],[106.2454125424443,-5.9792328600798408],[106.24541315617596,-5.9795041853827451],[106.24568415915581,-5.9795035708401318]]],[[[106.24703855909706,-5.9792291709883374],[106.24703794459302,-5.9789578458512738],[106.24676694202191,-5.9789584610057975],[106.24676755639253,-5.9792297861709729],[106.24703855909706,-5.9792291709883374]]],[[[106.24866334414658,-5.9786828271471935],[106.24893434638531,-5.9786822110855251],[106.2489337310039,-5.9784108861399714],[106.24839172676484,-5.9784121180733996],[106.24839234187937,-5.978683443075254],[106.24866334414658,-5.9786828271471935]]],[[[106.25028812508367,-5.9781364791609137],[106.25028750909196,-5.9778651543507166],[106.25001650739573,-5.9778657709958694],[106.25001712325401,-5.978137095834251],[106.25028812508367,-5.9781364791609137]]],[[[106.25110051400982,-5.9778633036137236],[106.25109989764626,-5.9775919788853624],[106.25082889616887,-5.9775925959030802],[106.25082951239898,-5.9778639206596438],[106.25110051400982,-5.9778633036137236]]],[[[106.24622186670169,-5.9776030647660452],[106.24622125276818,-5.9773317395282666],[106.24595025091261,-5.9773323541133898],[106.24595086471268,-5.9776036793792606],[106.24622186670169,-5.9776030647660452]]],[[[106.24594963714092,-5.9770610288447656],[106.24594902339756,-5.976789703573373],[106.24567802178044,-5.976790317968744],[106.24567863539036,-5.9770616432682235],[106.24594963714092,-5.9770610288447656]]],[[[106.24621818352634,-5.9759751132982579],[106.24621879731797,-5.9762464385497305],[106.24648979861153,-5.9762458239434251],[106.24648918468652,-5.9759744987200518],[106.24621818352634,-5.9759751132982579]]],[[[106.24621818352634,-5.9759751132982579],[106.24621756976308,-5.9757037880440187],[106.24567556762433,-5.9757050167436097],[106.24567618112083,-5.9759763420540297],[106.24621818352634,-5.9759751132982579]]],[[[106.24621388777931,-5.9740758364613855],[106.24594288752431,-5.9740764507093962],[106.24594411447202,-5.9746191013040413],[106.24621511499375,-5.9746184869998444],[106.24648611548706,-5.9746178725621322],[106.24648550173231,-5.9743465473223853],[106.24621450137235,-5.9743471617319992],[106.24621388777931,-5.9740758364613855]]],[[[106.24648366063829,-5.9735325715866221],[106.24621266067834,-5.9735331859119389],[106.24621327421465,-5.9738045111880371],[106.24648427430792,-5.973803896834621],[106.24648366063829,-5.9735325715866221]]],[[[106.24648366063829,-5.9735325715866221],[106.24675466056988,-5.9735319571278112],[106.24675404679529,-5.9732606319052151],[106.24648304699703,-5.9732612463359205],[106.24648366063829,-5.9735325715866221]]],[[[106.2462108202397,-5.9727192100672752],[106.24621143369086,-5.9729905353515917],[106.24648243338414,-5.97298992108247],[106.24648181979964,-5.9727185958262519],[106.2462108202397,-5.9727192100672752]]],[[[106.2462108202397,-5.9727192100672752],[106.24621020681687,-5.9724478847802756],[106.24620959342241,-5.9721765594905438],[106.24593859410064,-5.9721771735419074],[106.2459398206513,-5.9727198241748232],[106.2462108202397,-5.9727192100672752]]],[[[106.24702075000465,-5.9713607409029761],[106.24674975116791,-5.9713613552703917],[106.2467515919808,-5.9721753309874304],[106.2470225912174,-5.9721747165356822],[106.24702197745142,-5.9719033913275128],[106.24729297652635,-5.9719027767704187],[106.24729236265549,-5.9716314515875988],[106.24702136371386,-5.9716320661165767],[106.24702075000465,-5.9713607409029761]]],[[[106.25054250149844,-5.9708100922797476],[106.25054188614196,-5.9705387674238892],[106.25027088807455,-5.970539383441495],[106.25027150329778,-5.9708107083255433],[106.25054250149844,-5.9708100922797476]]],[[[106.24566146503176,-5.9694645338502097],[106.24566085221585,-5.9691932084742403],[106.24538985430331,-5.9691938219498004],[106.245390466986,-5.9694651473538505],[106.24566146503176,-5.9694645338502097]]],[[[106.24620346103823,-5.9694633064427283],[106.24620284795586,-5.9691919811229361],[106.24593185010005,-5.9691925948652855],[106.24593246304919,-5.9694639202131698],[106.24620346103823,-5.9694633064427283]]],[[[106.24674055093502,-5.9672914763163289],[106.2467399378132,-5.967020151030872],[106.2464689410798,-5.9670207648151772],[106.24646955406841,-5.9672920901287387],[106.24674055093502,-5.9672914763163289]]]]
+          },
+          "properties":{
+            "OBJECTID":2,
+            "Id":2,
+            "gridcode":4,
+            "Shape_Length":10260.000000016764,
+            "Shape_Area":98099.999999748543,
+            "LUASAN":9.8132470137317789
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 3,
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [[[[106.2351607516308,-5.9998769085881651],[106.23516014086172,-5.9996055824282273],[106.23461811288416,-5.9996068050772351],[106.23461872338538,-5.9998781312928573],[106.2351607516308,-5.9998769085881651]]],[[[106.23407547458893,-5.9993367009158751],[106.23407608479421,-5.9996080271899181],[106.23434709885322,-5.9996074162006172],[106.23434648851403,-5.9993360899544026],[106.23407547458893,-5.9993367009158751]]],[[[106.23407547458893,-5.9993367009158751],[106.23407486441178,-5.9990653746390565],[106.23380385059248,-5.9990659854386355],[106.23380446063571,-5.9993373117432744],[106.23407547458893,-5.9993367009158751]]],[[[106.23380385059248,-5.9990659854386355],[106.23380324057732,-5.9987946591313017],[106.23353222686383,-5.9987952697689968],[106.23353283674506,-5.9990665961041438],[106.23380385059248,-5.9990659854386355]]],[[[106.23515769806666,-5.9985202777609601],[106.2351570874382,-5.998248951587283],[106.23488607413306,-5.9982495628396055],[106.23488668462761,-5.9985208890411279],[106.23515769806666,-5.9985202777609601]]],[[[106.23705417978648,-5.998244669067609],[106.23732519286648,-5.9982440567428803],[106.23732458119501,-5.9979727307894013],[106.2362405292416,-5.9979751791724718],[106.23624114037752,-5.9982465052374865],[106.23705417978648,-5.998244669067609]]],[[[106.23867780864926,-5.9971556898364824],[106.23867719642114,-5.9968843640115876],[106.23840618415146,-5.9968849768669461],[106.23840679624571,-5.9971563027197652],[106.23867780864926,-5.9971556898364824]]],[[[106.23786354772921,-5.9966148762642808],[106.23786293595906,-5.9963435503501783],[106.23759192387253,-5.9963441627476683],[106.23759253550885,-5.9966154886896748],[106.23786354772921,-5.9966148762642808]]],[[[106.24003041882339,-5.9960673206526218],[106.24002980603888,-5.9957959949564792],[106.23975879444569,-5.9957966083701182],[106.23975940709636,-5.9960679340942136],[106.24003041882339,-5.9960673206526218]]],[[[106.24030020471372,-5.9955240557379552],[106.24029959185184,-5.9952527300643039],[106.24002858055458,-5.9952533435560165],[106.24002919328261,-5.9955246692576285],[106.24030020471372,-5.9955240557379552]]],[[[106.23867352364469,-5.9952564090048392],[106.238672911614,-5.9949850831607412],[106.23840190028122,-5.9949856958206347],[106.23840251217808,-5.9952570216926562],[106.23867352364469,-5.9952564090048392]]],[[[106.24219605637147,-5.9949771063902793],[106.24219544262934,-5.9947057809070516],[106.24192443179749,-5.994706395280633],[106.24165342093735,-5.994707009520245],[106.24138241004897,-5.9947076236258869],[106.24138302338964,-5.9949789491931051],[106.24219605637147,-5.9949771063902793]]],[[[106.24598897571555,-5.9944258405168336],[106.2459895913027,-5.9946971656101224],[106.24626060170968,-5.9946965492270028],[106.24625998598869,-5.9944252241618088],[106.24598897571555,-5.9944258405168336]]],[[[106.24083916212611,-5.9941662001806515],[106.24056815142058,-5.9941668138284392],[106.24056937721421,-5.9947094651389943],[106.24111139913232,-5.9947082375975587],[106.24111078595377,-5.9944369119996121],[106.24083977514262,-5.994437525809337],[106.24083916212611,-5.9941662001806515]]],[[[106.24246583958525,-5.9944338409415376],[106.24273685022672,-5.9944332263280318],[106.24273623627359,-5.9941619008953273],[106.24219421522996,-5.9941631299323497],[106.24219482891552,-5.9944344554210796],[106.24246583958525,-5.9944338409415376]]],[[[106.2438202780212,-5.9941594412137924],[106.24382089250956,-5.994430766534375],[106.24409190300949,-5.9944301512510547],[106.2443629134811,-5.9944295358337678],[106.24463392392435,-5.9944289202825187],[106.24463330903458,-5.994157595046091],[106.24436229872511,-5.9941582105692799],[106.2438202780212,-5.9941594412137924]]],[[[106.24598897571555,-5.9944258405168336],[106.24598836015672,-5.9941545154207851],[106.24571734998901,-5.9941551316137591],[106.245717965414,-5.9944264567378962],[106.24598897571555,-5.9944258405168336]]],[[[106.2438202780212,-5.9941594412137924],[106.24381966356114,-5.9938881158904289],[106.24300663269426,-5.9938899607684162],[106.24300724675292,-5.9941612861758777],[106.2438202780212,-5.9941594412137924]]],[[[106.2451753295685,-5.9941563635978374],[106.24517471443949,-5.9938850384147662],[106.24490370432046,-5.9938856541777996],[106.24490431931571,-5.9941569793889427],[106.2451753295685,-5.9941563635978374]]],[[[106.2411089465875,-5.9936229351892685],[106.24083793617783,-5.9936235489150569],[106.24083854913782,-5.9938948745491922],[106.24110955968132,-5.9938942607954253],[106.2411089465875,-5.9936229351892685]]],[[[106.24463269417318,-5.9938862698068842],[106.24463207934002,-5.9936149445650022],[106.24436106929814,-5.9936155600320777],[106.24436168399745,-5.9938868853020155],[106.24463269417318,-5.9938862698068842]]],[[[106.24571734998901,-5.9941551316137591],[106.24571550388417,-5.9933411562248908],[106.24517348426642,-5.9933423880404932],[106.24517409933877,-5.9936137132290188],[106.2454451092956,-5.9936130973601092],[106.24544633979292,-5.9941557476727771],[106.24571734998901,-5.9941551316137591]]],[[[106.24625875463184,-5.9938825740231243],[106.24625813899598,-5.9936112489497173],[106.24652914883934,-5.9936106325450318],[106.24652853309807,-5.9933393074969485],[106.24598651365052,-5.993340540116181],[106.24598774462629,-5.9938831903219594],[106.24625875463184,-5.9938825740231243]]],[[[106.2411089465875,-5.9936229351892685],[106.24137995696894,-5.9936223213295348],[106.24137934376959,-5.9933509957485862],[106.24137873059851,-5.993079670164895],[106.24083671034249,-5.9930808976384915],[106.24083732324601,-5.9933522232781451],[106.24110833352194,-5.9933516095803343],[106.2411089465875,-5.9936229351892685]]],[[[106.2419207507415,-5.993078442155567],[106.24192013733115,-5.9928071166251033],[106.24164912740758,-5.9928077306687388],[106.24164974068414,-5.9930790562271969],[106.2419207507415,-5.993078442155567]]],[[[106.24110710747559,-5.9928089583542263],[106.2411064944948,-5.9925376327370836],[106.24083548462021,-5.992538246350958],[106.24083609746722,-5.9928095719960801],[106.24110710747559,-5.9928089583542263]]],[[[106.24246092982249,-5.9922632371789772],[106.24218992022301,-5.9922638514344477],[106.24191891059523,-5.9922644655560022],[106.24191952394904,-5.9925357910919335],[106.24246154344382,-5.9925345626588937],[106.24246092982249,-5.9922632371789772]]],[[[106.24246092982249,-5.9922632371789772],[106.24273193939369,-5.9922626227895908],[106.2427313256669,-5.9919912973349447],[106.24246031622944,-5.9919919116963154],[106.24246092982249,-5.9922632371789772]]],[[[106.2427313256669,-5.9919912973349447],[106.24300233507604,-5.9919906828396661],[106.24300110743984,-5.9914480319781935],[106.24273009829817,-5.9914486464174299],[106.24273071196839,-5.9917199718775418],[106.2427313256669,-5.9919912973349447]]],[[[106.24327088876271,-5.9909047665886401],[106.24327027490993,-5.9906334411763522],[106.24299926619777,-5.9906340556654047],[106.24272825745732,-5.9906346700205795],[106.24272887104263,-5.990905995488915],[106.24299987991685,-5.9909053811057191],[106.24300049366418,-5.9911767065433432],[106.24327150264379,-5.9911760919982378],[106.24327088876271,-5.9909047665886401]]],[[[106.24326966108546,-5.9903621157613225],[106.24326904728929,-5.9900907903435359],[106.24299803884456,-5.9900914047765337],[106.24299865250701,-5.9903627302223486],[106.24326966108546,-5.9903621157613225]]],[[[106.24353944180419,-5.9898188503841423],[106.24354005570574,-5.9900901757766718],[106.24381106409386,-5.9900895610759415],[106.24381045005859,-5.9898182357114527],[106.24353944180419,-5.9898188503841423]]],[[[106.24353944180419,-5.9898188503841423],[106.24353882793092,-5.9895475249889403],[106.24326781978188,-5.9895481394997381],[106.24326843352144,-5.9898194649229737],[106.24353944180419,-5.9898188503841423]]],[[[106.24381045005859,-5.9898182357114527],[106.2440814582847,-5.989817620904903],[106.24408023003171,-5.9892749702238914],[106.24380922207301,-5.9892755849743509],[106.24380983605167,-5.9895469103442895],[106.24381045005859,-5.9898182357114527]]],[[[106.24353637272102,-5.9884622233805889],[106.24353575898934,-5.9881908979716512],[106.24299374399982,-5.9881921265790936],[106.24299435746418,-5.9884634520440923],[106.24353637272102,-5.9884622233805889]]],[[[106.24299313056372,-5.9879208011113221],[106.24299251715597,-5.9876494756408611],[106.24272150988605,-5.9876500896878078],[106.24272212316015,-5.987921415186289],[106.24299313056372,-5.9879208011113221]]],[[[106.24380553879591,-5.9876476326971568],[106.24380492501548,-5.9873763073080539],[106.24353391796413,-5.9873769217283943],[106.24353453161088,-5.9876482471455361],[106.24380553879591,-5.9876476326971568]]],[[[106.24434264149254,-5.9854758006580866],[106.24434325534192,-5.9857471260102519],[106.2448852676428,-5.9857458965696662],[106.2448846535262,-5.9854745712736195],[106.24461364752352,-5.9854751860327333],[106.24434264149254,-5.9854758006580866]]],[[[106.24434264149254,-5.9854758006580866],[106.24434202767145,-5.9852044753031466],[106.24407102174573,-5.9852050897666871],[106.24407163543322,-5.9854764151496775],[106.24434264149254,-5.9854758006580866]]],[[[106.24407040808659,-5.9849337643809584],[106.24406918085327,-5.9843911136012844],[106.24379817529999,-5.9843917278469352],[106.2437987887689,-5.9846630532661687],[106.24379940226612,-5.9849343786826985],[106.24407040808659,-5.9849337643809584]]],[[[106.24569398485511,-5.983844774865033],[106.245422979739,-5.9838453898569428],[106.24542359395269,-5.9841167151133448],[106.24569459920237,-5.9841161000933534],[106.24569398485511,-5.983844774865033]]],[[[106.24596498994289,-5.9838441597393981],[106.2459656044237,-5.9841154849396316],[106.24623660961667,-5.9841148696521786],[106.24623599500227,-5.9838435444800391],[106.24596498994289,-5.9838441597393981]]],[[[106.24596498994289,-5.9838441597393981],[106.24596437549042,-5.983572834536476],[106.2456933705362,-5.9835734496340232],[106.24569398485511,-5.983844774865033],[106.24596498994289,-5.9838441597393981]]],[[[106.24596437549042,-5.983572834536476],[106.24623538041624,-5.983572219305211],[106.24623476585857,-5.9833008941276438],[106.24596376106631,-5.9833015093308166],[106.24596437549042,-5.983572834536476]]],[[[106.24759101987347,-5.9838404661773774],[106.24759040461963,-5.9835691411431089],[106.24786140937513,-5.9835685251095345],[106.24786079401613,-5.9832972001006581],[106.24731878474383,-5.9832984319778344],[106.24731939983572,-5.9835697570429653],[106.247320014956,-5.9838410821053589],[106.24759101987347,-5.9838404661773774]]],[[[106.24894419635497,-5.9830234098427111],[106.24894358051858,-5.9827520849408877],[106.24867257627741,-5.9827527014248707],[106.24867319198023,-5.9830240263548484],[106.24894419635497,-5.9830234098427111]]],[[[106.24541990909583,-5.9824887635340609],[106.24541929505226,-5.9822174382612632],[106.24541868103704,-5.981946112985729],[106.24514767682739,-5.9819467276473892],[106.24514890461913,-5.9824893782518709],[106.24541990909583,-5.9824887635340609]]],[[[106.24568784294226,-5.9811315224316024],[106.24568722890695,-5.9808601971731994],[106.24541622525969,-5.9808608118562168],[106.24541683916149,-5.9811321371427013],[106.24568784294226,-5.9811315224316024]]],[[[106.24541315617596,-5.9795041853827451],[106.2454125424443,-5.9792328600798408],[106.24514153956957,-5.9792334744607523],[106.24514215316779,-5.979504799791731],[106.24541315617596,-5.9795041853827451]]],[[[106.24730956177316,-5.9792285556720817],[106.24730894713564,-5.9789572305631351],[106.24703794459302,-5.9789578458512738],[106.24703855909706,-5.9792291709883374],[106.24730956177316,-5.9792285556720817]]],[[[106.24785095213581,-5.9789559995860158],[106.24785033725976,-5.9786846745305526],[106.24757933490731,-5.9786852900577889],[106.24757994964992,-5.9789566151413824],[106.24785095213581,-5.9789559995860158]]],[[[106.24920534859565,-5.9786815948902481],[106.2492047330808,-5.9784102699728559],[106.2489337310039,-5.9784108861399714],[106.24893434638531,-5.9786822110855251],[106.24920534859565,-5.9786815948902481]]],[[[106.2497467371492,-5.9784090372378174],[106.2497461213959,-5.9781377123739929],[106.24947511950934,-5.9781383287801413],[106.24947573512921,-5.9784096536721378],[106.2497467371492,-5.9784090372378174]]],[[[106.25055912688484,-5.9781358623539811],[106.25055851075969,-5.9778645375719739],[106.25028750909196,-5.9778651543507166],[106.25028812508367,-5.9781364791609137],[106.25055912688484,-5.9781358623539811]]],[[[106.25137089909514,-5.9775913617340626],[106.25109989764626,-5.9775919788853624],[106.25110051400982,-5.9778633036137236],[106.2513715155921,-5.9778626864342153],[106.25137089909514,-5.9775913617340626]]],[[[106.25137089909514,-5.9775913617340626],[106.25191290190749,-5.977590127030715],[106.25191228517217,-5.9773188023842971],[106.25137028262667,-5.977320037031209],[106.25137089909514,-5.9775913617340626]]],[[[106.25191228517217,-5.9773188023842971],[106.25218328640217,-5.9773181848604757],[106.25218266956195,-5.9770468602395326],[106.25191166846537,-5.9770474777351259],[106.25191228517217,-5.9773188023842971]]],[[[106.25272405459104,-5.9767743002803932],[106.25245305368489,-5.9767749180148879],[106.25245367063003,-5.9770462426103688],[106.25272467166957,-5.9770456248476345],[106.25272405459104,-5.9767743002803932]]],[[[106.25272405459104,-5.9767743002803932],[106.25299505546869,-5.9767736824123361],[106.2529944382853,-5.9765023578706549],[106.25272343754102,-5.976502975710468],[106.25272405459104,-5.9767743002803932]]],[[[106.2529944382853,-5.9765023578706549],[106.253265439001,-5.9765017398972828],[106.2532648217127,-5.976230415381119],[106.25299382113039,-5.9762310333262381],[106.2529944382853,-5.9765023578706549]]],[[[106.24621572864352,-5.9748898122650242],[106.24621511499375,-5.9746184869998444],[106.24594411447202,-5.9746191013040413],[106.24594472798847,-5.9748904265973115],[106.24621572864352,-5.9748898122650242]]],[[[106.24675527437286,-5.9738032823477063],[106.24675466056988,-5.9735319571278112],[106.24648366063829,-5.9735325715866221],[106.24648427430792,-5.973803896834621],[106.24675527437286,-5.9738032823477063]]],[[[106.24648304699703,-5.9732612463359205],[106.24648243338414,-5.97298992108247],[106.24621143369086,-5.9729905353515917],[106.24621204717042,-5.9732618606331407],[106.24648304699703,-5.9732612463359205]]],[[[106.24702320501176,-5.9724460417411001],[106.2470225912174,-5.9721747165356822],[106.2467515919808,-5.9721753309874304],[106.24648059271577,-5.9721759453057173],[106.24648120624352,-5.9724472705673515],[106.24702320501176,-5.9724460417411001]]],[[[106.24729236265549,-5.9716314515875988],[106.247291748813,-5.9713601264021143],[106.24702075000465,-5.9713607409029761],[106.24702136371386,-5.9716320661165767],[106.24729236265549,-5.9716314515875988]]],[[[106.24891774106671,-5.9713564365946441],[106.24864674242878,-5.9713570518961632],[106.24864735693768,-5.9716283769409735],[106.24891835570887,-5.9716277616113009],[106.24891774106671,-5.9713564365946441]]],[[[106.24891774106671,-5.9713564365946441],[106.24918873967617,-5.9713558211596816],[106.24918812492913,-5.9710844961684186],[106.24891712645292,-5.9710851115752215],[106.24891774106671,-5.9713564365946441]]],[[[106.25081349967066,-5.9708094761005226],[106.25054250149844,-5.9708100922797476],[106.25027150329778,-5.9708107083255433],[106.24972950681105,-5.9708119400168442],[106.24973012179619,-5.9710832649545038],[106.25000112018709,-5.9710826491473901],[106.25081411518889,-5.9710808009254341],[106.25081349967066,-5.9708094761005226]]],[[[106.25162710993446,-5.9710789515025509],[106.25162649401641,-5.9708076267622641],[106.25135549592963,-5.9708082433417804],[106.25135611171444,-5.971079568110282],[106.25162710993446,-5.9710789515025509]]],[[[106.25081349967066,-5.9708094761005226],[106.25108449781439,-5.9708088597878657],[106.25108388219137,-5.9705375349884076],[106.2508128841809,-5.9705381512728595],[106.25081349967066,-5.9708094761005226]]],[[[106.2459330760267,-5.9697352455583532],[106.24593246304919,-5.9694639202131698],[106.24566146503176,-5.9694645338502097],[106.24566207787603,-5.9697358592234808],[106.2459330760267,-5.9697352455583532]]],[[[106.24593123717926,-5.9689212695146541],[106.24593062428683,-5.9686499441612586],[106.2456596266691,-5.9686505577140396],[106.24566023942829,-5.9689218830955229],[106.24593123717926,-5.9689212695146541]]],[[[106.2453874038561,-5.9681085203062212],[106.24538679131521,-5.9678371948884976],[106.2451157940404,-5.9678378080902954],[106.24511640644813,-5.9681091335360907],[106.2453874038561,-5.9681085203062212]]],[[[106.24538617880262,-5.9675658694680092],[106.24538556631838,-5.9672945440448579],[106.24511456930999,-5.9672951571905068],[106.24511518166102,-5.9675664826417334],[106.24538617880262,-5.9675658694680092]]],[[[106.24674116408521,-5.9675628015990219],[106.24674055093502,-5.9672914763163289],[106.24646955406841,-5.9672920901287387],[106.24592756025015,-5.9672933173535032],[106.24592817300076,-5.9675646427204896],[106.24674116408521,-5.9675628015990219]]]]
+          },
+          "properties":{
+            "OBJECTID":3,
+            "Id":3,
+            "gridcode":3,
+            "Shape_Length":11279.999999963678,
+            "Shape_Area":101699.99999899417,
+            "LUASAN":10.17336108859444
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 5,
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [[[[106.23542871147757,-5.9985196663467359],[106.23515769806666,-5.9985202777609601],[106.23488668462761,-5.9985208890411279],[106.23434465766513,-5.9985221111992892],[106.2338026305903,-5.9985233328212235],[106.23380324057732,-5.9987946591313017],[106.23380385059248,-5.9990659854386355],[106.23407486441178,-5.9990653746390565],[106.23407547458893,-5.9993367009158751],[106.23434648851403,-5.9993360899544026],[106.23434709885322,-5.9996074162006172],[106.23461811288416,-5.9996068050772351],[106.23516014086172,-5.9996055824282273],[106.23515953012077,-5.9993342562655254],[106.23515891940795,-5.9990629301000471],[106.23434587820296,-5.999064763705408],[106.23434526792001,-5.9987934374537213],[106.23542932226806,-5.998790992489802],[106.23542871147757,-5.9985196663467359]]],[[[106.23569972486038,-5.9985190547984555],[106.23570033578477,-5.9987903809136647],[106.23597134927334,-5.9987897692034631],[106.23597073821504,-5.9985184431161178],[106.23569972486038,-5.9985190547984555]]],[[[106.23569972486038,-5.9985190547984555],[106.23569911396413,-5.9982477286804867],[106.23542810071523,-5.9982483402009104],[106.23542871147757,-5.9985196663467359],[106.23569972486038,-5.9985190547984555]]],[[[106.23813884403877,-5.9985135448313809],[106.23813823193743,-5.9982422189643971],[106.23786721894196,-5.9982428316912753],[106.23786783090939,-5.9985141575861718],[106.23813884403877,-5.9985135448313809]]],[[[106.23569911396413,-5.9982477286804867],[106.2359701271849,-5.9982471170260121],[106.23624114037752,-5.9982465052374865],[106.2362405292416,-5.9979751791724718],[106.23732458119501,-5.9979727307894013],[106.23759559411295,-5.9979721183585246],[106.23759498233576,-5.9977007924302681],[106.23732396955171,-5.997701404833248],[106.23678194389912,-5.9977026292370894],[106.23651093103061,-5.9977032412379536],[106.23596890520902,-5.9977044648375673],[106.23596951618289,-5.9979757909331273],[106.235698503096,-5.9979764025597397],[106.23569911396413,-5.9982477286804867]]],[[[106.23867842090557,-5.9974270156586007],[106.23867780864926,-5.9971556898364824],[106.23840679624571,-5.9971563027197652],[106.23840740836818,-5.9974276285698078],[106.23867842090557,-5.9974270156586007]]],[[[106.23786415952753,-5.9968862021756051],[106.23786477135404,-5.9971575280842533],[106.23813578381399,-5.9971569154690219],[106.2381351718536,-5.9968855895882855],[106.23786415952753,-5.9968862021756051]]],[[[106.23786415952753,-5.9968862021756051],[106.23786354772921,-5.9966148762642808],[106.23759253550885,-5.9966154886896748],[106.23759314717327,-5.9968868146289047],[106.23786415952753,-5.9968862021756051]]],[[[106.23759253550885,-5.9966154886896748],[106.23759192387253,-5.9963441627476683],[106.23732091175779,-5.99634477501115],[106.23732152326023,-5.9966161009810559],[106.23759253550885,-5.9966154886896748]]],[[[106.23976063248239,-5.9966105855341434],[106.23975940709636,-5.9960679340942136],[106.23975879444569,-5.9957966083701182],[106.23975818182325,-5.9955252826433121],[106.23948717033565,-5.9955258958950068],[106.23948962045942,-5.9966111988976314],[106.23976063248239,-5.9966105855341434]]],[[[106.24002858055458,-5.9952533435560165],[106.24029959185184,-5.9952527300643039],[106.24029897901821,-5.9949814043878753],[106.23975695666303,-5.9949826311814025],[106.23975756922903,-5.9952539569137464],[106.24002858055458,-5.9952533435560165]]],[[[106.24056937721421,-5.9947094651389943],[106.24056999015347,-5.9949807907901471],[106.24084100126042,-5.9949801770584425],[106.24084161436171,-5.9952515026789319],[106.24111262557427,-5.9952508887852725],[106.24111201233919,-5.9949795631927616],[106.24138302338964,-5.9949789491931051],[106.24138241004897,-5.9947076236258869],[106.24111139913232,-5.9947082375975587],[106.24056937721421,-5.9947094651389943]]],[[[106.23975573161573,-5.9944399797085897],[106.23894269867417,-5.9944418187264086],[106.23867168763721,-5.9944424314644182],[106.23867229961151,-5.9947137573139511],[106.238672911614,-5.9949850831607412],[106.23894392291858,-5.9949844703668722],[106.23894453508311,-5.9952557961830397],[106.23867352364469,-5.9952564090048392],[106.2386741357036,-5.9955277348461609],[106.23894514727583,-5.9955271219964317],[106.23894637174591,-5.9960697736149857],[106.23921738355763,-5.9960691605753969],[106.23921493419496,-5.9949838574390251],[106.23948594544311,-5.9949832443772024],[106.23948533303916,-5.9947119186142199],[106.23975634412527,-5.9947113054463683],[106.23975573161573,-5.9944399797085897]]],[[[106.24192443179749,-5.994706395280633],[106.24192381821746,-5.9944350697666584],[106.24165280749114,-5.9944356839782733],[106.24165342093735,-5.994707009520245],[106.24192443179749,-5.994706395280633]]],[[[106.24056937721421,-5.9947094651389943],[106.24056815142058,-5.9941668138284392],[106.24029714068674,-5.9941674273422691],[106.24029652796605,-5.9938961016548697],[106.24002551733781,-5.9938967150067812],[106.23948349599664,-5.9938979413087479],[106.23948410831592,-5.9941692670800091],[106.23975511913444,-5.9941686539680541],[106.23975573161573,-5.9944399797085897],[106.24029775343567,-5.9944387530268921],[106.24029836621281,-5.9947100787087555],[106.24056937721421,-5.9947094651389943]]],[[[106.24463330903458,-5.994157595046091],[106.24463269417318,-5.9938862698068842],[106.24436168399745,-5.9938868853020155],[106.24436229872511,-5.9941582105692799],[106.24463330903458,-5.994157595046091]]],[[[106.24029652796605,-5.9938961016548697],[106.24083854913782,-5.9938948745491922],[106.24083793617783,-5.9936235489150569],[106.24083732324601,-5.9933522232781451],[106.24056631294182,-5.9933528368420159],[106.24056692573981,-5.9936241625068991],[106.24029591527361,-5.993624775964796],[106.24029652796605,-5.9938961016548697]]],[[[106.24273071196839,-5.9917199718775418],[106.24273009829817,-5.9914486464174299],[106.2424590891282,-5.9914492607227698],[106.2424597026647,-5.9917205862108975],[106.24273071196839,-5.9917199718775418]]],[[[106.24300049366418,-5.9911767065433432],[106.24299987991685,-5.9909053811057191],[106.24272887104263,-5.990905995488915],[106.24272948465628,-5.9911773209545593],[106.24300049366418,-5.9911767065433432]]],[[[106.24381045005859,-5.9898182357114527],[106.24380983605167,-5.9895469103442895],[106.24353882793092,-5.9895475249889403],[106.24353944180419,-5.9898188503841423],[106.24381045005859,-5.9898182357114527]]],[[[106.24326413793898,-5.9879201869025387],[106.24326352439758,-5.9876488614601033],[106.24299251715597,-5.9876494756408611],[106.24299313056372,-5.9879208011113221],[106.24326413793898,-5.9879201869025387]]],[[[106.24461180574453,-5.9846612100438525],[106.2443408001143,-5.9846618245850349],[106.24434202767145,-5.9852044753031466],[106.24461303356885,-5.9852038607058518],[106.24461364752352,-5.9854751860327333],[106.2448846535262,-5.9854745712736195],[106.24488342537802,-5.9849319206732412],[106.24461241964252,-5.9849325353762302],[106.24461180574453,-5.9846612100438525]]],[[[106.24569398485511,-5.983844774865033],[106.2456933705362,-5.9835734496340232],[106.24542236555365,-5.9835740645978523],[106.245422979739,-5.9838453898569428],[106.24569398485511,-5.983844774865033]]],[[[106.24623476585857,-5.9833008941276438],[106.24650577062245,-5.9833002787907601],[106.24650454132517,-5.9827576284835446],[106.24623353682838,-5.9827582437642306],[106.24623415132929,-5.9830295689473232],[106.24596314667056,-5.9830301841224021],[106.24596376106631,-5.9833015093308166],[106.24623476585857,-5.9833008941276438]]],[[[106.24569029936708,-5.9822168234378417],[106.24568968521834,-5.9819454981903872],[106.24541868103704,-5.981946112985729],[106.24541929505226,-5.9822174382612632],[106.24569029936708,-5.9822168234378417]]],[[[106.2451458353524,-5.9811327517201365],[106.2451452215841,-5.9808614264055775],[106.24487421788015,-5.9808620408212798],[106.24487483151493,-5.9811333661639088],[106.2451458353524,-5.9811327517201365]]],[[[106.24541561138624,-5.9805894865669798],[106.24541499754115,-5.9803181612750391],[106.24514399413253,-5.9803187757682492],[106.24487299069557,-5.9803193901278142],[106.24487360427368,-5.9805907154758993],[106.24541561138624,-5.9805894865669798]]],[[[106.24622616503042,-5.979502341354026],[106.24622555089834,-5.9792310161353823],[106.24568354529065,-5.9792322455653091],[106.24568415915581,-5.9795035708401318],[106.24622616503042,-5.979502341354026]]],[[[106.24676755639253,-5.9792297861709729],[106.24676694202191,-5.9789584610057975],[106.24649593942245,-5.9789590760267073],[106.24649655365961,-5.9792304012199873],[106.24676755639253,-5.9792297861709729]]],[[[106.24541131506597,-5.9786902094657899],[106.24514031245815,-5.9786908237905525],[106.24514092599968,-5.9789621491270362],[106.24541192874094,-5.9789615347742009],[106.24541131506597,-5.9786902094657899]]],[[[106.24730894713564,-5.9789572305631351],[106.24757994964992,-5.9789566151413824],[106.24757933490731,-5.9786852900577889],[106.24703733011728,-5.9786865207114399],[106.24703794459302,-5.9789578458512738],[106.24730894713564,-5.9789572305631351]]],[[[106.24541131506597,-5.9786902094657899],[106.24568231764543,-5.9786895950074195],[106.24568170386536,-5.9784182697244219],[106.24541070141935,-5.9784188841547099],[106.24541131506597,-5.9786902094657899]]],[[[106.24568170386536,-5.9784182697244219],[106.24595270628305,-5.9784176551605288],[106.24595209239789,-5.9781463299028479],[106.24568109011364,-5.9781469444386532],[106.24568170386536,-5.9784182697244219]]],[[[106.24622248066352,-5.977874390001122],[106.24622186670169,-5.9776030647660452],[106.24595086471268,-5.9776036793792606],[106.24595147854107,-5.9778750046424305],[106.24622248066352,-5.977874390001122]]],[[[106.24622125276818,-5.9773317395282666],[106.24622063886309,-5.9770604142877355],[106.24594963714092,-5.9770610288447656],[106.24595025091261,-5.9773323541133898],[106.24622125276818,-5.9773317395282666]]],[[[106.24703671567001,-5.9784151955689362],[106.24703302958234,-5.9767872446562285],[106.24676202807871,-5.9767878595858637],[106.2467657133658,-5.9784158106672374],[106.24703671567001,-5.9784151955689362]]],[[[106.24594902339756,-5.976789703573373],[106.24594840968261,-5.9765183782992954],[106.24567740819887,-5.9765189926665805],[106.24567802178044,-5.976790317968744],[106.24594902339756,-5.976789703573373]]],[[[106.24621695602819,-5.9754324627871105],[106.24621634232169,-5.9751611375274338],[106.24594534153323,-5.975161751887816],[106.24594595510638,-5.9754330771755839],[106.24621695602819,-5.9754324627871105]]],[[[106.24648366063829,-5.9735325715866221],[106.24648304699703,-5.9732612463359205],[106.24621204717042,-5.9732618606331407],[106.24621266067834,-5.9735331859119389],[106.24648366063829,-5.9735325715866221]]],[[[106.24648181979964,-5.9727185958262519],[106.24648120624352,-5.9724472705673515],[106.24621020681687,-5.9724478847802756],[106.2462108202397,-5.9727192100672752],[106.24648181979964,-5.9727185958262519]]],[[[106.25081349967066,-5.9708094761005226],[106.2508128841809,-5.9705381512728595],[106.25054188614196,-5.9705387674238892],[106.25054250149844,-5.9708100922797476],[106.25081349967066,-5.9708094761005226]]],[[[106.24538679131521,-5.9678371948884976],[106.24538617880262,-5.9675658694680092],[106.24511518166102,-5.9675664826417334],[106.2451157940404,-5.9678378080902954],[106.24538679131521,-5.9678371948884976]]]]
+          },
+          "properties":{
+            "OBJECTID":5,
+            "Id":5,
+            "gridcode":5,
+            "Shape_Length":8280.0000000372529,
+            "Shape_Area":91800.000000474975,
+            "LUASAN":9.1830579103671397
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 10,
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [[[[106.23569972486038,-5.9985190547984555],[106.23542871147757,-5.9985196663467359],[106.23542932226806,-5.998790992489802],[106.23434526792001,-5.9987934374537213],[106.23434587820296,-5.999064763705408],[106.23515891940795,-5.9990629301000471],[106.23515953012077,-5.9993342562655254],[106.23543054393342,-5.9993336447677503],[106.23542993308668,-5.9990623186301226],[106.2357009467373,-5.9990617070261285],[106.23570033578477,-5.9987903809136647],[106.23569972486038,-5.9985190547984555]]],[[[106.23569972486038,-5.9985190547984555],[106.23597073821504,-5.9985184431161178],[106.2359701271849,-5.9982471170260121],[106.23569911396413,-5.9982477286804867],[106.23569972486038,-5.9985190547984555]]],[[[106.23678194389912,-5.9977026292370894],[106.23678133255176,-5.9974313032223767],[106.23651031981707,-5.9974319151953592],[106.23651093103061,-5.9977032412379536],[106.23678194389912,-5.9977026292370894]]],[[[106.23759253550885,-5.9966154886896748],[106.23732152326023,-5.9966161009810559],[106.23732274634962,-5.9971587529126387],[106.23705173380517,-5.9971593651257926],[106.23705234525825,-5.9974306911153619],[106.2373233579366,-5.9974300788743156],[106.23732396955171,-5.997701404833248],[106.23759498233576,-5.9977007924302681],[106.23759559411295,-5.9979721183585246],[106.23759620591829,-5.9982434442841024],[106.23786721894196,-5.9982428316912753],[106.23813823193743,-5.9982422189643971],[106.2381376198643,-5.997970893094636],[106.23840863269764,-5.997970280261625],[106.23840802051878,-5.9976989544171051],[106.23840740836818,-5.9974276285698078],[106.23840679624571,-5.9971563027197652],[106.23813578381399,-5.9971569154690219],[106.23786477135404,-5.9971575280842533],[106.23786415952753,-5.9968862021756051],[106.23759314717327,-5.9968868146289047],[106.23759253550885,-5.9966154886896748]]],[[[106.23921860840825,-5.9966118121271057],[106.23894759632884,-5.9966124252225672],[106.23894820866261,-5.9968837510222093],[106.23867719642114,-5.9968843640115876],[106.23867780864926,-5.9971556898364824],[106.23921983337173,-5.9971544636678402],[106.23921922087591,-5.996883137898811],[106.23921860840825,-5.9966118121271057]]],[[[106.23894453508311,-5.9952557961830397],[106.23894392291858,-5.9949844703668722],[106.238672911614,-5.9949850831607412],[106.23867352364469,-5.9952564090048392],[106.23894453508311,-5.9952557961830397]]],[[[106.23921860840825,-5.9966118121271057],[106.23948962045942,-5.9966111988976314],[106.23948717033565,-5.9955258958950068],[106.23975818182325,-5.9955252826433121],[106.23975756922903,-5.9952539569137464],[106.23975695666303,-5.9949826311814025],[106.24029897901821,-5.9949814043878753],[106.24029959185184,-5.9952527300643039],[106.24084161436171,-5.9952515026789319],[106.24084100126042,-5.9949801770584425],[106.24056999015347,-5.9949807907901471],[106.24056937721421,-5.9947094651389943],[106.24029836621281,-5.9947100787087555],[106.24029775343567,-5.9944387530268921],[106.23975573161573,-5.9944399797085897],[106.23975634412527,-5.9947113054463683],[106.23948533303916,-5.9947119186142199],[106.23948594544311,-5.9949832443772024],[106.23921493419496,-5.9949838574390251],[106.23921738355763,-5.9960691605753969],[106.23921799596883,-5.9963404863526222],[106.23921860840825,-5.9966118121271057]]],[[[106.23975573161573,-5.9944399797085897],[106.23975511913444,-5.9941686539680541],[106.23948410831592,-5.9941692670800091],[106.23894208659428,-5.994170492902045],[106.23894269867417,-5.9944418187264086],[106.23975573161573,-5.9944399797085897]]],[[[106.24029652796605,-5.9938961016548697],[106.24029591527361,-5.993624775964796],[106.24002490477919,-5.9936253892887468],[106.24002551733781,-5.9938967150067812],[106.24029652796605,-5.9938961016548697]]],[[[106.2456933705362,-5.9835734496340232],[106.24569275624566,-5.9833021244002769],[106.24542175139668,-5.9833027393360245],[106.24542236555365,-5.9835740645978523],[106.2456933705362,-5.9835734496340232]]],[[[106.2451452215841,-5.9808614264055775],[106.24541622525969,-5.9808608118562168],[106.24541561138624,-5.9805894865669798],[106.24487360427368,-5.9805907154758993],[106.24487421788015,-5.9808620408212798],[106.2451452215841,-5.9808614264055775]]],[[[106.24541499754115,-5.9803181612750391],[106.24541438372439,-5.9800468359803443],[106.24514338044928,-5.9800474504454799],[106.24514399413253,-5.9803187757682492],[106.24541499754115,-5.9803181612750391]]],[[[106.24621818352634,-5.9759751132982579],[106.24567618112083,-5.9759763420540297],[106.24567740819887,-5.9765189926665805],[106.24594840968261,-5.9765183782992954],[106.24594902339756,-5.976789703573373],[106.24594963714092,-5.9770610288447656],[106.24622063886309,-5.9770604142877355],[106.24622125276818,-5.9773317395282666],[106.24622186670169,-5.9776030647660452],[106.24622248066352,-5.977874390001122],[106.24595147854107,-5.9778750046424305],[106.24595209239789,-5.9781463299028479],[106.24595270628305,-5.9784176551605288],[106.24568170386536,-5.9784182697244219],[106.24568231764543,-5.9786895950074195],[106.24541131506597,-5.9786902094657899],[106.24541192874094,-5.9789615347742009],[106.24514092599968,-5.9789621491270362],[106.24514153956957,-5.9792334744607523],[106.2454125424443,-5.9792328600798408],[106.24568354529065,-5.9792322455653091],[106.24622555089834,-5.9792310161353823],[106.24649655365961,-5.9792304012199873],[106.24649593942245,-5.9789590760267073],[106.24676694202191,-5.9789584610057975],[106.24703794459302,-5.9789578458512738],[106.24703733011728,-5.9786865207114399],[106.24703671567001,-5.9784151955689362],[106.2467657133658,-5.9784158106672374],[106.24676202807871,-5.9767878595858637],[106.24649102654671,-5.9767884743819319],[106.24648979861153,-5.9762458239434251],[106.24621879731797,-5.9762464385497305],[106.24621818352634,-5.9759751132982579]]],[[[106.24593246304919,-5.9694639202131698],[106.24593185010005,-5.9691925948652855],[106.24593123717926,-5.9689212695146541],[106.24566023942829,-5.9689218830955229],[106.24566085221585,-5.9691932084742403],[106.24566146503176,-5.9694645338502097],[106.24593246304919,-5.9694639202131698]]]]
+          },
+          "properties":{
+            "OBJECTID":10,
+            "Id":10,
+            "gridcode":6,
+            "Shape_Length":4860.0000000093132,
+            "Shape_Area":84600.00000002794,
+            "LUASAN":8.4628118908385908
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 24,
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [[[[106.23570277976371,-5.9998756853471225],[106.23570155771796,-5.9993330331358994],[106.23543054393342,-5.9993336447677503],[106.23543115480828,-5.9996049709025989],[106.23516014086172,-5.9996055824282273],[106.2351607516308,-5.9998769085881651],[106.23570277976371,-5.9998756853471225]]],[[[106.23732580456613,-5.9985153826935802],[106.23732519286648,-5.9982440567428803],[106.23705417978648,-5.998244669067609],[106.23705479135228,-5.9985159950462013],[106.23732580456613,-5.9985153826935802]]],[[[106.23922105844809,-5.9976971151976013],[106.2392204458958,-5.997425789434093],[106.23867842090557,-5.9974270156586007],[106.2386790331901,-5.9976983414779745],[106.23922105844809,-5.9976971151976013]]],[[[106.23949084569064,-5.9971538503824817],[106.23949023306092,-5.9968825246413946],[106.23921922087591,-5.996883137898811],[106.23921983337173,-5.9971544636678402],[106.23949084569064,-5.9971538503824817]]],[[[106.2381351718536,-5.9968855895882855],[106.23840618415146,-5.9968849768669461],[106.2384055720854,-5.9966136510114509],[106.23786354772921,-5.9966148762642808],[106.23786415952753,-5.9968862021756051],[106.2381351718536,-5.9968855895882855]]],[[[106.24246768121304,-5.995247817307245],[106.24246706730885,-5.9949764918547199],[106.24219605637147,-5.9949771063902793],[106.24219667014187,-5.9952484318708139],[106.24246768121304,-5.995247817307245]]],[[[106.24436352826541,-5.9947008610954953],[106.24409251766001,-5.9947014765408335],[106.24409313233885,-5.9949728018278687],[106.24436414307806,-5.99497218635448],[106.24436352826541,-5.9947008610954953]]],[[[106.24436352826541,-5.9947008610954953],[106.24490554939123,-5.9946996298029136],[106.2449049343393,-5.9944283045973084],[106.24463392392435,-5.9944289202825187],[106.2443629134811,-5.9944295358337678],[106.24436352826541,-5.9947008610954953]]],[[[106.2449049343393,-5.9944283045973084],[106.2451759447259,-5.994427688778134],[106.2451753295685,-5.9941563635978374],[106.24490431931571,-5.9941569793889427],[106.2449049343393,-5.9944283045973084]]],[[[106.2451753295685,-5.9941563635978374],[106.24544633979292,-5.9941557476727771],[106.2454451092956,-5.9936130973601092],[106.24517409933877,-5.9936137132290188],[106.24517471443949,-5.9938850384147662],[106.2451753295685,-5.9941563635978374]]],[[[106.24653099623343,-5.9944246076728209],[106.24652914883934,-5.9936106325450318],[106.24625813899598,-5.9936112489497173],[106.24625875463184,-5.9938825740231243],[106.24625998598869,-5.9944252241618088],[106.24653099623343,-5.9944246076728209]]],[[[106.24164912740758,-5.9928077306687388],[106.24164851415927,-5.99253640510757],[106.2411064944948,-5.9925376327370836],[106.24110710747559,-5.9928089583542263],[106.24164912740758,-5.9928077306687388]]],[[[106.2427325531488,-5.9925339482414941],[106.24273193939369,-5.9922626227895908],[106.24246092982249,-5.9922632371789772],[106.24246154344382,-5.9925345626588937],[106.2427325531488,-5.9925339482414941]]],[[[106.24326659238771,-5.9890054886449775],[106.24326597873305,-5.9887341632134703],[106.24299497095681,-5.9887347775063331],[106.24299558447778,-5.9890061029658685],[106.24326659238771,-5.9890054886449775]]],[[[106.24272212316015,-5.987921415186289],[106.24272273646254,-5.9881927406820816],[106.24299374399982,-5.9881921265790936],[106.24299313056372,-5.9879208011113221],[106.24272212316015,-5.987921415186289]]],[[[106.24272212316015,-5.987921415186289],[106.24272150988605,-5.9876500896878078],[106.24272089664028,-5.9873787641865848],[106.24272028342274,-5.9871074386826058],[106.24244927639181,-5.9871080525397122],[106.24245111572827,-5.9879220291274393],[106.24272212316015,-5.987921415186289]]],[[[106.24380369753963,-5.9868336565215614],[106.24353269075556,-5.9868342708858222],[106.24353330434568,-5.9871055963084947],[106.24380431126342,-5.9871049819161941],[106.24380369753963,-5.9868336565215614]]],[[[106.24380369753963,-5.9868336565215614],[106.24407470429541,-5.9868330420235081],[106.2440740904663,-5.986561716654248],[106.24380308384417,-5.9865623311242571],[106.24380369753963,-5.9868336565215614]]],[[[106.24379817529999,-5.9843917278469352],[106.24352716971836,-5.9843923419588485],[106.24352778305371,-5.9846636674061209],[106.2437987887689,-5.9846630532661687],[106.24379817529999,-5.9843917278469352]]],[[[106.24379817529999,-5.9843917278469352],[106.24406918085327,-5.9843911136012844],[106.24461119187487,-5.9843898847087713],[106.24461057803354,-5.9841185593709341],[106.24379756185941,-5.9841204024249457],[106.24379817529999,-5.9843917278469352]]],[[[106.2470502400688,-5.9843843480724885],[106.24704962502527,-5.9841130229874384],[106.24677861991745,-5.9841136386760825],[106.24677923482737,-5.9843849637892435],[106.2470502400688,-5.9843843480724885]]],[[[106.24677800503589,-5.9838423135601468],[106.24677739018274,-5.9835709884415245],[106.24650638531367,-5.9835716039402262],[106.24650700003326,-5.983842929086955],[106.24677800503589,-5.9838423135601468]]],[[[106.24786202476254,-5.9838398501156727],[106.24786140937513,-5.9835685251095345],[106.24759040461963,-5.9835691411431089],[106.24759101987347,-5.9838404661773774],[106.24786202476254,-5.9838398501156727]]],[[[106.24488035550353,-5.9835752941243552],[106.24487974161363,-5.983303968806382],[106.24460873667958,-5.9833045833409919],[106.24460935043591,-5.9835759086870279],[106.24488035550353,-5.9835752941243552]]],[[[106.24514951855751,-5.982760703549971],[106.24514890461913,-5.9824893782518709],[106.24487790011406,-5.9824899928359869],[106.24487851391891,-5.9827613181621553],[106.24514951855751,-5.982760703549971]]],[[[106.24541745309166,-5.9814034624264485],[106.24541683916149,-5.9811321371427013],[106.2451458353524,-5.9811327517201365],[106.24514644914905,-5.9814040770319581],[106.24541745309166,-5.9814034624264485]]],[[[106.24460321414782,-5.9808626551033246],[106.24460382764912,-5.9811339804740156],[106.24487483151493,-5.9811333661639088],[106.24487421788015,-5.9808620408212798],[106.24460321414782,-5.9808626551033246]]],[[[106.24460321414782,-5.9808626551033246],[106.24460260067485,-5.9805913297298812],[106.24433159704772,-5.9805919438502118],[106.24433221038719,-5.9808632692517127],[106.24460321414782,-5.9808626551033246]]],[[[106.24460260067485,-5.9805913297298812],[106.24487360427368,-5.9805907154758993],[106.24487299069557,-5.9803193901278142],[106.24460198723023,-5.9803200043537341],[106.24460260067485,-5.9805913297298812]]],[[[106.24514338044928,-5.9800474504454799],[106.24514276679434,-5.9797761251199404],[106.24487176362433,-5.9797767394233672],[106.24487237714577,-5.9800480647769767],[106.24514338044928,-5.9800474504454799]]],[[[106.24514215316779,-5.979504799791731],[106.24514153956957,-5.9792334744607523],[106.24487053666647,-5.9792340887080426],[106.24487115013123,-5.9795054140670896],[106.24514215316779,-5.979504799791731]]],[[[106.24514031245815,-5.9786908237905525],[106.24486930982198,-5.9786914379817055],[106.24486992323007,-5.9789627633462583],[106.24514092599968,-5.9789621491270362],[106.24514031245815,-5.9786908237905525]]],[[[106.24893496179517,-5.9789535360284081],[106.24893434638531,-5.9786822110855251],[106.24866334414658,-5.9786828271471935],[106.24866395942296,-5.9789541521182317],[106.24893496179517,-5.9789535360284081]]],[[[106.24514031245815,-5.9786908237905525],[106.24541131506597,-5.9786902094657899],[106.24541070141935,-5.9784188841547099],[106.245139698945,-5.9784194984513981],[106.24514031245815,-5.9786908237905525]]],[[[106.24756274759298,-5.97135951176781],[106.2475621336456,-5.9710881866076821],[106.24729113499892,-5.9710888012138632],[106.247291748813,-5.9713601264021143],[106.24756274759298,-5.97135951176781]]]]
+          },
+          "properties":{
+            "OBJECTID":24,
+            "Id":24,
+            "gridcode":1,
+            "Shape_Length":4980.0000000055879,
+            "Shape_Area":43199.999999804422,
+            "LUASAN":4.3214314082612084
+          }
+        }
+      ]
+    };
+
+    // ==================== TOGGLE CONTROLS ====================
+    // Toggle Panel Kanan
+    document.getElementById('togglePanelBtn').addEventListener('click', function() {
+        const rightPanel = document.getElementById('rightPanel');
+        rightPanel.style.display = rightPanel.style.display === 'none' ? 'block' : 'none';
+    });
+
+    // Toggle Statistics Panel
+    document.getElementById('statsToggle').addEventListener('click', function() {
+        const statsPanel = document.getElementById('statsPanel');
+        statsPanel.style.display = statsPanel.style.display === 'none' ? 'block' : 'none';
+    });
+
+    // Close Statistics Panel
+    document.getElementById('statsClose').addEventListener('click', function() {
+        document.getElementById('statsPanel').style.display = 'none';
+    });
+
+    // Collapsible Sections
+    document.querySelectorAll('.collapsible-header').forEach(header => {
+        header.addEventListener('click', function() {
+            const collapsible = this.parentElement;
+            collapsible.classList.toggle('hidden');
+            const arrow = this.querySelector('span:last-child');
+            arrow.textContent = collapsible.classList.contains('hidden') ? '▶' : '▼';
+        });
+    });
+
+    // Toggle Basemap Panel
+    document.getElementById('basemapFlipBtn').addEventListener('click', function() {
+        const basemapCard = document.getElementById('basemapCard');
+        basemapCard.classList.toggle('hidden');
+    });
+
+    // Tutup Panel Kanan
+    document.getElementById('closePanel').addEventListener('click', function() {
+        document.getElementById('rightPanel').style.display = 'none';
+    });
+
+    // Pilih Basemap
+    document.querySelectorAll('.basemap-item').forEach(item => {
+        item.addEventListener('click', function() {
+            const basemap = this.getAttribute('data-basemap');
+            
+            document.querySelectorAll('.basemap-item').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            this.classList.add('active');
+            
+            if (basemaps[currentBasemap]) {
+                map.removeLayer(basemaps[currentBasemap]);
+            }
+            
+            basemaps[basemap].addTo(map);
+            currentBasemap = basemap;
+            
+            document.getElementById('basemapCard').classList.add('hidden');
+        });
+    });
+
+    // Toolbar Controls
+    document.getElementById('zoomIn').addEventListener('click', function() {
+        map.zoomIn();
+    });
+
+    document.getElementById('zoomOut').addEventListener('click', function() {
+        map.zoomOut();
+    });
+
+    // Chatbox Toggle
+    document.getElementById('chatHeader').addEventListener('click', function() {
+        const chatContent = document.getElementById('chatContent');
+        const chatInputRow = document.querySelector('.chat-input-row');
+        
+        if (chatContent.style.display === 'none') {
+            chatContent.style.display = 'flex';
+            chatInputRow.style.display = 'flex';
+            this.querySelector('span:last-child').textContent = '−';
+        } else {
+            chatContent.style.display = 'none';
+            chatInputRow.style.display = 'none';
+            this.querySelector('span:last-child').textContent = '+';
+        }
+    });
+
+    // Search Functionality
+    document.getElementById('doSearch').addEventListener('click', function() {
+        performSearch();
+    });
+
+    document.getElementById('searchInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            performSearch();
+        }
+    });
+
+    function performSearch() {
+        const query = document.getElementById('searchInput').value.trim();
+        
+        if (!query) return;
+        
+        // Cek jika query adalah koordinat
+        const coordMatch = query.match(/^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/);
+        
+        if (coordMatch) {
+            const lat = parseFloat(coordMatch[1]);
+            const lng = parseFloat(coordMatch[2]);
+            
+            if (!isNaN(lat) && !isNaN(lng)) {
+                map.setView([lat, lng], 16);
+                L.marker([lat, lng]).addTo(map)
+                    .bindPopup(`Lokasi: ${lat}, ${lng}`)
+                    .openPopup();
+                return;
+            }
+        }
+        
+        alert('Silakan gunakan format koordinat: latitude,longitude (contoh: -5.999,106.235)');
+    }
+
+    // ==================== SISTEM INTEGRASI GEOJSON ====================
+    let geoJSONLayer = null;
+    let densityChart = null;
+    let currentFilter = 'all';
+
+    // Fungsi untuk memuat dan menampilkan data GeoJSON
+    function loadGeoJSONData() {
+        // Hapus layer sebelumnya jika ada
+        if (geoJSONLayer) {
+            map.removeLayer(geoJSONLayer);
+        }
+        
+        const data = eviPontang23;
+        
+        // Hitung statistik
+        calculateStatistics(data);
+        
+        // Style berdasarkan gridcode (kerapatan vegetasi)
+        function getStyleByGridcode(feature) {
+            const gridcode = feature.properties.gridcode;
+            let color, opacity, weight;
+            
+            switch(gridcode) {
+                case 1: // Sangat Rendah
+                    color = '#ffffcc';
+                    opacity = 0.7;
+                    weight = 1;
+                    break;
+                case 2: // Rendah
+                    color = '#c2e699';
+                    opacity = 0.7;
+                    weight = 1;
+                    break;
+                case 3: // Sedang-Rendah
+                    color = '#78c679';
+                    opacity = 0.7;
+                    weight = 1.5;
+                    break;
+                case 4: // Sedang
+                    color = '#31a354';
+                    opacity = 0.8;
+                    weight = 2;
+                    break;
+                case 5: // Tinggi
+                    color = '#006837';
+                    opacity = 0.9;
+                    weight = 2.5;
+                    break;
+                case 6: // Sangat Tinggi
+                    color = '#004529';
+                    opacity = 1;
+                    weight = 3;
+                    break;
+                default:
+                    color = '#808080';
+                    opacity = 0.5;
+                    weight = 1;
+            }
+            
+            return {
+                fillColor: color,
+                color: color,
+                weight: weight,
+                opacity: 0.8,
+                fillOpacity: opacity
+            };
+        }
+        
+        // Filter function
+        function filterByDensity(feature) {
+            if (currentFilter === 'all') return true;
+            return feature.properties.gridcode.toString() === currentFilter;
+        }
+        
+        // Tambah layer GeoJSON ke peta
+        geoJSONLayer = L.geoJSON(data, {
+            style: getStyleByGridcode,
+            filter: filterByDensity,
+            onEachFeature: function(feature, layer) {
+                const props = feature.properties;
+                
+                let popupContent = `
+                    <div style="max-width: 280px;">
+                        <h4 style="margin:0 0 8px 0; color: #0a5c36; border-bottom: 2px solid #0a5c36; padding-bottom: 4px;">
+                            EVI Pontang23 - Poligon ${props.Id}
+                        </h4>
+                        <div style="font-size: 12px; color: #333; line-height: 1.4;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <strong>Kerapatan:</strong> 
+                                <span style="color: ${getColorByGridcode(props.gridcode)}; font-weight: bold;">
+                                    ${getKerapatanLabel(props.gridcode)}
+                                </span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <strong>Gridcode:</strong> <span>${props.gridcode || 'N/A'}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <strong>Luasan:</strong> <span>${props.LUASAN ? props.LUASAN.toFixed(2) + ' ha' : 'N/A'}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <strong>Shape Length:</strong> <span>${props.Shape_Length ? props.Shape_Length.toFixed(2) + ' m' : 'N/A'}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <strong>Shape Area:</strong> <span>${props.Shape_Area ? (props.Shape_Area / 10000).toFixed(2) + ' ha' : 'N/A'}</span>
+                            </div>
+                        </div>
+                `;
+                
+                // Tambahkan info tambahan berdasarkan gridcode
+                popupContent += `
+                    <div style="margin-top: 8px; padding: 6px; background: #f8f9fa; border-radius: 4px; font-size: 11px; border-left: 3px solid ${getColorByGridcode(props.gridcode)};">
+                        <strong>Indeks Vegetasi:</strong> ${getKerapatanLabel(props.gridcode)}<br>
+                        <div style="width: 100%; height: 8px; background: linear-gradient(90deg, #ffffcc, #004529); margin: 4px 0; border-radius: 4px; position: relative;">
+                            <div style="position: absolute; left: ${((props.gridcode - 1) / 5) * 100}%; width: 20%; height: 100%; background: ${getColorByGridcode(props.gridcode)}; border-radius: 4px;"></div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 9px; color: #666;">
+                            <span>Sangat Rendah</span>
+                            <span>Sangat Tinggi</span>
+                        </div>
+                    </div>
+                `;
+                
+                popupContent += `</div>`;
+                layer.bindPopup(popupContent);
+                
+                // Tooltip
+                layer.bindTooltip(`EVI Pontang23 - ${getKerapatanLabel(props.gridcode)} (${props.LUASAN} ha)`, {
+                    permanent: false,
+                    direction: 'auto',
+                    className: 'custom-tooltip'
+                });
+            }
+        }).addTo(map);
+        
+        // Fit bounds ke data
+        map.fitBounds(geoJSONLayer.getBounds());
+        
+        console.log(`Data EVI Pontang23 berhasil dimuat - ${data.features.length} fitur`);
+    }
+
+    // Fungsi untuk mendapatkan label kerapatan
+    function getKerapatanLabel(gridcode) {
+        switch(gridcode) {
+            case 1: return "Sangat Rendah";
+            case 2: return "Rendah";
+            case 3: return "Sedang-Rendah";
+            case 4: return "Sedang";
+            case 5: return "Tinggi";
+            case 6: return "Sangat Tinggi";
+            default: return "Tidak Diketahui";
+        }
+    }
+
+    // Fungsi untuk menghitung statistik
+    function calculateStatistics(data) {
+        let totalLuasan = 0;
+        let jumlahPoligon = data.features.length;
+        let luasanMax = 0;
+        let luasanMin = Infinity;
+        let kerapatanRata = 0;
+        
+        const densityCount = {
+            1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0
+        };
+        
+        data.features.forEach(feature => {
+            const luasan = feature.properties.LUASAN || 0;
+            const gridcode = feature.properties.gridcode || 1;
+            
+            totalLuasan += luasan;
+            densityCount[gridcode]++;
+            
+            if (luasan > luasanMax) luasanMax = luasan;
+            if (luasan < luasanMin) luasanMin = luasan;
+            kerapatanRata += gridcode;
+        });
+        
+        kerapatanRata = (kerapatanRata / jumlahPoligon).toFixed(1);
+        
+        // Update statistik panel
+        document.getElementById('totalLuas').textContent = totalLuasan.toFixed(2) + ' ha';
+        document.getElementById('jumlahPoligon').textContent = jumlahPoligon;
+        document.getElementById('kerapatanRata').textContent = kerapatanRata;
+        document.getElementById('luasMax').textContent = luasanMax.toFixed(2) + ' ha';
+        document.getElementById('luasMin').textContent = luasanMin.toFixed(2) + ' ha';
+        
+        // Update detail kerapatan
+        document.getElementById('detailSangatRendah').textContent = densityCount[1] + ' poligon';
+        document.getElementById('detailRendah').textContent = densityCount[2] + ' poligon';
+        document.getElementById('detailSedangRendah').textContent = densityCount[3] + ' poligon';
+        document.getElementById('detailSedang').textContent = densityCount[4] + ' poligon';
+        document.getElementById('detailTinggi').textContent = densityCount[5] + ' poligon';
+        document.getElementById('detailSangatTinggi').textContent = densityCount[6] + ' poligon';
+        
+        // Update data display
+        document.getElementById('dataSangatRendah').textContent = densityCount[1] + ' poligon';
+        document.getElementById('dataRendah').textContent = densityCount[2] + ' poligon';
+        document.getElementById('dataSedangRendah').textContent = densityCount[3] + ' poligon';
+        document.getElementById('dataSedang').textContent = densityCount[4] + ' poligon';
+        document.getElementById('dataTinggi').textContent = densityCount[5] + ' poligon';
+        document.getElementById('dataSangatTinggi').textContent = densityCount[6] + ' poligon';
+        
+        // Update chart
+        updateDensityChart(densityCount);
+    }
+
+    // Fungsi untuk update chart kerapatan
+    function updateDensityChart(densityCount) {
+        const ctx = document.getElementById('densityChart').getContext('2d');
+        
+        if (densityChart) {
+            densityChart.destroy();
+        }
+        
+        densityChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Sangat Rendah', 'Rendah', 'Sedang-Rendah', 'Sedang', 'Tinggi', 'Sangat Tinggi'],
+                datasets: [{
+                    label: 'Distribusi Kerapatan',
+                    data: [
+                        densityCount[1],
+                        densityCount[2],
+                        densityCount[3],
+                        densityCount[4],
+                        densityCount[5],
+                        densityCount[6]
+                    ],
+                    backgroundColor: [
+                        '#ffffcc',
+                        '#c2e699',
+                        '#78c679',
+                        '#31a354',
+                        '#006837',
+                        '#004529'
+                    ],
+                    borderColor: [
+                        '#d9d9a3',
+                        '#a8c97f',
+                        '#5fa85a',
+                        '#298845',
+                        '#005426',
+                        '#003318'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 12,
+                            font: {
+                                size: 10
+                            }
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Distribusi Kerapatan EVI',
+                        font: {
+                            size: 12
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Fungsi untuk mendapatkan warna berdasarkan gridcode
+    function getColorByGridcode(gridcode) {
+        switch(gridcode) {
+            case 1: return '#ffffcc';
+            case 2: return '#c2e699';
+            case 3: return '#78c679';
+            case 4: return '#31a354';
+            case 5: return '#006837';
+            case 6: return '#004529';
+            default: return '#808080';
+        }
+    }
+
+    // Filter functionality
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Update active button
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Update current filter
+            currentFilter = this.getAttribute('data-density');
+            
+            // Reload GeoJSON data with filter
+            loadGeoJSONData();
+        });
+    });
+
+    // Download Data GeoJSON
+    document.getElementById('downloadData').addEventListener('click', function() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(eviPontang23, null, 2));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", "evi_pontang23.geojson");
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+        
+        alert('Data GeoJSON EVI Pontang23 berhasil diunduh!');
+    });
+
+    // Screenshot functionality
+    document.getElementById('screenshot').addEventListener('click', function() {
+        alert('Fitur screenshot akan segera tersedia!');
+    });
+
+    // Export Report
+    document.getElementById('exportReport').addEventListener('click', function() {
+        alert('Fitur export laporan PDF akan segera tersedia!');
+    });
+
+    // ==================== LEGENDA DINAMIS ====================
+    function updateLegend() {
+        const legend = L.control({ position: 'bottomright' });
+        
+        legend.onAdd = function(map) {
+            const div = L.DomUtil.create('div', 'info legend');
+            div.style.background = 'white';
+            div.style.padding = '10px';
+            div.style.borderRadius = '5px';
+            div.style.boxShadow = '0 0 10px rgba(0,0,0,0.2)';
+            
+            const grades = [1, 2, 3, 4, 5, 6];
+            const labels = [
+                'Sangat Rendah (1)',
+                'Rendah (2)', 
+                'Sedang-Rendah (3)',
+                'Sedang (4)',
+                'Tinggi (5)',
+                'Sangat Tinggi (6)'
+            ];
+            const colors = [
+                '#ffffcc', '#c2e699', '#78c679', '#31a354', '#006837', '#004529'
+            ];
+            
+            let legendHTML = '<h4 style="margin:0 0 8px 0;">Kerapatan EVI Pontang23</h4>';
+            
+            for (let i = 0; i < grades.length; i++) {
+                legendHTML += `
+                    <div style="display: flex; align-items: center; margin: 4px 0;">
+                        <div style="width: 20px; height: 15px; background: ${colors[i]}; margin-right: 8px; border: 1px solid #666;"></div>
+                        <span style="font-size: 12px;">${labels[i]}</span>
+                    </div>
+                `;
+            }
+            
+            div.innerHTML = legendHTML;
+            return div;
+        };
+        
+        legend.addTo(map);
+    }
+
+    // ==================== KELAS KERAPATAN ====================
+    const CLASSES = [
+      { id: 'very-high', label: 'Sangat Tinggi', color: '#004529' },
+      { id: 'high', label: 'Tinggi', color: '#006837' },
+      { id: 'medium', label: 'Sedang', color: '#31a354' },
+      { id: 'low-medium', label: 'Sedang-Rendah', color: '#78c679' },
+      { id: 'low', label: 'Rendah', color: '#c2e699' },
+      { id: 'very-low', label: 'Sangat Rendah', color: '#ffffcc' }
+    ];
+
+    // Render Kelas
+    function renderClasses() {
+      const classesList = document.getElementById('classesList');
+      classesList.innerHTML = '';
+      
+      CLASSES.forEach(cls => {
+        const item = document.createElement('div');
+        item.className = 'class-item';
+        item.innerHTML = `
+          <div class="class-color" style="background:${cls.color}"></div>
+          <div class="class-label">${cls.label}</div>
+          <div class="switch"><div class="knob"></div></div>
+        `;
+        classesList.appendChild(item);
+        
+        // Switch event
+        const switchEl = item.querySelector('.switch');
+        switchEl.addEventListener('click', function() {
+          this.classList.toggle('on');
+        });
+        switchEl.classList.add('on');
+      });
+    }
+
+    // ==================== INISIALISASI ====================
+    document.addEventListener('DOMContentLoaded', function() {
+        renderClasses();
+        updateLegend();
+        
+        // Load data EVI Pontang23
+        setTimeout(() => {
+            loadGeoJSONData();
+        }, 1000);
+        
+        // Scale update
+        map.on('zoomend', function() {
+            const zoom = map.getZoom();
+            const scale = Math.round(591657550 / Math.pow(2, zoom - 1));
+            document.getElementById('scaleBox').textContent = `Skala: 1:${scale.toLocaleString()}`;
+        });
+        map.fire('zoomend');
+    });
+
+  </script>
+
+</body>
+</html>
