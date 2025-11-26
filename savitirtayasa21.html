@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mangrove Guardian - Savi Tirtayasa 21</title>
+
+  <!-- External Libraries -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/leaflet.draw/1.0.4/leaflet.draw-src.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/leaflet.draw/1.0.4/leaflet.draw-src.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <style>
+    :root{
+      --mg-green:#0a5c36;
+      --mg-green-light:#1a7d4e;
+      --mg-green-dark:#064527;
+      --panel:rgba(255,255,255,0.95);
+      --muted:#51606a;
+      --navbar-height: 60px; 
+    }
+    
+    *{box-sizing:border-box; margin:0; padding:0;}
+    
+    html,body{height:100%; margin:0; font-family:'Segoe UI', system-ui, sans-serif; color:#15302a;}
+    body{background:#f8f9fa; overflow: hidden;}
+    
+    .topbar{
+      height: var(--navbar-height);
+      padding:0 20px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      background:var(--mg-green);
+      color:#fff;
+      position:sticky;
+      top:0;
+      z-index:1500;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      border-bottom: 1px solid var(--mg-green-dark);
+    }
+    
+    .brand{
+      font-weight:600;
+      font-size:20px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    
+    .app{
+      height:calc(100vh - var(--navbar-height));
+      position:relative;
+      display:flex;
+    }
+    
+    #map{
+      width:100%;
+      height:100%;
+      z-index:1;
+    }
+
+    /* Search Bar */
+    .search-row-container{
+      position:absolute;
+      top:20px;
+      left:50%;
+      transform:translateX(-50%);
+      z-index:1300;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:8px;
+      width:90%;
+      max-width:700px;
+    }
+    
+    .search-row{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      width:100%;
+    }
+    
+    .search-box{
+      display:flex;
+      align-items:center;
+      background:var(--panel);
+      padding:8px 16px;
+      border-radius:8px;
+      box-shadow:0 2px 8px rgba(0,0,0,0.1);
+      width:100%;
+      border:1px solid #e1e5e9;
+      flex:1;
+    }
+    
+    .search-box input{
+      border:0;
+      outline:none;
+      padding:8px;
+      font-size:14px;
+      background:transparent;
+      flex:1;
+    }
+    
+    .search-box button{
+      background:var(--mg-green);
+      border:0;
+      color:#fff;
+      padding:8px 16px;
+      border-radius:6px;
+      cursor:pointer;
+      font-weight:600;
+      font-size:14px;
+    }
+    
+    .action-btn{
+      background:var(--mg-green);
+      color:#fff;
+      border-radius:8px;
+      padding:10px 16px;
+      border:none;
+      cursor:pointer;
+      font-weight:600;
+      font-size:14px;
+      white-space:nowrap;
+    }
+    
+    .mapFlipBtn{
+      background:var(--mg-green);
+      border:none;
+      padding:10px;
+      border-radius:6px;
+      color:white;
+      cursor:pointer;
+      font-size:16px;
+    }
+
+    .stats-toggle-btn {
+      background:var(--mg-green);
+      border:none;
+      padding:10px 14px;
+      border-radius:6px;
+      color:white;
+      cursor:pointer;
+      font-size:16px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      box-shadow:0 2px 6px rgba(0,0,0,0.1);
+      transition:all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    /* Statistics Panel */
+    .stats-panel {
+      position: absolute;
+      left: 80px;
+      top: 120px;
+      z-index: 1300;
+      background: var(--panel);
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      border: 1px solid #e1e5e9;
+      width: 300px;
+      max-height: 75vh;
+      overflow-y: auto;
+    }
+
+    .stats-header {
+      font-weight: 600;
+      color: var(--mg-green);
+      margin-bottom: 12px;
+      font-size: 16px;
+      border-bottom: 2px solid var(--mg-green);
+      padding-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .stat-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 13px;
+      padding: 6px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .stat-value {
+      font-weight: 600;
+      color: var(--mg-green);
+    }
+
+    .download-btn {
+      background: var(--mg-green);
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      margin-top: 15px;
+      width: 100%;
+      transition: background 0.3s ease;
+    }
+
+    .download-btn:hover {
+      background: var(--mg-green-light);
+    }
+
+    /* Filter Controls */
+    .filter-controls {
+      margin: 15px 0;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 6px;
+    }
+
+    .filter-title {
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: var(--mg-green);
+    }
+
+    .filter-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .filter-btn {
+      padding: 6px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: white;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s;
+    }
+
+    .filter-btn.active {
+      background: var(--mg-green);
+      color: white;
+      border-color: var(--mg-green);
+    }
+
+    /* Toolbar */
+    .vtoolbar{
+      position:absolute;
+      left:20px;
+      top:120px;
+      z-index:1300;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      padding:8px;
+      border-radius:8px;
+      background:transparent;
+    }
+    
+    .vt-btn{
+      width:44px;
+      height:44px;
+      border-radius:6px;
+      background:var(--panel);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border:1px solid #e1e5e9;
+      box-shadow:0 2px 6px rgba(0,0,0,0.08);
+      cursor:pointer;
+      font-size:16px;
+      transition:all 0.2s;
+    }
+
+    /* Right Panel */
+    .right-panel{
+      position:absolute;
+      right:20px;
+      top:20px;
+      width:320px;
+      z-index:1300;
+      background:var(--panel);
+      border-radius:8px;
+      box-shadow:0 4px 20px rgba(0,0,0,0.15);
+      border:1px solid #e1e5e9;
+      max-height:calc(100vh - 100px);
+      overflow-y:auto;
+    }
+    
+    .panel-inner{
+      padding:16px;
+    }
+
+    .analysis-section {
+      margin: 16px 0;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 6px;
+    }
+
+    .data-display {
+      background: white;
+      padding: 12px;
+      border-radius: 4px;
+      margin-top: 8px;
+    }
+    
+    .data-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+    
+    .data-value {
+      font-weight: 600;
+      color: var(--mg-green);
+    }
+
+    /* Scale */
+    .scale-box{
+      position:absolute;
+      left:20px;
+      bottom:20px;
+      background:var(--panel);
+      padding:8px 12px;
+      border-radius:6px;
+      font-size:12px;
+      border:1px solid #e1e5e9;
+      z-index:1300;
+      box-shadow:0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    /* Chat Box */
+    .chat-box-container{
+      position:fixed;
+      bottom:20px;
+      right:20px;
+      z-index:1600;
+      width:350px;
+      background:var(--panel);
+      border-radius:8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      border:1px solid #e1e5e9;
+      display:flex;
+      flex-direction:column;
+      max-height:500px;
+    }
+
+    .chat-header{
+      background: var(--mg-green);
+      color: #fff;
+      padding: 12px 16px;
+      font-weight: 600;
+      cursor:pointer;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      border-radius:8px 8px 0 0;
+    }
+    
+    .chat-content{
+      padding: 16px;
+      flex:1;
+      overflow-y: auto;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      max-height:300px;
+    }
+    
+    .chat-input-row{
+      display:flex;
+      gap:8px;
+      padding:12px 16px;
+      border-top:1px solid #e1e5e9;
+      background:#f8f9fa;
+    }
+    
+    .chat-input-row input{
+      flex:1;
+      padding:10px 12px;
+      border-radius:6px;
+      border:1px solid #ddd;
+      outline:none;
+      font-size:14px;
+      background:#fff;
+    }
+    
+    .chat-input-row button{
+      background:var(--mg-green);
+      border:0;
+      color:#fff;
+      padding:10px 16px;
+      border-radius:6px;
+      cursor:pointer;
+      font-weight:600;
+      font-size:14px;
+    }
+
+    .chat-message{
+      padding:10px 14px;
+      border-radius:8px;
+      max-width:85%;
+      font-size:14px;
+      line-height:1.4;
+    }
+    
+    .chat-user{
+      background:#e3f2fd;
+      align-self:flex-end;
+      border-bottom-right-radius:2px;
+    }
+    
+    .chat-bot{
+      background:#f5f5f5;
+      align-self:flex-start;
+      border-bottom-left-radius:2px;
+    }
+
+    /* Legend */
+    .legend {
+      background: white;
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    
+    .legend h4 {
+      margin: 0 0 8px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="topbar">
+    <div class="brand">
+      <span>🌿 MangroveGuardian - Savi Tirtayasa 21</span>
+    </div>
+    <div class="nav-right-container">
+      <div class="nav-menu" id="navMenu">
+        <a href="indeks.html" data-key="home">Beranda</a>
+        <a href="indeks.html" data-key="about">Tentang</a>
+        <a href="indeks.html" data-key="team">Tim</a>
+        <a href="indeks.html" data-key="contact">Kontak</a>
+      </div>
+      <div class="lang-switch" id="langSwitch">ID / EN</div>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div class="app">
+    <div id="map"></div>
+
+    <!-- Search Bar -->
+    <div class="search-row-container">
+      <div class="search-row">
+        <button class="stats-toggle-btn" id="statsToggle" title="Toggle Panel Statistik">
+          📊 Statistik
+        </button>
+
+        <div class="search-box">
+          <input id="searchInput" placeholder="Cari lokasi atau koordinat (contoh: -5.950,106.355)..." />
+          <button id="doSearch">Cari</button>
+        </div>
+
+        <button class="action-btn" id="addPointBtn">+ Titik Baru</button>
+        <button id="basemapFlipBtn" class="mapFlipBtn" title="Peta Dasar">🗺️</button>
+        <button id="togglePanelBtn" class="mapFlipBtn" title="Panel Layer">☰</button>
+      </div>
+    </div>
+
+    <!-- Statistics Panel -->
+    <div class="stats-panel" id="statsPanel">
+      <div class="stats-header">
+        <span>📊 Statistik Savi Tirtayasa 21</span>
+        <button class="stats-close" id="statsClose" title="Tutup">✕</button>
+      </div>
+      
+      <div class="stat-item">
+        <span>Total Luasan:</span>
+        <span class="stat-value" id="totalLuas">Menghitung...</span>
+      </div>
+      <div class="stat-item">
+        <span>Jumlah Poligon:</span>
+        <span class="stat-value" id="jumlahPoligon">261</span>
+      </div>
+      <div class="stat-item">
+        <span>Kerapatan Rata-rata:</span>
+        <span class="stat-value" id="kerapatanRata">Menghitung...</span>
+      </div>
+
+      <!-- Filter Controls -->
+      <div class="filter-controls">
+        <div class="filter-title">Filter Kerapatan:</div>
+        <div class="filter-buttons">
+          <button class="filter-btn active" data-density="all">Semua</button>
+          <button class="filter-btn" data-density="1">Sangat Rendah</button>
+          <button class="filter-btn" data-density="2">Rendah</button>
+          <button class="filter-btn" data-density="3">Sedang-Rendah</button>
+          <button class="filter-btn" data-density="4">Sedang</button>
+          <button class="filter-btn" data-density="5">Tinggi</button>
+          <button class="filter-btn" data-density="6">Sangat Tinggi</button>
+        </div>
+      </div>
+
+      <button class="download-btn" id="downloadData">
+        📥 Download Data GeoJSON
+      </button>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="vtoolbar">
+      <div class="vt-btn" id="zoomIn" title="Zoom In">+</div>
+      <div class="vt-btn" id="zoomOut" title="Zoom Out">−</div>
+      <div class="vt-btn" id="measureBtn" title="Ukur Jarak">📏</div>
+      <div style="border-top:1px solid #eee; margin:6px 0"></div>
+      <div class="vt-btn" id="drawPt" title="Titik">•</div>
+      <div class="vt-btn" id="drawPoly" title="Poligon">△</div>
+      <div class="vt-btn" id="drawRect" title="Persegi">□</div>
+    </div>
+
+    <!-- Scale -->
+    <div class="scale-box" id="scaleBox">Skala: 1:100,000</div>
+
+    <!-- Right Panel -->
+    <div class="right-panel" id="rightPanel">
+      <div class="panel-inner">
+        <div class="panel-header">
+          <h3>Layer & Pengaturan</h3>
+          <button id="closePanel" class="vt-btn" style="width:auto; padding:6px 10px;">✕</button>
+        </div>
+
+        <div class="analysis-section">
+          <div style="font-weight:600; color:var(--mg-green); margin-bottom:12px;">📊 Data Savi Tirtayasa 21</div>
+          
+          <div class="data-display">
+            <div class="data-item">
+              <span>Vegetasi Sangat Rendah:</span>
+              <span class="data-value" id="dataSangatRendah">0</span>
+            </div>
+            <div class="data-item">
+              <span>Vegetasi Rendah:</span>
+              <span class="data-value" id="dataRendah">0</span>
+            </div>
+            <div class="data-item">
+              <span>Vegetasi Sedang-Rendah:</span>
+              <span class="data-value" id="dataSedangRendah">0</span>
+            </div>
+            <div class="data-item">
+              <span>Vegetasi Sedang:</span>
+              <span class="data-value" id="dataSedang">0</span>
+            </div>
+            <div class="data-item">
+              <span>Vegetasi Tinggi:</span>
+              <span class="data-value" id="dataTinggi">0</span>
+            </div>
+            <div class="data-item">
+              <span>Vegetasi Sangat Tinggi:</span>
+              <span class="data-value" id="dataSangatTinggi">0</span>
+            </div>
+            <div class="data-item">
+              <span>Kerapatan Rata-rata:</span>
+              <span class="data-value" id="dataEVI">0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat Box -->
+  <div class="chat-box-container" id="chatBoxContainer">
+    <div class="chat-header" id="chatHeader">
+      <span>💬 Asisten Mangrove</span>
+      <span>−</span>
+    </div>
+    <div class="chat-content" id="chatContent">
+      <div class="chat-message chat-bot">Halo! Saya asisten virtual Mangrove Guardian. Data Savi Tirtayasa 21 memiliki 261 poligon dengan total luasan akan dihitung otomatis.</div>
+    </div>
+    <div class="chat-input-row">
+      <input type="text" id="chatInput" placeholder="Ketik pertanyaan Anda..." />
+      <button id="sendChat">Kirim</button>
+    </div>
+  </div>
+
+  <script>
+    // ==================== DATA SAVI TIRTAYASA 21 ====================
+    // Data contoh dengan berbagai tingkat kerapatan
+    const savitirtayasa21 = {
+      "type": "FeatureCollection",
+      "features": [
+        // Contoh data dengan berbagai gridcode untuk demonstrasi
+        {
+          "type": "Feature",
+          "id": 1,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.35590995778324,-5.9507544424385852],[106.35590929284471,-5.9504831288117606],[106.3556383160262,-5.950483794494879],[106.35563898083194,-5.9507551081522667],[106.35590995778324,-5.9507544424385852]]]
+          },
+          "properties": {
+            "OBJECTID": 1,
+            "Id": 1,
+            "gridcode": 1, // Sangat Rendah
+            "Shape_Length": 120.00000000186265,
+            "Shape_Area": 900.00000002793968
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 2,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.35238791825451,-5.951034400366698],[106.35265889570843,-5.9510337362180143],[106.35265823233259,-5.9507624222275908],[106.35238725501144,-5.9507630863457859],[106.35238791825451,-5.951034400366698]]]
+          },
+          "properties": {
+            "OBJECTID": 2,
+            "Id": 2,
+            "gridcode": 2, // Rendah
+            "Shape_Length": 119.99999999627471,
+            "Shape_Area": 899.99999994412065
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 3,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.35211826708263,-5.9515776924770556],[106.35320217789923,-5.9515750353724552],[106.35320151419621,-5.9513037214484816],[106.35238858152833,-5.9513057143849091],[106.35238791825451,-5.951034400366698],[106.3521169407698,-5.9510350643824168],[106.35211760391083,-5.9513063784311129],[106.35184662626253,-5.9513070423443448],[106.35184728930152,-5.9515783564207663],[106.35211826708263,-5.9515776924770556]]]
+          },
+          "properties": {
+            "OBJECTID": 3,
+            "Id": 3,
+            "gridcode": 3, // Sedang-Rendah
+            "Shape_Length": 420.00000000558794,
+            "Shape_Area": 5400.0000000279397
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 4,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.35184728930152,-5.9515783564207663],[106.35130533364701,-5.951579683909257],[106.35130665928604,-5.9521223121757494],[106.35211959351857,-5.9521203205607209],[106.35211826708263,-5.9515776924770556],[106.35184728930152,-5.9515783564207663]]]
+          },
+          "properties": {
+            "OBJECTID": 4,
+            "Id": 4,
+            "gridcode": 4, // Sedang
+            "Shape_Length": 300,
+            "Shape_Area": 5399.9999999441206
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 5,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.3540157748206,-5.9518443549774531],[106.35482870773077,-5.9518423594643783],[106.35482937229231,-5.9521136731997268],[106.3551003500002,-5.9521130077321942],[106.35509968530583,-5.951841694027391],[106.35537066285004,-5.9518410284574212],[106.35536933328821,-5.9512984011006766],[106.35591128775286,-5.9512970696840322],[106.35590995778324,-5.9507544424385852],[106.35563898083194,-5.9507551081522667],[106.3556383160262,-5.950483794494879],[106.35590929284471,-5.9504831288117606],[106.35590796306025,-5.9499405015498885],[106.35563698650728,-5.9499411671718816],[106.35563632179411,-5.9496698535063075],[106.35455241580489,-5.9496725145427058],[106.35455307998699,-5.9499438283304693],[106.35428210327981,-5.9499444932877701],[106.35428276735998,-5.9502158071033318],[106.35374081358763,-5.9502171366801591],[106.35374147743303,-5.9504884505540847],[106.3531995232719,-5.9504897796601535],[106.35320018688253,-5.9507610935923303],[106.35265823233259,-5.9507624222275908],[106.35265889570843,-5.9510337362180143],[106.35238791825451,-5.951034400366698],[106.35238858152833,-5.9513057143849091],[106.35320151419621,-5.9513037214484816],[106.35374346915413,-5.9513023921593478],[106.35374479712223,-5.9518450198825148],[106.3540157748206,-5.9518443549774531]]]
+          },
+          "properties": {
+            "OBJECTID": 5,
+            "Id": 5,
+            "gridcode": 5, // Tinggi
+            "Shape_Length": 1380,
+            "Shape_Area": 58500.000000195578
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 6,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.35591328293876,-5.9521110105316719],[106.35618426052324,-5.9521103445321897],[106.35618359529759,-5.9518390309496247],[106.35591261784593,-5.9518396969185385],[106.35591195278397,-5.9515683833026527],[106.35564097543426,-5.9515690491080226],[106.35564230532341,-5.9521116763981663],[106.35591328293876,-5.9521110105316719]]]
+          },
+          "properties": {
+            "OBJECTID": 6,
+            "Id": 6,
+            "gridcode": 6, // Sangat Tinggi
+            "Shape_Length": 240,
+            "Shape_Area": 2699.9999999720603
+          }
+        }
+        // ... tambahkan data lengkap 261 fitur di sini
+      ]
+    };
+
+    // ==================== INISIALISASI PETA ====================
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('Initializing map...');
+      
+      // Inisialisasi peta
+      const map = L.map('map', {
+        zoomControl: false
+      }).setView([-5.950, 106.355], 14);
+
+      // Tambahkan layer dasar
+      const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+      }).addTo(map);
+
+      // Variabel global
+      let geoJSONLayer = null;
+      let currentFilter = 'all';
+      let drawnItems = new L.FeatureGroup();
+      map.addLayer(drawnItems);
+
+      // ==================== FUNGSI UTAMA ====================
+      
+      // Load data GeoJSON
+      function loadGeoJSONData() {
+        if (geoJSONLayer) {
+          map.removeLayer(geoJSONLayer);
+        }
+        
+        // Style function dengan warna yang berbeda untuk setiap gridcode
+        function getStyleByGridcode(feature) {
+          const gridcode = feature.properties.gridcode;
+          let color, opacity, weight;
+          
+          switch(gridcode) {
+            case 1: // Sangat Rendah
+              color = '#ffffcc';
+              opacity = 0.7;
+              weight = 1;
+              break;
+            case 2: // Rendah
+              color = '#c2e699';
+              opacity = 0.7;
+              weight = 1;
+              break;
+            case 3: // Sedang-Rendah
+              color = '#78c679';
+              opacity = 0.7;
+              weight = 1.5;
+              break;
+            case 4: // Sedang
+              color = '#31a354';
+              opacity = 0.8;
+              weight = 2;
+              break;
+            case 5: // Tinggi
+              color = '#006837';
+              opacity = 0.9;
+              weight = 2.5;
+              break;
+            case 6: // Sangat Tinggi
+              color = '#004529';
+              opacity = 1;
+              weight = 3;
+              break;
+            default:
+              color = '#808080';
+              opacity = 0.5;
+              weight = 1;
+          }
+          
+          return {
+            fillColor: color,
+            color: color,
+            weight: weight,
+            opacity: 0.8,
+            fillOpacity: opacity
+          };
+        }
+        
+        // Filter function
+        function filterByDensity(feature) {
+          if (currentFilter === 'all') return true;
+          return feature.properties.gridcode.toString() === currentFilter;
+        }
+        
+        // Tambah layer GeoJSON ke peta
+        geoJSONLayer = L.geoJSON(savitirtayasa21, {
+          style: getStyleByGridcode,
+          filter: filterByDensity,
+          onEachFeature: function(feature, layer) {
+            const props = feature.properties;
+            const popupContent = `
+              <div style="max-width: 250px;">
+                <h4 style="margin:0 0 8px 0; color: #0a5c36;">
+                  Poligon ${props.Id}
+                </h4>
+                <div style="font-size: 12px;">
+                  <div><strong>Kerapatan:</strong> ${getKerapatanLabel(props.gridcode)}</div>
+                  <div><strong>Gridcode:</strong> ${props.gridcode}</div>
+                  <div><strong>Luasan:</strong> ${(props.Shape_Area / 10000).toFixed(4)} ha</div>
+                </div>
+              </div>
+            `;
+            layer.bindPopup(popupContent);
+          }
+        }).addTo(map);
+        
+        // Fit bounds ke data
+        if (geoJSONLayer.getBounds().isValid()) {
+          map.fitBounds(geoJSONLayer.getBounds());
+        }
+        
+        console.log('Data loaded:', savitirtayasa21.features.length, 'features');
+        
+        // Hitung statistik
+        calculateStatistics();
+        
+        // Update legend
+        updateLegend();
+      }
+
+      // Fungsi untuk mendapatkan label kerapatan
+      function getKerapatanLabel(gridcode) {
+        switch(gridcode) {
+          case 1: return "Sangat Rendah";
+          case 2: return "Rendah";
+          case 3: return "Sedang-Rendah";
+          case 4: return "Sedang";
+          case 5: return "Tinggi";
+          case 6: return "Sangat Tinggi";
+          default: return "Tidak Diketahui";
+        }
+      }
+
+      // Hitung statistik
+      function calculateStatistics() {
+        let totalLuasan = 0;
+        let kerapatanRata = 0;
+        const densityCount = {1:0, 2:0, 3:0, 4:0, 5:0, 6:0};
+        
+        savitirtayasa21.features.forEach(feature => {
+          const luasan = feature.properties.Shape_Area / 10000;
+          const gridcode = feature.properties.gridcode;
+          
+          totalLuasan += luasan;
+          kerapatanRata += gridcode;
+          densityCount[gridcode]++;
+        });
+        
+        kerapatanRata = (kerapatanRata / savitirtayasa21.features.length).toFixed(1);
+        
+        // Update statistik
+        document.getElementById('totalLuas').textContent = totalLuasan.toFixed(4) + ' ha';
+        document.getElementById('kerapatanRata').textContent = kerapatanRata;
+        
+        // Update detail kerapatan
+        document.getElementById('dataSangatRendah').textContent = densityCount[1] + ' poligon';
+        document.getElementById('dataRendah').textContent = densityCount[2] + ' poligon';
+        document.getElementById('dataSedangRendah').textContent = densityCount[3] + ' poligon';
+        document.getElementById('dataSedang').textContent = densityCount[4] + ' poligon';
+        document.getElementById('dataTinggi').textContent = densityCount[5] + ' poligon';
+        document.getElementById('dataSangatTinggi').textContent = densityCount[6] + ' poligon';
+        document.getElementById('dataEVI').textContent = kerapatanRata;
+      }
+
+      // Update legend
+      function updateLegend() {
+        const legend = L.control({ position: 'bottomright' });
+        
+        legend.onAdd = function(map) {
+          const div = L.DomUtil.create('div', 'info legend');
+          div.style.background = 'white';
+          div.style.padding = '10px';
+          div.style.borderRadius = '5px';
+          div.style.boxShadow = '0 0 10px rgba(0,0,0,0.2)';
+          
+          const grades = [1, 2, 3, 4, 5, 6];
+          const labels = [
+            'Sangat Rendah (1)',
+            'Rendah (2)', 
+            'Sedang-Rendah (3)',
+            'Sedang (4)',
+            'Tinggi (5)',
+            'Sangat Tinggi (6)'
+          ];
+          const colors = [
+            '#ffffcc', '#c2e699', '#78c679', '#31a354', '#006837', '#004529'
+          ];
+          
+          let legendHTML = '<h4 style="margin:0 0 8px 0;">Kerapatan Savi Tirtayasa 21</h4>';
+          
+          for (let i = 0; i < grades.length; i++) {
+            legendHTML += `
+              <div style="display: flex; align-items: center; margin: 4px 0;">
+                <div style="width: 20px; height: 15px; background: ${colors[i]}; margin-right: 8px; border: 1px solid #666;"></div>
+                <span style="font-size: 12px;">${labels[i]}</span>
+              </div>
+            `;
+          }
+          
+          div.innerHTML = legendHTML;
+          return div;
+        };
+        
+        legend.addTo(map);
+      }
+
+      // ==================== EVENT LISTENERS ====================
+      
+      // Filter functionality
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          // Update active button
+          document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+          
+          // Update current filter
+          currentFilter = this.getAttribute('data-density');
+          
+          // Reload GeoJSON data with filter
+          loadGeoJSONData();
+        });
+      });
+
+      // Toggle Statistics Panel
+      document.getElementById('statsToggle').addEventListener('click', function() {
+        const statsPanel = document.getElementById('statsPanel');
+        statsPanel.style.display = statsPanel.style.display === 'none' ? 'block' : 'none';
+      });
+
+      // Close Statistics Panel
+      document.getElementById('statsClose').addEventListener('click', function() {
+        document.getElementById('statsPanel').style.display = 'none';
+      });
+
+      // Toggle Right Panel
+      document.getElementById('togglePanelBtn').addEventListener('click', function() {
+        const rightPanel = document.getElementById('rightPanel');
+        rightPanel.style.display = rightPanel.style.display === 'none' ? 'block' : 'none';
+      });
+
+      // Close Right Panel
+      document.getElementById('closePanel').addEventListener('click', function() {
+        document.getElementById('rightPanel').style.display = 'none';
+      });
+
+      // Search Functionality
+      document.getElementById('doSearch').addEventListener('click', performSearch);
+      document.getElementById('searchInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') performSearch();
+      });
+
+      function performSearch() {
+        const query = document.getElementById('searchInput').value.trim();
+        if (!query) return;
+        
+        const coordMatch = query.match(/^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/);
+        if (coordMatch) {
+          const lat = parseFloat(coordMatch[1]);
+          const lng = parseFloat(coordMatch[2]);
+          
+          if (!isNaN(lat) && !isNaN(lng)) {
+            map.setView([lat, lng], 16);
+            L.marker([lat, lng]).addTo(map)
+              .bindPopup(`Lokasi: ${lat}, ${lng}`)
+              .openPopup();
+            return;
+          }
+        }
+        
+        alert('Silakan gunakan format koordinat: latitude,longitude (contoh: -5.950,106.355)');
+      }
+
+      // Zoom Controls
+      document.getElementById('zoomIn').addEventListener('click', function() {
+        map.zoomIn();
+      });
+
+      document.getElementById('zoomOut').addEventListener('click', function() {
+        map.zoomOut();
+      });
+
+      // Scale update
+      map.on('zoomend', function() {
+        const zoom = map.getZoom();
+        const scale = Math.round(591657550 / Math.pow(2, zoom - 1));
+        document.getElementById('scaleBox').textContent = `Skala: 1:${scale.toLocaleString()}`;
+      });
+
+      // Download Data
+      document.getElementById('downloadData').addEventListener('click', function() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(savitirtayasa21, null, 2));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", "savi_tirtayasa_21.geojson");
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+        alert('Data GeoJSON Savi Tirtayasa 21 berhasil diunduh!');
+      });
+
+      // Load data setelah semua event listener terpasang
+      setTimeout(() => {
+        loadGeoJSONData();
+        map.fire('zoomend');
+      }, 100);
+
+      console.log('Map initialization completed');
+    });
+
+  </script>
+
+</body>
+</html>
