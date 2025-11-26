@@ -1,0 +1,2274 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mangrove Guardian - Desa Tanara 21</title>
+
+  <!-- External Libraries -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/leaflet.draw/1.0.4/leaflet.draw-src.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/leaflet.draw/1.0.4/leaflet.draw-src.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+
+  <!-- Custom Styles -->
+  <style>
+    /* VARIABLES */
+    :root{
+      --mg-green:#0a5c36;
+      --mg-green-light:#1a7d4e;
+      --mg-green-dark:#064527;
+      --panel:rgba(255,255,255,0.95);
+      --muted:#51606a;
+      --navbar-height: 60px; 
+    }
+    
+    *{box-sizing:border-box; margin:0; padding:0;}
+    
+    html,body{height:100%; margin:0; font-family:'Segoe UI', system-ui, sans-serif; color:#15302a;}
+    body{background:#f8f9fa;}
+    #map{flex:1; z-index:1;}
+
+    .topbar{
+      height: var(--navbar-height);
+      padding:0 20px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      background:var(--mg-green);
+      color:#fff;
+      position:sticky;
+      top:0;
+      z-index:1500;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      border-bottom: 1px solid var(--mg-green-dark);
+    }
+    
+    .brand{
+      font-weight:600;
+      font-size:20px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    
+    .nav-right-container{display:flex; align-items:center; gap:25px;}
+    .nav-menu{display:flex; gap:25px}
+    .nav-menu a{
+      color:#fff;
+      text-decoration:none;
+      font-size:14px;
+      font-weight:500;
+      padding:8px 0;
+      transition:opacity 0.2s;
+    }
+    .nav-menu a:hover{opacity:0.8;}
+    .lang-switch{
+      font-size:13px;
+      cursor:pointer;
+      background:rgba(255,255,255,0.15);
+      padding:6px 12px;
+      border-radius:4px;
+      font-weight:500;
+    }
+
+    .chat-box-container{
+      position:fixed;
+      bottom:20px;
+      right:20px;
+      z-index:1600;
+      width:350px;
+      background:var(--panel);
+      border-radius:8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      border:1px solid #e1e5e9;
+      display:flex;
+      flex-direction:column;
+      max-height:500px;
+    }
+    
+    .chat-header{
+      background: var(--mg-green);
+      color: #fff;
+      padding: 12px 16px;
+      font-weight: 600;
+      cursor:pointer;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      border-radius:8px 8px 0 0;
+    }
+    
+    .chat-content{
+      padding: 16px;
+      flex:1;
+      overflow-y: auto;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      max-height:300px;
+    }
+    
+    .chat-input-row{
+      display:flex;
+      gap:8px;
+      padding:12px 16px;
+      border-top:1px solid #e1e5e9;
+      background:#f8f9fa;
+    }
+    
+    .chat-input-row input{
+      flex:1;
+      padding:10px 12px;
+      border-radius:6px;
+      border:1px solid #ddd;
+      outline:none;
+      font-size:14px;
+      background:#fff;
+    }
+    
+    .chat-input-row button{
+      background:var(--mg-green);
+      border:0;
+      color:#fff;
+      padding:10px 16px;
+      border-radius:6px;
+      cursor:pointer;
+      font-weight:600;
+      font-size:14px;
+    }
+
+    .chat-message{
+      padding:10px 14px;
+      border-radius:8px;
+      max-width:85%;
+      font-size:14px;
+      line-height:1.4;
+    }
+    
+    .chat-user{
+      background:#e3f2fd;
+      align-self:flex-end;
+      border-bottom-right-radius:2px;
+    }
+    
+    .chat-bot{
+      background:#f5f5f5;
+      align-self:flex-start;
+      border-bottom-left-radius:2px;
+    }
+
+    .app{
+      height:calc(100vh - var(--navbar-height));
+      position:relative;
+      display:flex;
+    }
+
+    .search-row-container{
+      position:absolute;
+      top:20px;
+      left:50%;
+      transform:translateX(-50%);
+      z-index:1300;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:8px;
+      width:90%;
+      max-width:700px;
+    }
+    
+    .search-row{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      width:100%;
+    }
+    
+    .search-box{
+      display:flex;
+      align-items:center;
+      background:var(--panel);
+      padding:8px 16px;
+      border-radius:8px;
+      box-shadow:0 2px 8px rgba(0,0,0,0.1);
+      width:100%;
+      border:1px solid #e1e5e9;
+      flex:1;
+    }
+    
+    .search-box input{
+      border:0;
+      outline:none;
+      padding:8px;
+      font-size:14px;
+      background:transparent;
+      flex:1;
+    }
+    
+    .search-box button{
+      background:var(--mg-green);
+      border:0;
+      color:#fff;
+      padding:8px 16px;
+      border-radius:6px;
+      cursor:pointer;
+      font-weight:600;
+      font-size:14px;
+    }
+    
+    .action-btn{
+      background:var(--mg-green);
+      color:#fff;
+      border-radius:8px;
+      padding:10px 16px;
+      border:none;
+      cursor:pointer;
+      font-weight:600;
+      font-size:14px;
+      white-space:nowrap;
+    }
+    
+    .mapFlipBtn{
+      background:var(--mg-green);
+      border:none;
+      padding:10px;
+      border-radius:6px;
+      color:white;
+      cursor:pointer;
+      font-size:16px;
+    }
+
+    .stats-toggle-btn {
+      background:var(--mg-green);
+      border:none;
+      padding:10px 14px;
+      border-radius:6px;
+      color:white;
+      cursor:pointer;
+      font-size:16px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      box-shadow:0 2px 6px rgba(0,0,0,0.1);
+      transition:all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .stats-toggle-btn:hover {
+      background:var(--mg-green-light);
+      transform: translateY(-1px);
+    }
+
+    .vtoolbar{
+      position:absolute;
+      left:20px;
+      top:120px;
+      z-index:1300;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      padding:8px;
+      border-radius:8px;
+      background:transparent;
+    }
+    
+    .vt-btn{
+      width:44px;
+      height:44px;
+      border-radius:6px;
+      background:var(--panel);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border:1px solid #e1e5e9;
+      box-shadow:0 2px 6px rgba(0,0,0,0.08);
+      cursor:pointer;
+      font-size:16px;
+      transition:all 0.2s;
+    }
+    
+    .vt-btn:hover{
+      background:#f8f9fa;
+    }
+
+    .right-panel{
+      position:absolute;
+      right:20px;
+      top:20px;
+      width:320px;
+      z-index:1300;
+      background:var(--panel);
+      border-radius:8px;
+      box-shadow:0 4px 20px rgba(0,0,0,0.15);
+      border:1px solid #e1e5e9;
+      max-height:calc(100vh - 100px);
+      overflow-y:auto;
+    }
+    
+    .panel-inner{
+      padding:16px;
+    }
+    
+    .panel-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:16px;
+      padding-bottom:12px;
+      border-bottom:1px solid #e1e5e9;
+    }
+    
+    .panel-header h3{
+      margin:0;
+      color:var(--mg-green);
+      font-size:16px;
+      font-weight:600;
+    }
+
+    .switch-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:12px 0;
+      border-bottom:1px solid #f0f0f0;
+    }
+    
+    .switch-label{
+      font-size:14px;
+      color:#333;
+    }
+    
+    .switch{
+      position:relative;
+      width:44px;
+      height:24px;
+      border-radius:12px;
+      background:#ddd;
+      cursor:pointer;
+    }
+    
+    .switch .knob{
+      position:absolute;
+      top:2px;
+      left:2px;
+      width:20px;
+      height:20px;
+      border-radius:50%;
+      background:white;
+      box-shadow:0 1px 3px rgba(0,0,0,0.2);
+      transition:left 0.2s;
+    }
+    
+    .switch.on{
+      background:var(--mg-green);
+    }
+    
+    .switch.on .knob{
+      left:22px;
+    }
+
+    .basemap-toggle{
+      position:absolute;
+      right:20px;
+      top:70px;
+      z-index:1350;
+    }
+    
+    .basemap-card{
+      width:250px;
+      background:var(--panel);
+      border-radius:8px;
+      padding:12px;
+      box-shadow:0 4px 20px rgba(0,0,0,0.15);
+      border:1px solid #e1e5e9;
+    }
+    
+    .basemap-card.hidden{
+      display:none;
+    }
+    
+    .basemap-item{
+      padding:10px;
+      border-radius:6px;
+      margin-bottom:6px;
+      cursor:pointer;
+      font-size:14px;
+      border:1px solid transparent;
+    }
+    
+    .basemap-item:hover{
+      background:#f8f9fa;
+    }
+    
+    .basemap-item.active{
+      background:#e8f5e8;
+      border-color:var(--mg-green);
+    }
+
+    .scale-box{
+      position:absolute;
+      left:20px;
+      bottom:20px;
+      background:var(--panel);
+      padding:8px 12px;
+      border-radius:6px;
+      font-size:12px;
+      border:1px solid #e1e5e9;
+      z-index:1300;
+      box-shadow:0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .class-item{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 0;
+      border-bottom:1px solid #f0f0f0;
+    }
+    
+    .class-color{
+      width:16px;
+      height:16px;
+      border-radius:3px;
+    }
+    
+    .class-label{
+      flex:1;
+      font-size:13px;
+    }
+
+    .file-upload{
+      margin-top:16px;
+      padding:12px;
+      border:2px dashed #ddd;
+      border-radius:6px;
+      text-align:center;
+      cursor:pointer;
+      transition:border-color 0.2s;
+    }
+    
+    .file-upload:hover{
+      border-color:var(--mg-green);
+    }
+    
+    .file-hint{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:8px;
+      text-align:center;
+    }
+
+    .vt-btn.active-draw{
+      background:var(--mg-green);
+      color:#fff;
+    }
+    
+    .vt-btn.delete-active{
+      background:#dc3545;
+      color:#fff;
+    }
+
+    @media (max-width:768px){
+      .nav-menu{display:none}
+      .search-row{flex-wrap:wrap;}
+      .right-panel{width:95%; right:2.5%;}
+      .chat-box-container{width:95%; right:2.5%;}
+      .stats-panel{width:95%; left:2.5%;}
+      .stats-toggle-btn{display:none;}
+    }
+
+    .analysis-section {
+      margin: 16px 0;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 6px;
+    }
+    
+    .pulau-selector {
+      margin-bottom: 12px;
+    }
+    
+    .pulau-selector select {
+      width: 100%;
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+    }
+    
+    .data-display {
+      background: white;
+      padding: 12px;
+      border-radius: 4px;
+      margin-top: 8px;
+    }
+    
+    .data-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+    
+    .data-value {
+      font-weight: 600;
+      color: var(--mg-green);
+    }
+
+    .custom-tooltip {
+      background: rgba(255, 255, 255, 0.95) !important;
+      border: 1px solid #0a5c36 !important;
+      border-radius: 4px !important;
+      padding: 4px 8px !important;
+      font-size: 12px !important;
+      font-weight: 500 !important;
+    }
+
+    .legend {
+      background: white;
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    
+    .legend h4 {
+      margin: 0 0 8px 0;
+    }
+
+    .stats-panel {
+      position: absolute;
+      left: 80px;
+      top: 120px;
+      z-index: 1300;
+      background: var(--panel);
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      border: 1px solid #e1e5e9;
+      width: 300px;
+      max-height: 75vh;
+      overflow-y: auto;
+      transition: all 0.3s ease;
+    }
+
+    .stats-header {
+      font-weight: 600;
+      color: var(--mg-green);
+      margin-bottom: 12px;
+      font-size: 16px;
+      border-bottom: 2px solid var(--mg-green);
+      padding-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .stats-close {
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      color: var(--muted);
+      padding: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .stats-close:hover {
+      color: var(--mg-green);
+    }
+
+    .stat-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 13px;
+      padding: 6px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .stat-item:last-child {
+      border-bottom: none;
+    }
+
+    .stat-value {
+      font-weight: 600;
+      color: var(--mg-green);
+    }
+
+    .chart-container {
+      margin-top: 15px;
+      height: 200px;
+      position: relative;
+    }
+
+    .download-btn {
+      background: var(--mg-green);
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      margin-top: 15px;
+      width: 100%;
+      transition: background 0.3s ease;
+    }
+
+    .download-btn:hover {
+      background: var(--mg-green-light);
+    }
+
+    .collapsible {
+      margin-top: 10px;
+    }
+
+    .collapsible-header {
+      background: #f8f9fa;
+      padding: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--mg-green);
+    }
+
+    .collapsible-content {
+      padding: 10px;
+      background: white;
+      border-radius: 0 0 6px 6px;
+      margin-top: 2px;
+    }
+
+    .collapsible.hidden .collapsible-content {
+      display: none;
+    }
+
+    /* Progress Bar untuk Loading */
+    .progress-bar {
+      width: 100%;
+      height: 4px;
+      background: #f0f0f0;
+      border-radius: 2px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--mg-green);
+      transition: width 0.3s ease;
+    }
+
+    /* Filter Controls */
+    .filter-controls {
+      margin: 15px 0;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 6px;
+    }
+
+    .filter-title {
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: var(--mg-green);
+    }
+
+    .filter-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .filter-btn {
+      padding: 6px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: white;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s;
+    }
+
+    .filter-btn.active {
+      background: var(--mg-green);
+      color: white;
+      border-color: var(--mg-green);
+    }
+
+    .filter-btn:hover {
+      background: #e9ecef;
+    }
+
+    .filter-btn.active:hover {
+      background: var(--mg-green-light);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="topbar">
+    <div class="brand">
+      <span>🌿 MangroveGuardian - Desa Tanara 21</span>
+    </div>
+    <div class="nav-right-container">
+      <div class="nav-menu" id="navMenu">
+        <a href="indeks.html" data-key="home">Beranda</a>
+        <a href="indeks.html" data-key="about">Tentang</a>
+        <a href="indeks.html" data-key="team">Tim</a>
+        <a href="indeks.html" data-key="contact">Kontak</a>
+      </div>
+      <div class="lang-switch" id="langSwitch">ID / EN</div>
+    </div>
+  </div>
+
+  <!-- Chat Box -->
+  <div class="chat-box-container" id="chatBoxContainer">
+    <div class="chat-header" id="chatHeader">
+      <span>💬 Asisten Mangrove</span>
+      <span>−</span>
+    </div>
+    <div class="chat-content" id="chatContent">
+      <div class="chat-message chat-bot">Halo! Saya asisten virtual Mangrove Guardian. Data Desa Tanara 21 memiliki 43 poligon dengan total luasan akan dihitung otomatis.</div>
+    </div>
+    <div class="chat-input-row">
+      <input type="text" id="chatInput" placeholder="Ketik pertanyaan Anda..." />
+      <button id="sendChat">Kirim</button>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div class="app">
+    <div id="map"></div>
+
+    <!-- Search Bar dengan Tombol Statistik di Kiri -->
+    <div class="search-row-container">
+      <div class="search-row">
+        <!-- Tombol Statistik di sebelah kiri search box -->
+        <button class="stats-toggle-btn" id="statsToggle" title="Toggle Panel Statistik">
+          📊 Statistik
+        </button>
+
+        <!-- Search Box di tengah -->
+        <div class="search-box">
+          <input id="searchInput" placeholder="Cari lokasi atau koordinat (contoh: -6.005,106.398)..." />
+          <button id="doSearch">Cari</button>
+        </div>
+
+        <!-- Tombol-tombol lainnya di sebelah kanan -->
+        <button class="action-btn" id="addPointBtn">+ Titik Baru</button>
+        <button id="basemapFlipBtn" class="mapFlipBtn" title="Peta Dasar">🗺️</button>
+        <button id="togglePanelBtn" class="mapFlipBtn" title="Panel Layer">☰</button>
+      </div>
+    </div>
+
+    <!-- Statistics Panel -->
+    <div class="stats-panel" id="statsPanel">
+      <div class="stats-header">
+        <span>📊 Statistik Desa Tanara 21</span>
+        <button class="stats-close" id="statsClose" title="Tutup">✕</button>
+      </div>
+      
+      <div class="progress-bar">
+        <div class="progress-fill" id="dataProgress" style="width: 100%"></div>
+      </div>
+      
+      <div class="stat-item">
+        <span>Total Luasan:</span>
+        <span class="stat-value" id="totalLuas">Menghitung...</span>
+      </div>
+      <div class="stat-item">
+        <span>Jumlah Poligon:</span>
+        <span class="stat-value" id="jumlahPoligon">43</span>
+      </div>
+      <div class="stat-item">
+        <span>Kerapatan Rata-rata:</span>
+        <span class="stat-value" id="kerapatanRata">Menghitung...</span>
+      </div>
+      <div class="stat-item">
+        <span>Luasan Tertinggi:</span>
+        <span class="stat-value" id="luasMax">Menghitung...</span>
+      </div>
+      <div class="stat-item">
+        <span>Luasan Terendah:</span>
+        <span class="stat-value" id="luasMin">Menghitung...</span>
+      </div>
+
+      <!-- Filter Controls -->
+      <div class="filter-controls">
+        <div class="filter-title">Filter Kerapatan:</div>
+        <div class="filter-buttons">
+          <button class="filter-btn active" data-density="all">Semua</button>
+          <button class="filter-btn" data-density="1">Sangat Rendah</button>
+          <button class="filter-btn" data-density="2">Rendah</button>
+          <button class="filter-btn" data-density="3">Sedang-Rendah</button>
+        </div>
+      </div>
+
+      <!-- Collapsible Chart Section -->
+      <div class="collapsible" id="chartCollapsible">
+        <div class="collapsible-header" id="chartHeader">
+          <span>📈 Grafik Distribusi</span>
+          <span>▼</span>
+        </div>
+        <div class="collapsible-content">
+          <div class="chart-container">
+            <canvas id="densityChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Collapsible Detail Section -->
+      <div class="collapsible" id="detailCollapsible">
+        <div class="collapsible-header" id="detailHeader">
+          <span>🔍 Detail Kerapatan</span>
+          <span>▼</span>
+        </div>
+        <div class="collapsible-content">
+          <div class="stat-item">
+            <span>Sangat Rendah (1):</span>
+            <span class="stat-value" id="detailSangatRendah">Menghitung...</span>
+          </div>
+          <div class="stat-item">
+            <span>Rendah (2):</span>
+            <span class="stat-value" id="detailRendah">Menghitung...</span>
+          </div>
+          <div class="stat-item">
+            <span>Sedang-Rendah (3):</span>
+            <span class="stat-value" id="detailSedangRendah">Menghitung...</span>
+          </div>
+        </div>
+      </div>
+
+      <button class="download-btn" id="downloadData">
+        📥 Download Data GeoJSON
+      </button>
+
+      <button class="download-btn" id="screenshot" style="background: #6c757d; margin-top: 8px;">
+        📷 Screenshot Peta
+      </button>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="vtoolbar">
+      <div class="vt-btn" id="zoomIn" title="Zoom In">+</div>
+      <div class="vt-btn" id="zoomOut" title="Zoom Out">−</div>
+      <div class="vt-btn" id="measureBtn" title="Ukur Jarak">📏</div>
+      <div style="border-top:1px solid #eee; margin:6px 0"></div>
+      <div class="vt-btn" id="drawPt" title="Titik">•</div>
+      <div class="vt-btn" id="drawPoly" title="Poligon">△</div>
+      <div class="vt-btn" id="drawRect" title="Persegi">□</div>
+      <div style="border-top:1px solid #eee; margin:6px 0"></div>
+      <div class="vt-btn" id="deleteBtn" title="Hapus">🗑️</div>
+      <div class="vt-btn" id="printBtn" title="Cetak">🖨️</button>
+    </div>
+
+    <!-- Scale -->
+    <div class="scale-box" id="scaleBox">Skala: 1:100,000</div>
+    <div class="scale-box" id="measureBox" style="left:120px; display:none; background:#fff3cd; color:#856404;"></div>
+
+    <!-- Right Panel -->
+    <div class="right-panel" id="rightPanel">
+      <div class="panel-inner">
+        <div class="panel-header">
+          <h3>Layer & Pengaturan</h3>
+          <button id="closePanel" class="vt-btn" style="width:auto; padding:6px 10px;">✕</button>
+        </div>
+
+        <!-- Analisis Vegetasi Section -->
+        <div class="analysis-section">
+          <div style="font-weight:600; color:var(--mg-green); margin-bottom:12px;">📊 Data Desa Tanara 21</div>
+          
+          <div class="pulau-selector">
+            <label for="pulauSelect">Pilih Lokasi:</label>
+            <select id="pulauSelect">
+              <option value="desatanara21" selected>Desa Tanara 21</option>
+            </select>
+          </div>
+
+          <div class="pulau-selector">
+            <label for="tahunSelect">Pilih Tahun:</label>
+            <select id="tahunSelect">
+              <option value="2021" selected>2021</option>
+            </select>
+          </div>
+
+          <div class="data-display">
+            <div class="data-item">
+              <span>Vegetasi Sangat Rendah:</span>
+              <span class="data-value" id="dataSangatRendah">Menghitung...</span>
+            </div>
+            <div class="data-item">
+              <span>Vegetasi Rendah:</span>
+              <span class="data-value" id="dataRendah">Menghitung...</span>
+            </div>
+            <div class="data-item">
+              <span>Vegetasi Sedang-Rendah:</span>
+              <span class="data-value" id="dataSedangRendah">Menghitung...</span>
+            </div>
+            <div class="data-item">
+              <span>Kerapatan Rata-rata:</span>
+              <span class="data-value" id="dataEVI">Menghitung...</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="switch-row">
+          <div class="switch-label">Layer Savi</div>
+          <div class="switch on" id="rasterSwitch"><div class="knob"></div></div>
+        </div>
+
+        <div style="margin:16px 0;">
+          <div style="font-weight:600; color:var(--mg-green); margin-bottom:12px;">Kelas Kerapatan Savi</div>
+          <div id="classesList"></div>
+        </div>
+
+        <hr style="margin:16px 0; border:none; border-top:1px solid #e1e5e9;">
+
+        <div style="font-weight:600; color:var(--mg-green); margin-bottom:12px;">Ekspor Data</div>
+        <div class="file-upload" id="fileUploadArea">
+          <div>📁 Upload File GeoJSON</div>
+          <input type="file" id="fileInput" accept=".json,.geojson" style="display:none" />
+        </div>
+        <div class="file-hint">Format yang didukung: GeoJSON, JSON</div>
+
+        <button class="download-btn" id="exportReport">
+          📄 Export Laporan PDF
+        </button>
+      </div>
+    </div>
+
+    <!-- Basemap Panel -->
+    <div class="basemap-toggle">
+      <div class="basemap-card hidden" id="basemapCard">
+        <div style="font-weight:600; margin-bottom:12px;">Peta Dasar</div>
+        <div class="basemap-item active" data-basemap="osm">OpenStreetMap</div>
+        <div class="basemap-item" data-basemap="satellite">Satelit</div>
+        <div class="basemap-item" data-basemap="terrain">Topografi</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==================== DATA DESA TANARA 21 LENGKAP ====================
+    const desatanara21 = {
+      "type": "FeatureCollection",
+      "features": [
+        {
+          "type": "Feature",
+          "id": 1,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.39886313264975,-6.0054518950152396],[106.39886244029965,-6.0051805868498542],[106.39859144148764,-6.005181279907311],[106.39859213370373,-6.0054525881042302],[106.39886313264975,-6.0054518950152396]]]
+          },
+          "properties": {
+            "OBJECTID": 1,
+            "Id": 1,
+            "gridcode": 2,
+            "Shape_Length": 119.99999999441206,
+            "Shape_Area": 899.99999991618097
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 2,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.39832182683973,-6.0057245892847213],[106.39859282595164,-6.0057238962983819],[106.39859213370373,-6.0054525881042302],[106.39832113472583,-6.0054532810590411],[106.39832182683973,-6.0057245892847213]]]
+          },
+          "properties": {
+            "OBJECTID": 2,
+            "Id": 2,
+            "gridcode": 2,
+            "Shape_Length": 120,
+            "Shape_Area": 900
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 3,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.39832251898547,-6.0059958975076881],[106.39832182683973,-6.0057245892847213],[106.39805082769597,-6.0057252821368765],[106.39805151970768,-6.0059965903913648],[106.39832251898547,-6.0059958975076881]]]
+          },
+          "properties": {
+            "OBJECTID": 3,
+            "Id": 3,
+            "gridcode": 1,
+            "Shape_Length": 120.00000000558794,
+            "Shape_Area": 900.00000008381903
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 4,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.39859490288649,-6.0065378208643239],[106.39859421054304,-6.0062665126784642],[106.39832321116303,-6.0062672057278572],[106.39832390337246,-6.0065385139452436],[106.39859490288649,-6.0065378208643239]]]
+          },
+          "properties": {
+            "OBJECTID": 4,
+            "Id": 4,
+            "gridcode": 2,
+            "Shape_Length": 119.99999999627471,
+            "Shape_Area": 899.99999994412065
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 5,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.39940859401496,-6.0068070489048599],[106.3994079012375,-6.0065357408163491],[106.39913690181901,-6.0065364342998757],[106.39913482407994,-6.0057225099231522],[106.39886382503171,-6.0057232031778591],[106.39886313264975,-6.0054518950152396],[106.39859213370373,-6.0054525881042302],[106.39859282595164,-6.0057238962983819],[106.39832182683973,-6.0057245892847213],[106.39832251898547,-6.0059958975076881],[106.39832321116303,-6.0062672057278572],[106.39859421054304,-6.0062665126784642],[106.39859490288649,-6.0065378208643239],[106.39859559526178,-6.0068091290474523],[106.39886659487803,-6.0068084358007967],[106.39940859401496,-6.0068070489048599]]]
+          },
+          "properties": {
+            "OBJECTID": 5,
+            "Id": 5,
+            "gridcode": 3,
+            "Shape_Length": 540.00000000372529,
+            "Shape_Area": 10800.000000111759
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 6,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.39859628766892,-6.0070804372278017],[106.39859559526178,-6.0068091290474523],[106.39859490288649,-6.0065378208643239],[106.39832390337246,-6.0065385139452436],[106.39832528788679,-6.0070811303717742],[106.39859628766892,-6.0070804372278017]]]
+          },
+          "properties": {
+            "OBJECTID": 6,
+            "Id": 6,
+            "gridcode": 1,
+            "Shape_Length": 180.00000000372529,
+            "Shape_Area": 1800.0000000558794
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 7,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.39886728741922,-6.0070797439496113],[106.39886659487803,-6.0068084358007967],[106.39859559526178,-6.0068091290474523],[106.39859628766892,-6.0070804372278017],[106.39886728741922,-6.0070797439496113]]]
+          },
+          "properties": {
+            "OBJECTID": 7,
+            "Id": 7,
+            "gridcode": 2,
+            "Shape_Length": 119.99999999813735,
+            "Shape_Area": 899.99999997206032
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 8,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.39886797999227,-6.0073510520956592],[106.39913897984479,-6.0073503586517178],[106.39913828713767,-6.0070790505372065],[106.39940928682428,-6.0070783569905899],[106.39940859401496,-6.0068070489048599],[106.39886659487803,-6.0068084358007967],[106.39886728741922,-6.0070797439496113],[106.39886797999227,-6.0073510520956592]]]
+          },
+          "properties": {
+            "OBJECTID": 8,
+            "Id": 8,
+            "gridcode": 1,
+            "Shape_Length": 240.00000000186265,
+            "Shape_Area": 2700.0000000279397
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 9,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.39968305857118,-6.008162895498816],[106.39968236550035,-6.0078915874557],[106.39967959353562,-6.0068063552555788],[106.39940859401496,-6.0068070489048599],[106.39940928682428,-6.0070783569905899],[106.39913828713767,-6.0070790505372065],[106.39913897984479,-6.0073503586517178],[106.39886797999227,-6.0073510520956592],[106.39887005790253,-6.0081649765172154],[106.39914105815728,-6.0081642829786546],[106.39968305857118,-6.008162895498816]]]
+          },
+          "properties": {
+            "OBJECTID": 9,
+            "Id": 9,
+            "gridcode": 3,
+            "Shape_Length": 480.00000000186265,
+            "Shape_Area": 10800.000000111759
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 10,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.39887005790253,-6.0081649765172154],[106.39887075060298,-6.0084362846522037],[106.39914175099182,-6.0084355910821037],[106.39914105815728,-6.0081642829786546],[106.39887005790253,-6.0081649765172154]]]
+          },
+          "properties": {
+            "OBJECTID": 10,
+            "Id": 10,
+            "gridcode": 1,
+            "Shape_Length": 120,
+            "Shape_Area": 900
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 11,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.39995475196714,-6.0084335095663324],[106.39995336552541,-6.00789089354598],[106.39968236550035,-6.0078915874557],[106.39968305857118,-6.008162895498816],[106.3996837516739,-6.008434203539168],[106.39995475196714,-6.0084335095663324]]]
+          },
+          "properties": {
+            "OBJECTID": 11,
+            "Id": 11,
+            "gridcode": 1,
+            "Shape_Length": 179.99999999813735,
+            "Shape_Area": 1799.9999999441206
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 12,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.39995752523312,-6.0095187415738298],[106.40022852603092,-6.0095180473404941],[106.40022783253249,-6.0092467393743458],[106.40049883316428,-6.0092460450383109],[106.40049813956364,-6.0089747371009494],[106.40022713906595,-6.008975431405414],[106.40022575222852,-6.0084328154592521],[106.39995475196714,-6.0084335095663324],[106.39995752523312,-6.0095187415738298]]]
+          },
+          "properties": {
+            "OBJECTID": 12,
+            "Id": 12,
+            "gridcode": 1,
+            "Shape_Length": 359.99999999813735,
+            "Shape_Area": 4499.9999999720603
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 13,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.40023130034341,-6.0106032791774924],[106.40022991312341,-6.010060663264543],[106.39995891205737,-6.0100613575610069],[106.39996029900911,-6.0106039735370835],[106.40023130034341,-6.0106032791774924]]]
+          },
+          "properties": {
+            "OBJECTID": 13,
+            "Id": 13,
+            "gridcode": 1,
+            "Shape_Length": 179.99999999627471,
+            "Shape_Area": 1799.9999999441206
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 14,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.40050230164584,-6.0106025846836069],[106.40050160788576,-6.0103312767600947],[106.40077260902214,-6.0103305821634923],[106.40104361012664,-6.0103298874326025],[106.40104291613017,-6.0100585795694652],[106.40077191515982,-6.0100592742687722],[106.40077052753084,-6.009516658471016],[106.40049952679682,-6.0095173529728907],[106.40049883316428,-6.0092460450383109],[106.40022783253249,-6.0092467393743458],[106.40022852603092,-6.0095180473404941],[106.39995752523312,-6.0095187415738298],[106.39995891205737,-6.0100613575610069],[106.40022991312341,-6.010060663264543],[106.40023130034341,-6.0106032791774924],[106.40050230164584,-6.0106025846836069]]]
+          },
+          "properties": {
+            "OBJECTID": 14,
+            "Id": 14,
+            "gridcode": 3,
+            "Shape_Length": 539.99999999627471,
+            "Shape_Area": 9900.0000002235174
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 15,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.40077330291636,-6.0106018900554288],[106.40077260902214,-6.0103305821634923],[106.40050160788576,-6.0103312767600947],[106.40050230164584,-6.0106025846836069],[106.40077330291636,-6.0106018900554288]]]
+          },
+          "properties": {
+            "OBJECTID": 15,
+            "Id": 15,
+            "gridcode": 2,
+            "Shape_Length": 119.99999999813735,
+            "Shape_Area": 899.99999997206032
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 16,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.40023130034341,-6.0106032791774924],[106.40023199400125,-6.0108745871298419],[106.40050299543782,-6.0108738926043861],[106.40050230164584,-6.0106025846836069],[106.40023130034341,-6.0106032791774924]]]
+          },
+          "properties": {
+            "OBJECTID": 16,
+            "Id": 16,
+            "gridcode": 1,
+            "Shape_Length": 120.00000000558794,
+            "Shape_Area": 900.00000008381903
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 17,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.40213178209389,-6.011954953528547],[106.40213039267675,-6.0114123380854911],[106.40185939116328,-6.0114130334799567],[106.40185869663675,-6.0111417257226707],[106.40158769522556,-6.0111424209512236],[106.40158700086511,-6.0108711131595696],[106.40131599955615,-6.0108718082222232],[106.40131461119923,-6.0103291925674256],[106.40104361012664,-6.0103298874326025],[106.40104430415499,-6.0106011952929563],[106.40077330291636,-6.0106018900554288],[106.4007746908005,-6.0111445058310506],[106.40104569230741,-6.0111438110054145],[106.40104708058745,-6.0116864267067527],[106.4013180823308,-6.0116857316836336],[106.40131738804067,-6.0114144238659533],[106.40158838961794,-6.0114137287401102],[106.40158908404223,-6.0116850365261962],[106.40186008572174,-6.0116843412344405],[106.40186078031211,-6.011955648986226],[106.40213178209389,-6.011954953528547]]]
+          },
+          "properties": {
+            "OBJECTID": 17,
+            "Id": 17,
+            "gridcode": 1,
+            "Shape_Length": 719.99999999254942,
+            "Shape_Area": 11699.999999916181
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 18,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.40240347873439,-6.0122255656223071],[106.40240278384374,-6.0119542579365435],[106.40213178209389,-6.011954953528547],[106.40213247685035,-6.0122262612459227],[106.40240347873439,-6.0122255656223071]]]
+          },
+          "properties": {
+            "OBJECTID": 18,
+            "Id": 18,
+            "gridcode": 1,
+            "Shape_Length": 120.00000000186265,
+            "Shape_Area": 900.00000002793968
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 19,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.40213664605956,-6.0138541074920537],[106.40213595111155,-6.0135827997912692],[106.40186494852463,-6.0135834954385921],[106.40186564333843,-6.0138548031709833],[106.40213664605956,-6.0138541074920537]]]
+          },
+          "properties": {
+            "OBJECTID": 19,
+            "Id": 19,
+            "gridcode": 1,
+            "Shape_Length": 120.00000000558794,
+            "Shape_Area": 900.00000008381903
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 20,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.40240903900903,-6.0143960270087637],[106.40240834386293,-6.0141247193451459],[106.40240764874876,-6.0138534116787588],[106.40213664605956,-6.0138541074920537],[106.40213803605137,-6.0143967228852855],[106.40240903900903,-6.0143960270087637]]]
+          },
+          "properties": {
+            "OBJECTID": 20,
+            "Id": 20,
+            "gridcode": 1,
+            "Shape_Length": 180.00000000186265,
+            "Shape_Area": 1800.0000000558794
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 21,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.40268073724698,-6.0146666386270757],[106.40267934665441,-6.0141240233658637],[106.40240834386293,-6.0141247193451459],[106.40240903900903,-6.0143960270087637],[106.40240973418705,-6.0146673346695962],[106.40268073724698,-6.0146666386270757]]]
+          },
+          "properties": {
+            "OBJECTID": 21,
+            "Id": 21,
+            "gridcode": 2,
+            "Shape_Length": 179.99999999627471,
+            "Shape_Area": 1799.9999999441206
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 22,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.40268143259117,-6.0149379462535544],[106.40268073724698,-6.0146666386270757],[106.40240973418705,-6.0146673346695962],[106.40241042939701,-6.0149386423276932],[106.40268143259117,-6.0149379462535544]]]
+          },
+          "properties": {
+            "OBJECTID": 22,
+            "Id": 22,
+            "gridcode": 1,
+            "Shape_Length": 120.00000000372529,
+            "Shape_Area": 900.00000005587935
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 23,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.40403784020947,-6.0154770787952367],[106.40403714413014,-6.0152057713325036],[106.40376614096151,-6.0152064681102448],[106.40376683690657,-6.0154777756046283],[106.40403784020947,-6.0154770787952367]]]
+          },
+          "properties": {
+            "OBJECTID": 23,
+            "Id": 23,
+            "gridcode": 2,
+            "Shape_Length": 119.99999999627471,
+            "Shape_Area": 899.99999994412065
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 24,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.40376753288359,-6.0157490830962077],[106.40403853632074,-6.0157483862551659],[106.40403784020947,-6.0154770787952367],[106.40376683690657,-6.0154777756046283],[106.40376753288359,-6.0157490830962077]]]
+          },
+          "properties": {
+            "OBJECTID": 24,
+            "Id": 24,
+            "gridcode": 1,
+            "Shape_Length": 119.99999999254942,
+            "Shape_Area": 899.99999988824129
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 25,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.40349722528919,-6.016021087323363],[106.40376822889259,-6.0160203905850862],[106.40376753288359,-6.0157490830962077],[106.40349652941447,-6.0157497798028405],[106.40349722528919,-6.016021087323363]]]
+          },
+          "properties": {
+            "OBJECTID": 25,
+            "Id": 25,
+            "gridcode": 2,
+            "Shape_Length": 120.00000000558794,
+            "Shape_Area": 900.00000008381903
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 26,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.40376962100646,-6.016563005554449],[106.40376892493354,-6.0162916980711607],[106.40349792119588,-6.0162923948410807],[106.40349861713452,-6.0165637023560139],[106.40376962100646,-6.016563005554449]]]
+          },
+          "properties": {
+            "OBJECTID": 26,
+            "Id": 26,
+            "gridcode": 1,
+            "Shape_Length": 119.99999999813735,
+            "Shape_Area": 899.99999997206032
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 27,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.40458402547782,-6.017103529111572],[106.40512603347099,-6.0171021341719158],[106.40512533666272,-6.0168308268524298],[106.40539634047707,-6.0168301292126261],[106.40539564356651,-6.0165588219221],[106.40485363617444,-6.0165602170039225],[106.40485433281643,-6.0168315243578023],[106.40458332893812,-6.0168322217287438],[106.40458402547782,-6.017103529111572]]]
+          },
+          "properties": {
+            "OBJECTID": 27,
+            "Id": 27,
+            "gridcode": 1,
+            "Shape_Length": 300.00000000372529,
+            "Shape_Area": 3600.0000000558794
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 28,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.40431371787062,-6.0173755337914301],[106.40458472204949,-6.0173748364915971],[106.40458402547782,-6.017103529111572],[106.40431302143323,-6.0171042263797423],[106.40431371787062,-6.0173755337914301]]]
+          },
+          "properties": {
+            "OBJECTID": 28,
+            "Id": 28,
+            "gridcode": 1,
+            "Shape_Length": 120.00000000186265,
+            "Shape_Area": 900.00000002793968
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 29,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.40404271365978,-6.0173762309568177],[106.40404340999486,-6.0176475383973758],[106.40431441433998,-6.0176468412003317],[106.40431371787062,-6.0173755337914301],[106.40404271365978,-6.0173762309568177]]]
+          },
+          "properties": {
+            "OBJECTID": 29,
+            "Id": 29,
+            "gridcode": 1,
+            "Shape_Length": 119.99999999627471,
+            "Shape_Area": 899.99999994412065
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 30,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.40675554523284,-6.0184544817312453],[106.4067548474587,-6.018183174615821],[106.40648384313296,-6.0181838730863451],[106.40648454077279,-6.0184551802334791],[106.40675554523284,-6.0184544817312453]]]
+          },
+          "properties": {
+            "OBJECTID": 30,
+            "Id": 30,
+            "gridcode": 2,
+            "Shape_Length": 120,
+            "Shape_Area": 900
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 31,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.4067569408772,-6.018997095953778],[106.40675554523284,-6.0184544817312453],[106.40648454077279,-6.0184551802334791],[106.40648384313296,-6.0181838730863451],[106.4062128387752,-6.018184571422406],[106.40621423381822,-6.0187271857772799],[106.40648523844462,-6.0187264873778092],[106.40648593614848,-6.018997794519434],[106.4067569408772,-6.018997095953778]]]
+          },
+          "properties": {
+            "OBJECTID": 31,
+            "Id": 31,
+            "gridcode": 1,
+            "Shape_Length": 300.00000000186265,
+            "Shape_Area": 3600
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 32,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.40838366725272,-6.0192642086524435],[106.40838296857649,-6.0189929017357322],[106.40811196404009,-6.0189936011082752],[106.40811266258198,-6.0192649080567344],[106.40838366725272,-6.0192642086524435]]]
+          },
+          "properties": {
+            "OBJECTID": 32,
+            "Id": 32,
+            "gridcode": 1,
+            "Shape_Length": 120,
+            "Shape_Area": 900
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 33,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.40811755327299,-6.02116405661834],[106.40811685450664,-6.0208927496892501],[106.40784584899774,-6.020893449149507],[106.40784654762969,-6.0211647561103394],[106.40811755327299,-6.02116405661834]]]
+          },
+          "properties": {
+            "OBJECTID": 33,
+            "Id": 33,
+            "gridcode": 2,
+            "Shape_Length": 120,
+            "Shape_Area": 900
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 34,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.40838995678186,-6.0217059707780924],[106.40838925781702,-6.021434663886347],[106.40811825207139,-6.0214353635446241],[106.40811895090185,-6.0217066704681175],[106.40838995678186,-6.0217059707780924]]]
+          },
+          "properties": {
+            "OBJECTID": 34,
+            "Id": 34,
+            "gridcode": 2,
+            "Shape_Length": 119.99999999627471,
+            "Shape_Area": 899.99999994412065
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 35,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.40866166176113,-6.0219765778107766],[106.40866096262982,-6.0217052709535261],[106.40838995678186,-6.0217059707780924],[106.40839065577879,-6.0219772776670988],[106.40866166176113,-6.0219765778107766]]]
+          },
+          "properties": {
+            "OBJECTID": 35,
+            "Id": 35,
+            "gridcode": 2,
+            "Shape_Length": 120.00000000558794,
+            "Shape_Area": 900.00000008381903
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 36,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.40920437306178,-6.0222464844854251],[106.40920367362959,-6.0219751776944923],[106.40893266771141,-6.0219758778199077],[106.4089333670092,-6.0222471846426098],[106.40920437306178,-6.0222464844854251]]]
+          },
+          "properties": {
+            "OBJECTID": 36,
+            "Id": 36,
+            "gridcode": 2,
+            "Shape_Length": 119.99999999627471,
+            "Shape_Area": 899.99999994412065
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 37,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.40947607868097,-6.0225170909500783],[106.40947537908228,-6.0222457841936894],[106.40920437306178,-6.0222464844854251],[106.4089333670092,-6.0222471846426098],[106.40893266771141,-6.0219758778199077],[106.40866166176113,-6.0219765778107766],[106.40839065577879,-6.0219772776670988],[106.40838995678186,-6.0217059707780924],[106.40811895090185,-6.0217066704681175],[106.40811825207139,-6.0214353635446241],[106.40811755327299,-6.02116405661834],[106.40784654762969,-6.0211647561103394],[106.40784584899774,-6.020893449149507],[106.40811685450664,-6.0208927496892501],[106.40811615577238,-6.0206214427574389],[106.40784515039783,-6.020622142185954],[106.40784445182999,-6.0203508352196282],[106.40757344655772,-6.0203515344818888],[106.40757204978691,-6.0198089204773817],[106.40730104475129,-6.0198096195416726],[106.40730034654833,-6.0195383125035802],[106.40702934161502,-6.0195390114016485],[106.40648733165231,-6.0195404087943043],[106.40648802945226,-6.0198117159275482],[106.40621702428849,-6.0198124144538427],[106.40621772198611,-6.0200837216160883],[106.405946716656,-6.0200844200395807],[106.4059488095379,-6.0208983416046502],[106.4062198152711,-6.0208976430860588],[106.40622121095453,-6.0214402573855672],[106.40676322286241,-6.0214388598179758],[106.40676392102093,-6.0217101669001218],[106.40757693904563,-6.0217080694445446],[106.40757763763936,-6.0219793764287779],[106.40811964976437,-6.0219779773888726],[106.40812034865895,-6.0222492843068389],[106.40866236092454,-6.0222478846652399],[106.40866306012001,-6.0225191915169294],[106.40947607868097,-6.0225170909500783]]]
+          },
+          "properties": {
+            "OBJECTID": 37,
+            "Id": 37,
+            "gridcode": 1,
+            "Shape_Length": 1499.9999999981374,
+            "Shape_Area": 50400.000000083819
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 38,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.40974708480378,-6.0225163904920089],[106.40974638507068,-6.0222450837674],[106.40947537908228,-6.0222457841936894],[106.40947607868097,-6.0225170909500783],[106.40974708480378,-6.0225163904920089]]]
+          },
+          "properties": {
+            "OBJECTID": 38,
+            "Id": 38,
+            "gridcode": 2,
+            "Shape_Length": 120,
+            "Shape_Area": 900
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 39,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.41164412676424,-6.0225114835178664],[106.41164342609031,-6.0222401770158811],[106.41137242032674,-6.0222408783840438],[106.41137312086627,-6.0225121849178498],[106.41164412676424,-6.0225114835178664]]]
+          },
+          "properties": {
+            "OBJECTID": 39,
+            "Id": 39,
+            "gridcode": 2,
+            "Shape_Length": 120.00000000186265,
+            "Shape_Area": 900.00000002793968
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 40,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.41110351584281,-6.0230554993061975],[106.41110281537343,-6.022784192746089],[106.41083180927677,-6.0227848939087645],[106.41083250961174,-6.0230562005006831],[106.41110351584281,-6.0230554993061975]]]
+          },
+          "properties": {
+            "OBJECTID": 40,
+            "Id": 40,
+            "gridcode": 2,
+            "Shape_Length": 120.00000000186265,
+            "Shape_Area": 900.00000002793968
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 41,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.41191793618495,-6.0235960078361996],[106.41191583347057,-6.0227820884506738],[106.41164482747033,-6.0227827900170432],[106.41164412676424,-6.0225114835178664],[106.41137312086627,-6.0225121849178498],[106.41137242032674,-6.0222408783840438],[106.41137171981936,-6.0219695718474622],[106.41110071415804,-6.0219702730492548],[106.41110001381719,-6.0216989664780689],[106.41082900825815,-6.0216996675135057],[106.41082830808381,-6.0214283609077714],[106.41055730262703,-6.021429061776864],[106.4105566026192,-6.0211577551365352],[106.41028559726468,-6.0211584558392968],[106.41028489742334,-6.0208871491643654],[106.41001389217108,-6.0208878497008049],[106.41001319249622,-6.0206165429913607],[106.40974218734624,-6.0206172433614933],[106.40974148783785,-6.0203459366174918],[106.40947048279013,-6.0203466368213299],[106.40946978344819,-6.0200753300427596],[106.40919877850271,-6.0200760300803138],[106.40919807932723,-6.019804723267165],[106.40892707448404,-6.0198054231384486],[106.40892637547499,-6.0195341162908278],[106.40838436596101,-6.0195355155663828],[106.40838366725272,-6.0192642086524435],[106.40811266258198,-6.0192649080567344],[106.40811196404009,-6.0189936011082752],[106.40784095947163,-6.0189943003463355],[106.40784026109611,-6.0187229933633288],[106.4075692566299,-6.0187236924351746],[106.40756855842078,-6.018452385417727],[106.40729755405683,-6.0184530843233688],[106.40729685601407,-6.018181777271387],[106.40702585175241,-6.0181824760108364],[106.40702515387599,-6.0179111689243596],[106.4067541497166,-6.0179118674976273],[106.40675345200654,-6.0176405603766474],[106.40648244794941,-6.0176412587837467],[106.40648175040567,-6.0173699516283188],[106.40621074645081,-6.017370649869263],[106.40621004907339,-6.0170993426793409],[106.4059390452208,-6.0171000407541424],[106.4059383480097,-6.0168287335297164],[106.40566734425938,-6.0168294314383877],[106.40566595020174,-6.0162868169179404],[106.40539494668796,-6.0162875146288046],[106.40539355302687,-6.0157449000338366],[106.40512254974961,-6.0157455975469194],[106.40512115648502,-6.0152029828775797],[106.4048501534443,-6.0152036801929052],[106.40484945699423,-6.0149323728223889],[106.40457845405574,-6.0149330699716499],[106.40457775777189,-6.0146617625666794],[106.40430675493566,-6.0146624595498883],[106.40430605881802,-6.0143911521105204],[106.40403505608404,-6.0143918489276897],[106.40403366421315,-6.013849233977302],[106.40376266171566,-6.0138499305967921],[106.40376196596237,-6.0135786230857793],[106.40349096356709,-6.0135793195392608],[106.40349026797998,-6.0133080119938676],[106.40321926568696,-6.0133087082813512],[106.40321787487699,-6.0127660931189197],[106.40294687282041,-6.0127667892087864],[106.40294617759754,-6.0124954815918201],[106.40267517564322,-6.0124961775157209],[106.40267448058648,-6.0122248698643608],[106.40240347873439,-6.0122255656223071],[106.40213247685035,-6.0122262612459227],[106.40213386645905,-6.0127688766723386],[106.40186286427473,-6.0127695722248387],[106.40186494852463,-6.0135834954385921],[106.40213595111155,-6.0135827997912692],[106.40213664605956,-6.0138541074920537],[106.40240764874876,-6.0138534116787588],[106.40240834386293,-6.0141247193451459],[106.40267934665441,-6.0141240233658637],[106.40268073724698,-6.0146666386270757],[106.40268143259117,-6.0149379462535544],[106.40295243575339,-6.0149372500450236],[106.40295174027496,-6.0146659424501721],[106.40322274327103,-6.0146652461388825],[106.40322204769031,-6.014393938572927],[106.40376405331811,-6.0143925456104803],[106.40376474916728,-6.014663853113154],[106.40322274327103,-6.0146652461388825],[106.40322343888369,-6.0149365537021033],[106.40295243575339,-6.0149372500450236],[106.40295313126377,-6.0152085576370906],[106.40268212796731,-6.0152092538772459],[106.40268282337537,-6.0154805614981681],[106.40241181991271,-6.0154812576355461],[106.40241321055616,-6.0160238729323225],[106.40295521798656,-6.0160224803966722],[106.40295452238036,-6.0157511728128803],[106.40349652941447,-6.0157497798028405],[106.4034958335717,-6.0154784722796171],[106.40376683690657,-6.0154777756046283],[106.40376614096151,-6.0152064681102448],[106.40403714413014,-6.0152057713325036],[106.40403784020947,-6.0154770787952367],[106.40403853632074,-6.0157483862551659],[106.40376753288359,-6.0157490830962077],[106.40376822889259,-6.0160203905850862],[106.40349722528919,-6.016021087323363],[106.40349792119588,-6.0162923948410807],[106.40376892493354,-6.0162916980711607],[106.40376962100646,-6.016563005554449],[106.40404062484639,-6.0165623086184565],[106.40404132108556,-6.0168336160673253],[106.40377031711134,-6.0168343130349671],[106.40377170941699,-6.0173769279877609],[106.40404271365978,-6.0173762309568177],[106.40431371787062,-6.0173755337914301],[106.40431302143323,-6.0171042263797423],[106.40458402547782,-6.017103529111572],[106.40458332893812,-6.0168322217287438],[106.40485433281643,-6.0168315243578023],[106.40485363617444,-6.0165602170039225],[106.40539564356651,-6.0165588219221],[106.40539634047707,-6.0168301292126261],[106.4053970374196,-6.0171014365004298],[106.40566804133623,-6.0171007386945048],[106.40566943558591,-6.0176433531983466],[106.40594043973908,-6.0176426551945976],[106.40594113704624,-6.0179139624106943],[106.40621214130172,-6.0179132642407955],[106.4062128387752,-6.018184571422406],[106.40648384313296,-6.0181838730863451],[106.4067548474587,-6.018183174615821],[106.40675554523284,-6.0184544817312453],[106.4067569408772,-6.018997095953778],[106.40675763874742,-6.0192684030608845],[106.40702864357841,-6.0192677043290281],[106.40702934161502,-6.0195390114016485],[106.40730034654833,-6.0195383125035802],[106.40730104475129,-6.0198096195416726],[106.40757204978691,-6.0198089204773817],[106.40757344655772,-6.0203515344818888],[106.40784445182999,-6.0203508352196282],[106.40784515039783,-6.020622142185954],[106.40811615577238,-6.0206214427574389],[106.40811685450664,-6.0208927496892501],[106.40811755327299,-6.02116405661834],[106.40811825207139,-6.0214353635446241],[106.40838925781702,-6.021434663886347],[106.40838995678186,-6.0217059707780924],[106.40866096262982,-6.0217052709535261],[106.40866166176113,-6.0219765778107766],[106.40893266771141,-6.0219758778199077],[106.40920367362959,-6.0219751776944923],[106.40920437306178,-6.0222464844854251],[106.40947537908228,-6.0222457841936894],[106.40974638507068,-6.0222450837674],[106.40974708480378,-6.0225163904920089],[106.41028909695306,-6.0225149891721923],[106.41028979698709,-6.0227862958304179],[106.41083180927677,-6.0227848939087645],[106.41110281537343,-6.022784192746089],[106.41110351584281,-6.0230554993061975],[106.41110421634433,-6.0233268058635003],[106.41137522267769,-6.0233261045026287],[106.41137592334577,-6.0235974110253245],[106.41191793618495,-6.0235960078361996]]]
+          },
+          "properties": {
+            "OBJECTID": 41,
+            "Id": 41,
+            "gridcode": 3,
+            "Shape_Length": 5700.0000000018626,
+            "Shape_Area": 206100.00000022352
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 42,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.41191793618495,-6.0235960078361996],[106.4121889425563,-6.0235953060397627],[106.41218824148491,-6.0233239996125505],[106.4124592476897,-6.0233232977133708],[106.41245854651606,-6.0230519913152092],[106.41272955255425,-6.0230512893132975],[106.41272885127836,-6.0227799829441757],[106.41245784537458,-6.02278068491424],[106.41245574214312,-6.0219667656948248],[106.4121847366104,-6.0219674674348038],[106.41218403573197,-6.0216961609909179],[106.41191303030151,-6.0216968625645162],[106.41191232958963,-6.0214255560860561],[106.41164132426137,-6.0214262574932871],[106.41164062371601,-6.0211549509802103],[106.41136961849,-6.0211556522210845],[106.41136821776446,-6.0206130391229493],[106.41109721277506,-6.0206137401656656],[106.41109651259485,-6.020342433580649],[106.4108255077077,-6.0203431344570379],[106.41082480769398,-6.0200718278374232],[106.41028279809198,-6.0200732291230707],[106.4102820983791,-6.0198019224370505],[106.41001109366428,-6.0198026228463268],[106.41001039411786,-6.0195313161258097],[106.40973938950529,-6.0195320163688022],[106.40973869012529,-6.019260709613695],[106.40838366725272,-6.0192642086524435],[106.40838436596101,-6.0195355155663828],[106.40892637547499,-6.0195341162908278],[106.40892707448404,-6.0198054231384486],[106.40919807932723,-6.019804723267165],[106.40919877850271,-6.0200760300803138],[106.40946978344819,-6.0200753300427596],[106.40947048279013,-6.0203466368213299],[106.40974148783785,-6.0203459366174918],[106.40974218734624,-6.0206172433614933],[106.41001319249622,-6.0206165429913607],[106.41001389217108,-6.0208878497008049],[106.41028489742334,-6.0208871491643654],[106.41028559726468,-6.0211584558392968],[106.4105566026192,-6.0211577551365352],[106.41055730262703,-6.021429061776864],[106.41082830808381,-6.0214283609077714],[106.41082900825815,-6.0216996675135057],[106.41110001381719,-6.0216989664780689],[106.41110071415804,-6.0219702730492548],[106.41137171981936,-6.0219695718474622],[106.41137242032674,-6.0222408783840438],[106.41164342609031,-6.0222401770158811],[106.41164412676424,-6.0225114835178664],[106.41164482747033,-6.0227827900170432],[106.41191583347057,-6.0227820884506738],[106.41191793618495,-6.0235960078361996]]]
+          },
+          "properties": {
+            "OBJECTID": 42,
+            "Id": 42,
+            "gridcode": 1,
+            "Shape_Length": 1919.9999999981374,
+            "Shape_Area": 53999.999999776483
+          }
+        },
+        {
+          "type": "Feature",
+          "id": 43,
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[106.40974708480378,-6.0225163904920089],[106.40974778456898,-6.0227876972138112],[106.41001879079407,-6.0227869965893985],[106.41001949072579,-6.0230583032767084],[106.41056150334855,-6.0230569015605964],[106.41056220358121,-6.0233282081815114],[106.41083320997883,-6.0233275070897951],[106.41083391037806,-6.0235988136761156],[106.41110491687799,-6.0235981124180116],[106.41110561744377,-6.023869418969749],[106.41137662404599,-6.0238687175452457],[106.41137592334577,-6.0235974110253245],[106.41137522267769,-6.0233261045026287],[106.41110421634433,-6.0233268058635003],[106.41110351584281,-6.0230554993061975],[106.41083250961174,-6.0230562005006831],[106.41083180927677,-6.0227848939087645],[106.41028979698709,-6.0227862958304179],[106.41028909695306,-6.0225149891721923],[106.40974708480378,-6.0225163904920089]]]
+          },
+          "properties": {
+            "OBJECTID": 43,
+            "Id": 43,
+            "gridcode": 1,
+            "Shape_Length": 659.99999999441206,
+            "Shape_Area": 8999.9999998882413
+          }
+        }
+      ]
+    };
+
+    // ==================== INISIALISASI PETA ====================
+    const map = L.map('map').setView([-6.005, 106.398], 14);
+
+    // Layer Dasar
+    const basemaps = {
+      'osm': L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }),
+      'satellite': L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: '© Esri'
+      }),
+      'terrain': L.tileLayer('https://stamen-tiles.a.ssl.fastly.net/terrain/{z}/{x}/{y}.jpg', {
+        attribution: '© Stamen Design'
+      })
+    };
+
+    let currentBasemap = 'satellite';
+    basemaps[currentBasemap].addTo(map);
+
+    // ==================== TOGGLE CONTROLS ====================
+    // Toggle Panel Kanan
+    document.getElementById('togglePanelBtn').addEventListener('click', function() {
+        const rightPanel = document.getElementById('rightPanel');
+        rightPanel.style.display = rightPanel.style.display === 'none' ? 'block' : 'none';
+    });
+
+    // Toggle Statistics Panel
+    document.getElementById('statsToggle').addEventListener('click', function() {
+        const statsPanel = document.getElementById('statsPanel');
+        statsPanel.style.display = statsPanel.style.display === 'none' ? 'block' : 'none';
+    });
+
+    // Close Statistics Panel
+    document.getElementById('statsClose').addEventListener('click', function() {
+        document.getElementById('statsPanel').style.display = 'none';
+    });
+
+    // Collapsible Sections
+    document.querySelectorAll('.collapsible-header').forEach(header => {
+        header.addEventListener('click', function() {
+            const collapsible = this.parentElement;
+            collapsible.classList.toggle('hidden');
+            const arrow = this.querySelector('span:last-child');
+            arrow.textContent = collapsible.classList.contains('hidden') ? '▶' : '▼';
+        });
+    });
+
+    // Toggle Basemap Panel
+    document.getElementById('basemapFlipBtn').addEventListener('click', function() {
+        const basemapCard = document.getElementById('basemapCard');
+        basemapCard.classList.toggle('hidden');
+    });
+
+    // Tutup Panel Kanan
+    document.getElementById('closePanel').addEventListener('click', function() {
+        document.getElementById('rightPanel').style.display = 'none';
+    });
+
+    // Pilih Basemap
+    document.querySelectorAll('.basemap-item').forEach(item => {
+        item.addEventListener('click', function() {
+            const basemap = this.getAttribute('data-basemap');
+            
+            document.querySelectorAll('.basemap-item').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            this.classList.add('active');
+            
+            if (basemaps[currentBasemap]) {
+                map.removeLayer(basemaps[currentBasemap]);
+            }
+            
+            basemaps[basemap].addTo(map);
+            currentBasemap = basemap;
+            
+            document.getElementById('basemapCard').classList.add('hidden');
+        });
+    });
+
+    // Toolbar Controls
+    document.getElementById('zoomIn').addEventListener('click', function() {
+        map.zoomIn();
+    });
+
+    document.getElementById('zoomOut').addEventListener('click', function() {
+        map.zoomOut();
+    });
+
+    // ==================== PERBAIKAN FUNGSIONALITAS ====================
+
+    // Event handler untuk tombol yang belum terimplementasi
+    document.getElementById('measureBtn').addEventListener('click', function() {
+        alert('Fitur pengukuran akan segera tersedia!');
+    });
+
+    document.getElementById('drawPt').addEventListener('click', function() {
+        alert('Fitur menggambar titik akan segera tersedia!');
+    });
+
+    document.getElementById('drawPoly').addEventListener('click', function() {
+        alert('Fitur menggambar poligon akan segera tersedia!');
+    });
+
+    document.getElementById('drawRect').addEventListener('click', function() {
+        alert('Fitur menggambar persegi akan segera tersedia!');
+    });
+
+    document.getElementById('deleteBtn').addEventListener('click', function() {
+        alert('Fitur penghapusan akan segera tersedia!');
+    });
+
+    document.getElementById('printBtn').addEventListener('click', function() {
+        alert('Fitur pencetakan akan segera tersedia!');
+    });
+
+    document.getElementById('addPointBtn').addEventListener('click', function() {
+        alert('Fitur penambahan titik akan segera tersedia!');
+    });
+
+    // Upload file GeoJSON
+    document.getElementById('fileUploadArea').addEventListener('click', function() {
+        document.getElementById('fileInput').click();
+    });
+
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+        if (e.target.files.length > 0) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(event) {
+                try {
+                    const geojsonData = JSON.parse(event.target.result);
+                    alert(`File ${file.name} berhasil diunggah! ${geojsonData.features.length} fitur terdeteksi.`);
+                    // Di sini Anda bisa memproses data GeoJSON yang diunggah
+                } catch (error) {
+                    alert('Error: File tidak valid atau rusak.');
+                }
+            };
+            
+            reader.readAsText(file);
+        }
+    });
+
+    // Switch untuk layer Savi
+    document.getElementById('rasterSwitch').addEventListener('click', function() {
+        this.classList.toggle('on');
+        const isOn = this.classList.contains('on');
+        
+        if (geoJSONLayer) {
+            if (isOn) {
+                map.addLayer(geoJSONLayer);
+            } else {
+                map.removeLayer(geoJSONLayer);
+            }
+        }
+    });
+
+    // Chatbox Toggle
+    document.getElementById('chatHeader').addEventListener('click', function() {
+        const chatContent = document.getElementById('chatContent');
+        const chatInputRow = document.querySelector('.chat-input-row');
+        
+        if (chatContent.style.display === 'none') {
+            chatContent.style.display = 'flex';
+            chatInputRow.style.display = 'flex';
+            this.querySelector('span:last-child').textContent = '−';
+        } else {
+            chatContent.style.display = 'none';
+            chatInputRow.style.display = 'none';
+            this.querySelector('span:last-child').textContent = '+';
+        }
+    });
+
+    // Search Functionality
+    document.getElementById('doSearch').addEventListener('click', function() {
+        performSearch();
+    });
+
+    document.getElementById('searchInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            performSearch();
+        }
+    });
+
+    function performSearch() {
+        const query = document.getElementById('searchInput').value.trim();
+        
+        if (!query) return;
+        
+        // Cek jika query adalah koordinat
+        const coordMatch = query.match(/^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/);
+        
+        if (coordMatch) {
+            const lat = parseFloat(coordMatch[1]);
+            const lng = parseFloat(coordMatch[2]);
+            
+            if (!isNaN(lat) && !isNaN(lng)) {
+                map.setView([lat, lng], 16);
+                L.marker([lat, lng]).addTo(map)
+                    .bindPopup(`Lokasi: ${lat}, ${lng}`)
+                    .openPopup();
+                return;
+            }
+        }
+        
+        alert('Silakan gunakan format koordinat: latitude,longitude (contoh: -6.005,106.398)');
+    }
+
+    // ==================== FUNGSI UNTUK CHATBOT ====================
+
+    document.getElementById('sendChat').addEventListener('click', sendChatMessage);
+    document.getElementById('chatInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            sendChatMessage();
+        }
+    });
+
+    function sendChatMessage() {
+        const input = document.getElementById('chatInput');
+        const message = input.value.trim();
+        
+        if (!message) return;
+        
+        // Tambah pesan pengguna
+        addChatMessage(message, 'user');
+        input.value = '';
+        
+        // Simulasi respons bot
+        setTimeout(() => {
+            let response = '';
+            
+            if (message.toLowerCase().includes('luas') || message.toLowerCase().includes('area')) {
+                response = 'Total luasan Desa Tanara 21 adalah ' + document.getElementById('totalLuas').textContent;
+            } else if (message.toLowerCase().includes('poligon') || message.toLowerCase().includes('fitur')) {
+                response = 'Terdapat ' + document.getElementById('jumlahPoligon').textContent + ' poligon di area Desa Tanara 21';
+            } else if (message.toLowerCase().includes('kerapatan') || message.toLowerCase().includes('density')) {
+                response = 'Kerapatan rata-rata vegetasi adalah ' + document.getElementById('kerapatanRata').textContent;
+            } else {
+                response = 'Saya dapat membantu Anda dengan informasi tentang data Desa Tanara 21. Tanyakan tentang luasan, jumlah poligon, atau kerapatan vegetasi.';
+            }
+            
+            addChatMessage(response, 'bot');
+        }, 1000);
+    }
+
+    function addChatMessage(message, sender) {
+        const chatContent = document.getElementById('chatContent');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `chat-message chat-${sender}`;
+        messageDiv.textContent = message;
+        
+        chatContent.appendChild(messageDiv);
+        chatContent.scrollTop = chatContent.scrollHeight;
+    }
+
+    // ==================== SISTEM INTEGRASI GEOJSON ====================
+    let geoJSONLayer = null;
+    let densityChart = null;
+    let currentFilter = 'all';
+
+    // Fungsi untuk memuat dan menampilkan data GeoJSON
+    function loadGeoJSONData() {
+        // Hapus layer sebelumnya jika ada
+        if (geoJSONLayer) {
+            map.removeLayer(geoJSONLayer);
+        }
+        
+        const data = desatanara21;
+        
+        // Hitung statistik
+        calculateStatistics(data);
+        
+        // Style berdasarkan gridcode (kerapatan vegetasi)
+        function getStyleByGridcode(feature) {
+            const gridcode = feature.properties.gridcode;
+            let color, opacity, weight;
+            
+            switch(gridcode) {
+                case 1: // Sangat Rendah
+                    color = '#ffffcc';
+                    opacity = 0.7;
+                    weight = 1;
+                    break;
+                case 2: // Rendah
+                    color = '#c2e699';
+                    opacity = 0.7;
+                    weight = 1;
+                    break;
+                case 3: // Sedang-Rendah
+                    color = '#78c679';
+                    opacity = 0.7;
+                    weight = 1.5;
+                    break;
+                default:
+                    color = '#808080';
+                    opacity = 0.5;
+                    weight = 1;
+            }
+            
+            return {
+                fillColor: color,
+                color: color,
+                weight: weight,
+                opacity: 0.8,
+                fillOpacity: opacity
+            };
+        }
+        
+        // Filter function
+        function filterByDensity(feature) {
+            if (currentFilter === 'all') return true;
+            return feature.properties.gridcode.toString() === currentFilter;
+        }
+        
+        // Tambah layer GeoJSON ke peta
+        geoJSONLayer = L.geoJSON(data, {
+            style: getStyleByGridcode,
+            filter: filterByDensity,
+            onEachFeature: function(feature, layer) {
+                const props = feature.properties;
+                
+                let popupContent = `
+                    <div style="max-width: 280px;">
+                        <h4 style="margin:0 0 8px 0; color: #0a5c36; border-bottom: 2px solid #0a5c36; padding-bottom: 4px;">
+                            Desa Tanara 21 - Poligon ${props.Id}
+                        </h4>
+                        <div style="font-size: 12px; color: #333; line-height: 1.4;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <strong>Kerapatan:</strong> 
+                                <span style="color: ${getColorByGridcode(props.gridcode)}; font-weight: bold;">
+                                    ${getKerapatanLabel(props.gridcode)}
+                                </span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <strong>Gridcode:</strong> <span>${props.gridcode || 'N/A'}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <strong>Luasan:</strong> <span>${props.Shape_Area ? (props.Shape_Area / 10000).toFixed(4) + ' ha' : 'N/A'}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <strong>Shape Length:</strong> <span>${props.Shape_Length ? props.Shape_Length.toFixed(2) + ' m' : 'N/A'}</span>
+                            </div>
+                        </div>
+                `;
+                
+                // Tambahkan info tambahan berdasarkan gridcode
+                popupContent += `
+                    <div style="margin-top: 8px; padding: 6px; background: #f8f9fa; border-radius: 4px; font-size: 11px; border-left: 3px solid ${getColorByGridcode(props.gridcode)};">
+                        <strong>Indeks Vegetasi:</strong> ${getKerapatanLabel(props.gridcode)}<br>
+                        <div style="width: 100%; height: 8px; background: linear-gradient(90deg, #ffffcc, #78c679); margin: 4px 0; border-radius: 4px; position: relative;">
+                            <div style="position: absolute; left: ${((props.gridcode - 1) / 2) * 100}%; width: 50%; height: 100%; background: ${getColorByGridcode(props.gridcode)}; border-radius: 4px;"></div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 9px; color: #666;">
+                            <span>Sangat Rendah</span>
+                            <span>Sedang-Rendah</span>
+                        </div>
+                    </div>
+                `;
+                
+                popupContent += `</div>`;
+                layer.bindPopup(popupContent);
+                
+                // Tooltip
+                layer.bindTooltip(`Desa Tanara 21 - ${getKerapatanLabel(props.gridcode)} (${(props.Shape_Area / 10000).toFixed(4)} ha)`, {
+                    permanent: false,
+                    direction: 'auto',
+                    className: 'custom-tooltip'
+                });
+            }
+        }).addTo(map);
+        
+        // Fit bounds ke data
+        map.fitBounds(geoJSONLayer.getBounds());
+        
+        console.log(`Data Desa Tanara 21 berhasil dimuat - ${data.features.length} fitur`);
+    }
+
+    // Fungsi untuk mendapatkan label kerapatan
+    function getKerapatanLabel(gridcode) {
+        switch(gridcode) {
+            case 1: return "Sangat Rendah";
+            case 2: return "Rendah";
+            case 3: return "Sedang-Rendah";
+            default: return "Tidak Diketahui";
+        }
+    }
+
+    // Fungsi untuk menghitung statistik
+    function calculateStatistics(data) {
+        let totalLuasan = 0;
+        let jumlahPoligon = data.features.length;
+        let luasanMax = 0;
+        let luasanMin = Infinity;
+        let kerapatanRata = 0;
+        
+        const densityCount = {
+            1: 0, 2: 0, 3: 0
+        };
+        
+        data.features.forEach(feature => {
+            const luasan = feature.properties.Shape_Area / 10000; // Convert dari m² ke hektar
+            const gridcode = feature.properties.gridcode || 1;
+            
+            totalLuasan += luasan;
+            densityCount[gridcode]++;
+            
+            if (luasan > luasanMax) luasanMax = luasan;
+            if (luasan < luasanMin) luasanMin = luasan;
+            kerapatanRata += gridcode;
+        });
+        
+        kerapatanRata = (kerapatanRata / jumlahPoligon).toFixed(1);
+        
+        // Update statistik panel
+        document.getElementById('totalLuas').textContent = totalLuasan.toFixed(4) + ' ha';
+        document.getElementById('jumlahPoligon').textContent = jumlahPoligon;
+        document.getElementById('kerapatanRata').textContent = kerapatanRata;
+        document.getElementById('luasMax').textContent = luasanMax.toFixed(4) + ' ha';
+        document.getElementById('luasMin').textContent = luasanMin.toFixed(4) + ' ha';
+        
+        // Update detail kerapatan
+        document.getElementById('detailSangatRendah').textContent = densityCount[1] + ' poligon';
+        document.getElementById('detailRendah').textContent = densityCount[2] + ' poligon';
+        document.getElementById('detailSedangRendah').textContent = densityCount[3] + ' poligon';
+        
+        // Update data display
+        document.getElementById('dataSangatRendah').textContent = densityCount[1] + ' poligon';
+        document.getElementById('dataRendah').textContent = densityCount[2] + ' poligon';
+        document.getElementById('dataSedangRendah').textContent = densityCount[3] + ' poligon';
+        document.getElementById('dataEVI').textContent = kerapatanRata;
+        
+        // Update chart
+        updateDensityChart(densityCount);
+    }
+
+    // Fungsi untuk update chart kerapatan
+    function updateDensityChart(densityCount) {
+        const ctx = document.getElementById('densityChart').getContext('2d');
+        
+        if (densityChart) {
+            densityChart.destroy();
+        }
+        
+        densityChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Sangat Rendah', 'Rendah', 'Sedang-Rendah'],
+                datasets: [{
+                    label: 'Distribusi Kerapatan',
+                    data: [
+                        densityCount[1],
+                        densityCount[2],
+                        densityCount[3]
+                    ],
+                    backgroundColor: [
+                        '#ffffcc',
+                        '#c2e699',
+                        '#78c679'
+                    ],
+                    borderColor: [
+                        '#d9d9a3',
+                        '#a8c97f',
+                        '#5fa85a'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 12,
+                            font: {
+                                size: 10
+                            }
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Distribusi Kerapatan Savi',
+                        font: {
+                            size: 12
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Fungsi untuk mendapatkan warna berdasarkan gridcode
+    function getColorByGridcode(gridcode) {
+        switch(gridcode) {
+            case 1: return '#ffffcc';
+            case 2: return '#c2e699';
+            case 3: return '#78c679';
+            default: return '#808080';
+        }
+    }
+
+    // Filter functionality
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Update active button
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Update current filter
+            currentFilter = this.getAttribute('data-density');
+            
+            // Reload GeoJSON data with filter
+            loadGeoJSONData();
+        });
+    });
+
+    // Download Data GeoJSON
+    document.getElementById('downloadData').addEventListener('click', function() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(desatanara21, null, 2));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", "desa_tanara_21.geojson");
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+        
+        alert('Data GeoJSON Desa Tanara 21 berhasil diunduh!');
+    });
+
+    // Screenshot functionality
+    document.getElementById('screenshot').addEventListener('click', function() {
+        alert('Fitur screenshot akan segera tersedia!');
+    });
+
+    // Export Report
+    document.getElementById('exportReport').addEventListener('click', function() {
+        alert('Fitur export laporan PDF akan segera tersedia!');
+    });
+
+    // ==================== LEGENDA DINAMIS ====================
+    function updateLegend() {
+        const legend = L.control({ position: 'bottomright' });
+        
+        legend.onAdd = function(map) {
+            const div = L.DomUtil.create('div', 'info legend');
+            div.style.background = 'white';
+            div.style.padding = '10px';
+            div.style.borderRadius = '5px';
+            div.style.boxShadow = '0 0 10px rgba(0,0,0,0.2)';
+            
+            const grades = [1, 2, 3];
+            const labels = [
+                'Sangat Rendah (1)',
+                'Rendah (2)', 
+                'Sedang-Rendah (3)'
+            ];
+            const colors = [
+                '#ffffcc', '#c2e699', '#78c679'
+            ];
+            
+            let legendHTML = '<h4 style="margin:0 0 8px 0;">Kerapatan Desa Tanara 21</h4>';
+            
+            for (let i = 0; i < grades.length; i++) {
+                legendHTML += `
+                    <div style="display: flex; align-items: center; margin: 4px 0;">
+                        <div style="width: 20px; height: 15px; background: ${colors[i]}; margin-right: 8px; border: 1px solid #666;"></div>
+                        <span style="font-size: 12px;">${labels[i]}</span>
+                    </div>
+                `;
+            }
+            
+            div.innerHTML = legendHTML;
+            return div;
+        };
+        
+        legend.addTo(map);
+    }
+
+    // ==================== KELAS KERAPATAN ====================
+    const CLASSES = [
+      { id: 'low-medium', label: 'Sedang-Rendah', color: '#78c679' },
+      { id: 'low', label: 'Rendah', color: '#c2e699' },
+      { id: 'very-low', label: 'Sangat Rendah', color: '#ffffcc' }
+    ];
+
+    // Render Kelas
+    function renderClasses() {
+      const classesList = document.getElementById('classesList');
+      classesList.innerHTML = '';
+      
+      CLASSES.forEach(cls => {
+        const item = document.createElement('div');
+        item.className = 'class-item';
+        item.innerHTML = `
+          <div class="class-color" style="background:${cls.color}"></div>
+          <div class="class-label">${cls.label}</div>
+          <div class="switch"><div class="knob"></div></div>
+        `;
+        classesList.appendChild(item);
+        
+        // Switch event
+        const switchEl = item.querySelector('.switch');
+        switchEl.addEventListener('click', function() {
+          this.classList.toggle('on');
+        });
+        switchEl.classList.add('on');
+      });
+    }
+
+    // ==================== FUNGSI UNTUK RESPONSIVITAS ====================
+
+    function handleResize() {
+        const width = window.innerWidth;
+        
+        if (width <= 768) {
+            // Mode mobile
+            document.querySelector('.nav-menu').style.display = 'none';
+            document.querySelector('.stats-toggle-btn').style.display = 'none';
+        } else {
+            // Mode desktop
+            document.querySelector('.nav-menu').style.display = 'flex';
+            document.querySelector('.stats-toggle-btn').style.display = 'flex';
+        }
+    }
+
+    window.addEventListener('resize', handleResize);
+
+    // ==================== INISIALISASI ====================
+    document.addEventListener('DOMContentLoaded', function() {
+        renderClasses();
+        updateLegend();
+        
+        // Load data Desa Tanara 21
+        setTimeout(() => {
+            loadGeoJSONData();
+        }, 1000);
+        
+        // Scale update
+        map.on('zoomend', function() {
+            const zoom = map.getZoom();
+            const scale = Math.round(591657550 / Math.pow(2, zoom - 1));
+            document.getElementById('scaleBox').textContent = `Skala: 1:${scale.toLocaleString()}`;
+        });
+        map.fire('zoomend');
+        
+        // Panggil sekali saat load
+        handleResize();
+        
+        // Tampilkan panel statistik secara default
+        document.getElementById('statsPanel').style.display = 'block';
+        
+        // Sembunyikan panel kanan secara default
+        document.getElementById('rightPanel').style.display = 'none';
+    });
+
+  </script>
+
+</body>
+</html>
